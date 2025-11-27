@@ -1,1 +1,51 @@
-<p>login works!</p>
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <h2 class="fw-bold">HSK PRO BLOKER</h2>
+      <p class="text-muted">Stock Monitoring System</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input 
+          type="text" 
+          class="form-control" 
+          formControlName="username"
+          placeholder="Enter username">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input 
+          type="password" 
+          class="form-control" 
+          formControlName="password"
+          placeholder="Enter password">
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn btn-primary w-100 mb-3"
+        [disabled]="loginForm.invalid || isLoading">
+        <span *ngIf="!isLoading">Login</span>
+        <span *ngIf="isLoading">
+          <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+        </span>
+      </button>
+
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+    </form>
+
+    <div class="demo-credentials">
+      <p class="text-muted mb-2"><small>Demo Credentials:</small></p>
+      <small>
+        RECEIVING: phylon_c_in / hsk<br>
+        SHIPPING: gudandjlo_a_out / hsk<br>
+        MANAGEMENT: kiki / kiki
+      </small>
+    </div>
+  </div>
+</div>

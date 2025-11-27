@@ -1,0 +1,19 @@
+.stat-card {
+  padding: 20px;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stat-cyan { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+.stat-green { background: linear-gradient(135deg, #28a745 0%, #218838 100%); }
+.stat-orange { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: #333; }
+.stat-red { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+
+.stat-value { font-size: 2rem; font-weight: bold; }
+.stat-label { font-size: 0.9rem; opacity: 0.9; }
+
+.card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; border: none; }
+.card-header { background: #f8f9fa; border-bottom: 1px solid #dee2e6; }

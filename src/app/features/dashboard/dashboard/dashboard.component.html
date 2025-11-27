@@ -1,1 +1,79 @@
-<p>dashboard works!</p>
+<div class="container-fluid">
+  <h3 class="mb-4">Stock Monitoring</h3>
+
+  <!-- Stat Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="stat-card stat-cyan">
+        <div class="stat-value">{{ stats?.first_stock | number }}</div>
+        <div class="stat-label">First Stock</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-green">
+        <div class="stat-value">{{ stats?.receiving | number }}</div>
+        <div class="stat-label">Receiving</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-orange">
+        <div class="stat-value">{{ stats?.shipping | number }}</div>
+        <div class="stat-label">Shipping</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-red">
+        <div class="stat-value">{{ stats?.warehouse_stock | number }}</div>
+        <div class="stat-label">Warehouse Stock</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Chart Daily</h6>
+        </div>
+        <div class="card-body">
+          <canvas 
+            baseChart 
+            [data]="chartData"
+            [options]="chartOptions"
+            [type]="chartType">
+          </canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mb-0">Scan by Shift on {{ todayDate | date:'yyyy-MM-dd' }}</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>NO</th>
+                <th>SHIFT</th>
+                <th>STATUS</th>
+                <th>PERCENT</th>
+                <th>TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>GRINDING_A_IN</td>
+                <td><span class="badge bg-danger">PENDING</span></td>
+                <td>32.24%</td>
+                <td>12348</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
