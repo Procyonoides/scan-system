@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 export class NavbarComponent {
   currentDate = new Date();
   currentTime = '';
+  showDropdown = false;
   
   constructor(public authService: AuthService) {
     this.updateTime();
@@ -22,7 +23,16 @@ export class NavbarComponent {
     this.currentTime = new Date().toLocaleTimeString();
   }
 
+  toggleDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown(): void {
+    this.showDropdown = false;
+  }
+
   logout() {
+    this.closeDropdown();
     this.authService.logout();
   }
 

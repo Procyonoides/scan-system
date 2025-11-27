@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
   <div class="container-fluid">
-    <span class="navbar-brand fw-bold">HSK PRO BLOKER</span>
+    <span class="navbar-brand fw-bold">HSK PRO</span>
     <div class="d-flex align-items-center gap-3 ms-auto">
       <span class="text-white text-nowrap">
         <i class="bi bi-calendar"></i> {{ currentDate | date:'EEEE, MMMM d, yyyy' }}
@@ -10,11 +10,13 @@
         <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
           <i class="bi bi-person-circle"></i> {{ (authService.currentUser())?.username }}
         </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item" href="#">Profile</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" (click)="logout()" style="cursor: pointer;">Logout</a></li>
-        </ul>
+        <div class="dropdown-menu-custom" [class.show]="showDropdown">
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item-custom text-danger" (click)="logout()">
+            <i class="bi bi-box-arrow-right me-2"></i>
+            <span>Logout</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
