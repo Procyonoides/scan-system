@@ -12,12 +12,12 @@ export const roleGuard: CanActivateFn = (route, state) => {
   }
 
   const requiredRoles = route.data['roles'] as string[];
-  const userRole = authService.currentUser()?.role;
+  const userPosition = authService.currentUser()?.position;
 
   if (requiredRoles && requiredRoles.length > 0) {
-    if (!userRole || !requiredRoles.includes(userRole)) {
-      console.warn(`Access denied for role: ${userRole}. Required roles: ${requiredRoles.join(', ')}`);
-      router.navigate(['/dashboard']); // Redirect to dashboard jika tidak punya akses
+    if (!userPosition || !requiredRoles.includes(userPosition)) {
+      console.warn(`Access denied for position: ${userPosition}. Required positions: ${requiredRoles.join(', ')}`);
+      router.navigate(['/dashboard']);
       return false;
     }
   }

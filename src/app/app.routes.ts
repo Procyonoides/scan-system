@@ -16,19 +16,19 @@ export const routes: Routes = [
     {
         path: 'receiving',
         canActivate: [authGuard, roleGuard],
-        data: { roles: ['RECEIVING', 'SERVER', 'IT'] },
+        data: { roles: ['RECEIVING', 'IT'] },
         loadChildren: () => import('./features/receiving/receiving.routes').then(m => m.RECEIVING_ROUTES)
     },
     {
         path: 'shipping',
         canActivate: [authGuard, roleGuard],
-        data: { roles: ['SHIPPING', 'SERVER', 'IT'] },
+        data: { roles: ['SHIPPING', 'IT'] },
         loadChildren: () => import('./features/shipping/shipping.routes').then(m => m.SHIPPING_ROUTES)
     },
     {
         path: 'report',
         canActivate: [authGuard],
-        data: { roles: ['MANAGEMENT', 'SERVER', 'IT'] },
+        data: { roles: ['MANAGEMENT', 'IT'] },
         loadChildren: () => import('./features/report/monthly-report.routes').then(m => m.REPORT_ROUTES)
     },
     {
@@ -44,13 +44,13 @@ export const routes: Routes = [
     {
         path: 'master-data',
         canActivate: [authGuard, roleGuard],
-        data: { roles: ['SERVER', 'IT'] },
+        data: { roles: ['IT'] },
         loadChildren: () => import('./features/master-data/master-data.routes').then(m => m.MASTERDATA_ROUTES)
     },
     {
         path: 'user',
         canActivate: [authGuard, roleGuard],
-        data: { roles: ['SERVER', 'IT'] },
+        data: { roles: ['IT'] },
         loadChildren: () => import('./features/user/user.routes').then(m => m.USER_ROUTES)
     }
 ];

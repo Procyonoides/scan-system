@@ -1,10 +1,9 @@
 export interface User {
-  user_id: number;
+  id_user: number;
   username: string;
-  full_name: string;
-  email?: string;
-  role: 'SERVER' | 'IT' | 'MANAGEMENT' | 'SHIPPING' | 'RECEIVING';
-  status: 'ACTIVE' | 'INACTIVE';
+  position: string;
+  description?: string;
+  permissions?: string[];
 }
 
 export interface LoginRequest {
@@ -13,6 +12,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
+  success: boolean;
   token: string;
   user: User;
 }

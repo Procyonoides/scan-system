@@ -13,9 +13,9 @@ import { AuthService } from '../../../core/auth/auth.service';
 export class SidebarComponent {
   constructor(private authService: AuthService) {}
 
-  hasRole(...roles: string[]) {
-    const userRole = this.authService.currentUser()?.role;
-    return roles.includes(userRole || '');
+  hasPosition(...positions: string[]) {
+    const userPosition = this.authService.currentUser()?.position;
+    return positions.includes(userPosition || '');
   }
 
 }

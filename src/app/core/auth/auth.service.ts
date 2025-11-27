@@ -19,8 +19,7 @@ export class AuthService {
   isAuthenticated = signal(false);
 
   private permissions: UserPermissions = {
-    'SERVER': ['read_all', 'write_all', 'delete_all', 'admin', 'manage_users', 'manage_master_data'],
-    'IT': ['read_all', 'write_all', 'delete_all', 'manage_users', 'manage_master_data'],
+    'IT': ['read_all', 'write_all', 'delete_all', 'admin', 'manage_users', 'manage_master_data'],
     'MANAGEMENT': ['read_all', 'view_reports'],
     'RECEIVING': ['read', 'receive_scan', 'view_stock'],
     'SHIPPING': ['read', 'shipping_scan', 'view_stock']
@@ -33,15 +32,23 @@ export class AuthService {
   login(credentials: LoginRequest) {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        this.currentUser.set(response.user);
-        this.isAuthenticated.set(true);
-        this.router.navigate(['/dashboard']);
+        if (response.success && response.token && response.user) {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.currentUser.set(response.user);
+          this.isAuthenticated.set(true);
+          console.log('✅ Login successful:', response.user.username);
+          this.router.navigate(['/dashboard']);
+        }
       }),
       catchError(error => {
         console.error('Login failed:', error);
-        return throwError(() => error);
+        const errorMessage = error.error?.error || error.error?.message || 'Login failed';
+        return throwError(() => ({
+          success: false,
+          error: errorMessage,
+          status: error.status
+        }));
       })
     );
   }
@@ -51,6 +58,7 @@ export class AuthService {
     localStorage.removeItem('user');
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
+    console.log('✅ Logged out');
     this.router.navigate(['/auth/login']);
   }
 
@@ -61,6 +69,7 @@ export class AuthService {
       try {
         this.currentUser.set(JSON.parse(user));
         this.isAuthenticated.set(true);
+        console.log('✅ User loaded from localStorage');
       } catch (e) {
         console.error('Error parsing user data:', e);
         this.logout();
@@ -78,17 +87,15 @@ export class AuthService {
    * @returns boolean
    */
   hasPermission(permission: string): boolean {
-    const userRole = this.currentUser()?.role;
-    if (!userRole) return false;
+    const userPosition = this.currentUser()?.position;
+    if (!userPosition) return false;
     
-    const rolePermissions = this.permissions[userRole] || [];
-    return rolePermissions.includes(permission);
+    const positionPermissions = this.permissions[userPosition] || [];
+    return positionPermissions.includes(permission);
   }
 
   /**
    * Check if user has any of the provided permissions
-   * @param permissions - Array of permissions to check
-   * @returns boolean
    */
   hasAnyPermission(...permissions: string[]): boolean {
     return permissions.some(p => this.hasPermission(p));
@@ -96,8 +103,6 @@ export class AuthService {
 
   /**
    * Check if user has all provided permissions
-   * @param permissions - Array of permissions to check
-   * @returns boolean
    */
   hasAllPermissions(...permissions: string[]): boolean {
     return permissions.every(p => this.hasPermission(p));
@@ -105,28 +110,23 @@ export class AuthService {
 
   /**
    * Get all permissions for current user
-   * @returns Array of permissions
    */
   getCurrentPermissions(): string[] {
-    const userRole = this.currentUser()?.role;
-    return userRole ? this.permissions[userRole] || [] : [];
+    const userPosition = this.currentUser()?.position;
+    return userPosition ? this.permissions[userPosition] || [] : [];
   }
 
   /**
-   * Check if user has specific role
-   * @param role - Role to check
-   * @returns boolean
+   * Check if user has specific position
    */
-  hasRole(role: string): boolean {
-    return this.currentUser()?.role === role;
+  hasPosition(position: string): boolean {
+    return this.currentUser()?.position === position;
   }
 
   /**
-   * Check if user has any of the provided roles
-   * @param roles - Array of roles to check
-   * @returns boolean
+   * Check if user has any of the provided positions
    */
-  hasAnyRole(...roles: string[]): boolean {
-    return roles.includes(this.currentUser()?.role || '');
+  hasAnyPosition(...positions: string[]): boolean {
+    return positions.includes(this.currentUser()?.position || '');
   }
 }

@@ -7,18 +7,18 @@
       <i class="bi bi-speedometer2"></i> Stock Monitoring
     </a>
     <a routerLink="/receiving" routerLinkActive="active" class="nav-link" 
-       *ngIf="hasRole('RECEIVING')">
+       *ngIf="hasPosition('RECEIVING', 'IT')">
       <i class="bi bi-arrow-down-circle"></i> Scan Receiving
     </a>
     <a routerLink="/shipping" routerLinkActive="active" class="nav-link"
-       *ngIf="hasRole('SHIPPING')">
+       *ngIf="hasPosition('SHIPPING', 'IT')">
       <i class="bi bi-arrow-up-circle"></i> Scan Shipping
     </a>
     <a routerLink="/report" routerLinkActive="active" class="nav-link">
       <i class="bi bi-file-earmark-text"></i> Report
     </a>
     <a routerLink="/master-data" routerLinkActive="active" class="nav-link"
-       *ngIf="hasRole('SERVER', 'IT')">
+       *ngIf="hasPosition('IT')">
       <i class="bi bi-gear"></i> Master Data
     </a>
     <a routerLink="/transaction" routerLinkActive="active" class="nav-link">
@@ -28,7 +28,7 @@
       <i class="bi bi-boxes"></i> Stock
     </a>
     <a routerLink="/user" routerLinkActive="active" class="nav-link"
-       *ngIf="hasRole('SERVER', 'IT')">
+       *ngIf="hasPosition('IT')">
       <i class="bi bi-people"></i> User
     </a>
   </nav>
