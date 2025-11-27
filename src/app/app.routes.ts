@@ -25,7 +25,7 @@ export const routes: Routes = [
     {
         path: 'report',
         canActivate: [authGuard],
-        loadChildren: () => import('./features/report/report.routes').then(m => m.REPORT_ROUTES)
+        loadChildren: () => import('./features/report/monthly-report.routes').then(m => m.REPORT_ROUTES)
     },
     {
         path: 'transaction',
