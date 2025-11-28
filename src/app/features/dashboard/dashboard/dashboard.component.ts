@@ -12,7 +12,12 @@ import { ChartOptions, ChartType } from 'chart.js';
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  stats: any;
+  stats: any = {
+    first_stock: 0,
+    receiving: 0,
+    shipping: 0,
+    warehouse_stock: 0
+  };
   todayDate = new Date();
   receivingData: any[] = [];
   shippingData: any[] = [];
@@ -40,36 +45,44 @@ export class DashboardComponent implements OnInit {
   }
 
   loadStats() {
-    this.stockService.getStats().subscribe(data => {
-      this.stats = data;
+    this.stockService.getStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+      },
+      error: (err) => console.error('Failed to load stats:', err)
     });
   }
 
   loadChartData() {
-    this.stockService.getChartData().subscribe((data: any) => {
-      const dates = data.map((d: any) => d.date);
-      const receiving = data.map((d: any) => d.receiving);
-      const shipping = data.map((d: any) => d.shipping);
+    this.stockService.getChartData().subscribe({
+      next: (data: any) => {
+        const dates = data.map((d: any) => d.date);
+        const receiving = data.map((d: any) => d.receiving);
+        const shipping = data.map((d: any) => d.shipping);
 
-      this.chartData = {
-        labels: dates,
-        datasets: [
-          {
-            label: 'Receiving',
-            data: receiving,
-            borderColor: '#28a745',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            tension: 0.4
-          },
-          {
-            label: 'Shipping',
-            data: shipping,
-            borderColor: '#ffc107',
-            backgroundColor: 'rgba(255, 193, 7, 0.1)',
-            tension: 0.4
-          }
-        ]
-      };
+        this.chartData = {
+          labels: dates,
+          datasets: [
+            {
+              label: 'Receiving',
+              data: receiving,
+              borderColor: '#28a745',
+              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Shipping',
+              data: shipping,
+              borderColor: '#ffc107',
+              backgroundColor: 'rgba(255, 193, 7, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        };
+      },
+      error: (err) => console.error('Failed to load chart data:', err)
     });
   }
 

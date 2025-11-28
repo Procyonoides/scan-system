@@ -1,78 +1,72 @@
-<div class="container-fluid">
-  <h3 class="mb-4">Stock Monitoring</h3>
-
-  <!-- Stat Cards -->
-  <div class="row mb-4">
-    <div class="col-md-3">
-      <div class="stat-card stat-cyan">
-        <div class="stat-value">{{ stats?.first_stock | number }}</div>
-        <div class="stat-label">First Stock</div>
+<div class="row">
+  <!-- Small Card Stats -->
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>{{ stats.first_stock | number }}</h3>
+        <p>First Stock</p>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card stat-green">
-        <div class="stat-value">{{ stats?.receiving | number }}</div>
-        <div class="stat-label">Receiving</div>
+      <div class="icon">
+        <i class="fas fa-cubes"></i>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card stat-orange">
-        <div class="stat-value">{{ stats?.shipping | number }}</div>
-        <div class="stat-label">Shipping</div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card stat-red">
-        <div class="stat-value">{{ stats?.warehouse_stock | number }}</div>
-        <div class="stat-label">Warehouse Stock</div>
-      </div>
+      <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
     </div>
   </div>
 
-  <!-- Charts Row -->
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h6 class="mb-0">Chart Daily</h6>
-        </div>
-        <div class="card-body">
-          <canvas 
-            baseChart 
-            [data]="chartData"
-            [options]="chartOptions"
-            [type]="chartType">
-          </canvas>
-        </div>
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>{{ stats.receiving | number }}</h3>
+        <p>Receiving</p>
       </div>
+      <div class="icon">
+        <i class="fas fa-arrow-down"></i>
+      </div>
+      <a href="/receiving" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
     </div>
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header">
-          <h6 class="mb-0">Scan by Shift on {{ todayDate | date:'yyyy-MM-dd' }}</h6>
-        </div>
-        <div class="card-body">
-          <table class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th>NO</th>
-                <th>SHIFT</th>
-                <th>STATUS</th>
-                <th>PERCENT</th>
-                <th>TOTAL</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>GRINDING_A_IN</td>
-                <td><span class="badge bg-danger">PENDING</span></td>
-                <td>32.24%</td>
-                <td>12348</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  </div>
+
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-warning">
+      <div class="inner">
+        <h3>{{ stats.shipping | number }}</h3>
+        <p>Shipping</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-arrow-up"></i>
+      </div>
+      <a href="/shipping" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-6">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3>{{ stats.warehouse_stock | number }}</h3>
+        <p>Warehouse Stock</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-warehouse"></i>
+      </div>
+      <a href="/stock" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">Daily Chart</h3>
+      </div>
+      <div class="card-body">
+        <canvas baseChart 
+                [data]="chartData"
+                [options]="chartOptions"
+                [type]="chartType"
+                style="position: relative; height: 400px;">
+        </canvas>
       </div>
     </div>
   </div>
