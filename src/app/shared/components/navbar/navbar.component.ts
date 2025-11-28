@@ -35,17 +35,20 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private updateTime() {
     const now = new Date();
-    this.currentTime = now.toLocaleTimeString('en-US', { 
-      hour12: true,
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayName = days[now.getDay() === 0 ? 6 : now.getDay() - 1];
+    
+    this.currentDate = `${dayName} ${now.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })}`;
+    
+    this.currentTime = now.toLocaleTimeString('en-US', {
+      hour12: false,
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
-    });
-    this.currentDate = now.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
     });
   }
 

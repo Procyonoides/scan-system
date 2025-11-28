@@ -20,6 +20,7 @@ interface MasterDataItem {
   username: string;
   date_time: string;
   stock: number;
+  status: string;
 }
 
 @Component({
@@ -103,7 +104,29 @@ export class MasterDataComponent implements OnInit {
   }
 
   exportExcel() {
-    console.log('Export to Excel');
+    const headers = ['Barcode', 'Brand', 'Model', 'Color', 'Size', 'Quantity', 'Status'];
+    const rows = this.filteredData.map(item => [
+      item.original_barcode,
+      item.brand,
+      item.model,
+      item.color,
+      item.size,
+      item.quantity,
+      item.status
+    ]);
+
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => {
+      csvContent += row.join(',') + '\n';
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'master-data.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 
   printMasterData() {

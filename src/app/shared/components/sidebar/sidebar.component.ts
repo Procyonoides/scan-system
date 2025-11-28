@@ -84,6 +84,8 @@ export class SidebarComponent {
     }
   ];
 
+  expandedMenus: { [key: string]: boolean } = {};
+
   constructor(public authService: AuthService) {}
 
   hasPermission(roles?: string[]): boolean {
@@ -95,6 +97,14 @@ export class SidebarComponent {
   isActive(route?: string): boolean {
     if (!route) return false;
     return window.location.pathname.includes(route);
+  }
+
+  toggleMenu(label: string) {
+    this.expandedMenus[label] = !this.expandedMenus[label];
+  }
+
+  isMenuExpanded(label: string): boolean {
+    return !!this.expandedMenus[label];
   }
 
   sanitizeLabel(label: string) {

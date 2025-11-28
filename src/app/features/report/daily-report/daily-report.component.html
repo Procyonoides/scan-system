@@ -1,14 +1,15 @@
 <div class="container-fluid">
-  <h3 class="mb-4"><i class="bi bi-file-text"></i> Daily Report</h3>
+  <h3 class="mb-4">Daily Report</h3>
 
-  <!-- Filters -->
+  <!-- Filters Card -->
   <div class="card mb-3">
     <div class="card-body">
       <div class="row g-2">
         <div class="col-md-2">
           <select class="form-select form-select-sm" [(ngModel)]="filters.transaction">
             <option value="">Select Transaction</option>
-            <option *ngFor="let opt of transactionOptions" [value]="opt">{{ opt }}</option>
+            <option value="RECEIVING">RECEIVING</option>
+            <option value="SHIPPING">SHIPPING</option>
           </select>
         </div>
         <div class="col-md-2">
@@ -135,16 +136,22 @@
     <div class="card-footer">
       <div class="row">
         <div class="col-md-6">
-          <small class="text-muted">Showing 0 to 0 of 0 entries</small>
+          <small class="text-muted">Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to 
+            {{ Math.min(currentPage * itemsPerPage, filteredData.length) }} of 
+            {{ filteredData.length }} entries</small>
         </div>
         <div class="col-md-6">
           <nav>
             <ul class="pagination pagination-sm justify-content-end mb-0">
-              <li class="page-item disabled">
-                <span class="page-link">Previous</span>
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(1)">Previous</a>
               </li>
-              <li class="page-item disabled">
-                <span class="page-link">Next</span>
+              <li class="page-item" *ngFor="let page of pageNumbers" 
+                  [class.active]="page === currentPage">
+                <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1)">Next</a>
               </li>
             </ul>
           </nav>

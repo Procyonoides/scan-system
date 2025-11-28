@@ -1,50 +1,47 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
+<aside class="main-sidebar sidebar-dark-primary">
   <!-- Brand Logo -->
-  <a href="#" class="brand-link">
-    <img src="assets/dist/img/logo_hsk2.jpg" 
-         alt="HSK Logo" class="brand-image img-circle elevation-3">
-    <span class="brand-text font-weight-light">HSK <strong>PRO</strong></span>
+  <a href="/" class="brand-link">
+    <img src="assets/dist/img/logo_hsk2.jpg" alt="HSK" class="brand-image img-circle">
+    <span class="brand-text font-weight-bold">
+      <span class="hsk-text">HSK</span><span class="pro-text">PRO</span>
+    </span>
   </a>
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <!-- Sidebar user panel -->
+    <!-- User Panel -->
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
       <div class="image">
-        <img src="assets/dist/img/icon.png" 
-             class="img-circle elevation-2" alt="User Image">
+        <img src="assets/dist/img/icon.png" class="img-circle" alt="User">
       </div>
       <div class="info">
-        <p class="d-block">{{ (authService.currentUser())?.username }}</p>
-        <a href="#" class="d-block">
+        <p class="d-block mb-1">{{ (authService.currentUser())?.username }}</p>
+        <span class="online-indicator">
           <i class="fas fa-circle text-success"></i> Online
-        </a>
+        </span>
       </div>
     </div>
 
     <!-- Sidebar Menu -->
     <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" 
-          data-widget="treeview" role="menu" data-accordion="false">
-        
+      <ul class="nav nav-pills nav-sidebar flex-column">
         <li class="nav-header">MENU</li>
 
         <ng-container *ngFor="let item of menuItems">
-          <li class="nav-item" *ngIf="hasPermission(item.roles)">
-            <!-- Direct route -->
-            <a *ngIf="item.route && !item.children" 
-               [routerLink]="item.route"
-               [routerLinkActive]="'active'"
+          <!-- Direct Route Item -->
+          <li class="nav-item" *ngIf="!item.children && hasPermission(item.roles)">
+            <a [routerLink]="item.route" 
+               routerLinkActive="active"
                class="nav-link">
-              <i [class]="item.icon"></i>
+              <i [class]="item.icon + ' nav-icon'"></i>
               <p>{{ item.label }}</p>
             </a>
+          </li>
 
-            <!-- Parent with children -->
-            <a *ngIf="item.children" 
-               href="#" class="nav-link" data-toggle="collapse" 
-               [attr.data-target]="'#' + sanitizeLabel(item.label)">
-              <i [class]="item.icon"></i>
+          <!-- Parent with Children -->
+          <li class="nav-item" *ngIf="item.children && hasPermission(item.roles)">
+            <a (click)="toggleMenu(sanitizeLabel(item.label))" class="nav-link">
+              <i [class]="item.icon + ' nav-icon'"></i>
               <p>
                 {{ item.label }}
                 <i class="right fas fa-angle-left"></i>
@@ -52,21 +49,19 @@
             </a>
 
             <!-- Submenu -->
-            <ul *ngIf="item.children" 
-                [id]="sanitizeLabel(item.label)"
-                class="nav nav-treeview collapse">
+            <ul class="nav nav-treeview" 
+                *ngIf="isMenuExpanded(sanitizeLabel(item.label))">
               <li class="nav-item" *ngFor="let child of item.children">
                 <a [routerLink]="child.route"
-                   [routerLinkActive]="'active'"
+                   routerLinkActive="active"
                    class="nav-link">
-                  <i [class]="child.icon"></i>
+                  <i [class]="child.icon + ' nav-icon'"></i>
                   <p>{{ child.label }}</p>
                 </a>
               </li>
             </ul>
           </li>
         </ng-container>
-
       </ul>
     </nav>
   </div>

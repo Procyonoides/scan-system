@@ -4,6 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
+interface DailyReportData {
+  date_time: string;
+  production: string;
+  brand: string;
+  model: string;
+  color: string;
+  size: string;
+  quantity: number;
+  username: string;
+  description: string;
+  scan_no: number;
+}
+
 @Component({
   selector: 'app-daily-report',
   standalone: true,
@@ -22,13 +35,13 @@ export class DailyReportComponent implements OnInit {
     dateRange: ''
   };
 
-  reportData: any[] = [];
-  filteredData: any[] = [];
+  reportData: DailyReportData[] = [];
+  filteredData: DailyReportData[] = [];
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 1;
 
-  transactionOptions: string[] = ['All', 'RECEIVING', 'SHIPPING'];
+  transactionOptions: string[] = ['RECEIVING', 'SHIPPING'];
   modelOptions: string[] = [];
   colorOptions: string[] = [];
   sizeOptions: string[] = [];
@@ -42,8 +55,7 @@ export class DailyReportComponent implements OnInit {
   }
 
   loadFilterOptions() {
-    // Load dropdown options from API
-    this.http.get<any>(`${environment.apiUrl}/reports/filter-options`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/master-data/filter-options`).subscribe({
       next: (data) => {
         this.modelOptions = data.models || [];
         this.colorOptions = data.colors || [];
@@ -66,14 +78,16 @@ export class DailyReportComponent implements OnInit {
 
   applyFilters() {
     this.filteredData = this.reportData.filter(item => {
-      return (
-        (!this.filters.transaction || item.transaction === this.filters.transaction) &&
-        (!this.filters.model || item.model === this.filters.model) &&
-        (!this.filters.color || item.color === this.filters.color) &&
-        (!this.filters.size || item.size === this.filters.size) &&
-        (!this.filters.user || item.username === this.filters.user)
-      );
+      const matchTransaction = !this.filters.transaction || 
+        item.description?.includes(this.filters.transaction);
+      const matchModel = !this.filters.model || item.model === this.filters.model;
+      const matchColor = !this.filters.color || item.color === this.filters.color;
+      const matchSize = !this.filters.size || item.size === this.filters.size;
+      const matchUser = !this.filters.user || item.username === this.filters.user;
+
+      return matchTransaction && matchModel && matchColor && matchSize && matchUser;
     });
+    this.currentPage = 1;
     this.calculatePagination();
   }
 
