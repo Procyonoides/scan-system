@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Subscription, interval } from 'rxjs';
 
@@ -14,10 +15,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentTime = '';
   currentDate = '';
   showDropdown = false;
+  sidebarCollapsed = signal(false);
 
   private timeSubscription: Subscription | null = null;
   
-  constructor(public authService: AuthService) {
+  constructor(public authService: AuthService, private router: Router) {
     this.updateTime();
     setInterval(() => this.updateTime(), 1000);
   }
@@ -25,11 +27,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.updateTime();
     this.timeSubscription = interval(1000).subscribe(() => this.updateTime());
+    this.checkSidebarState();
   }
 
   ngOnDestroy() {
     if (this.timeSubscription) {
       this.timeSubscription.unsubscribe();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const dropdown = document.querySelector('.nav-user-menu');
+    const target = event.target as HTMLElement;
+    
+    if (dropdown && !dropdown.contains(target)) {
+      this.showDropdown = false;
+    }
+  }
+
+  private checkSidebarState() {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    if (saved === 'true') {
+      this.sidebarCollapsed.set(true);
+      document.documentElement.setAttribute('data-sidebar-collapse', 'true');
+    } else {
+      this.sidebarCollapsed.set(false);
+      document.documentElement.removeAttribute('data-sidebar-collapse');
     }
   }
 
@@ -52,21 +76,47 @@ export class NavbarComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleDropdown(): void {
-    this.showDropdown = !this.showDropdown;
+  toggleSidebar() {
+    console.log('toggleSidebar called');
+    const newState = !this.sidebarCollapsed();
+    this.sidebarCollapsed.set(newState);
+    
+    if (newState) {
+      document.documentElement.setAttribute('data-sidebar-collapse', 'true');
+      localStorage.setItem('sidebarCollapsed', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-sidebar-collapse');
+      localStorage.setItem('sidebarCollapsed', 'false');
+    }
+    console.log('Sidebar collapsed:', newState);
   }
 
-  closeDropdown(): void {
-    this.showDropdown = false;
+  goToProfile() {
+    this.closeDropdown();
+    this.router.navigate(['/profile']);
+  }
+
+  goToSettings() {
+    this.closeDropdown();
+    this.router.navigate(['/settings']);
   }
 
   logout() {
-    this.closeDropdown();
     this.authService.logout();
   }
 
-  toggleSidebar() {
-    document.body.classList.toggle('sidebar-collapse');
+  onLogoutClick(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.logout();
+  }
+
+  toggleDropdown() {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown() {
+    this.showDropdown = false;
   }
 
 }

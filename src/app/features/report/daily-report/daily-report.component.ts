@@ -25,6 +25,7 @@ interface DailyReportData {
   styleUrl: './daily-report.component.scss'
 })
 export class DailyReportComponent implements OnInit {
+  Math = Math;
 
   filters = {
     transaction: '',
@@ -102,6 +103,22 @@ export class DailyReportComponent implements OnInit {
   get paginatedData() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredData.slice(start, start + this.itemsPerPage);
+  }
+
+  get pageNumbers(): number[] {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   goToPage(page: number) {

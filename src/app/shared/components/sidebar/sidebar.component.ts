@@ -11,7 +11,6 @@ interface MenuItem {
   roles?: string[];
 }
 
-
 @Component({
   selector: 'app-sidebar',
   standalone: true,

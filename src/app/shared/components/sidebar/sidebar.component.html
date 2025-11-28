@@ -1,62 +1,66 @@
-<aside class="main-sidebar sidebar-dark-primary">
+<aside class="main-sidebar">
   <!-- Brand Logo -->
   <a href="/" class="brand-link">
-    <img src="assets/dist/img/logo_hsk2.jpg" alt="HSK" class="brand-image img-circle">
-    <span class="brand-text font-weight-bold">
-      <span class="hsk-text">HSK</span><span class="pro-text">PRO</span>
-    </span>
+    <i class="fas fa-industry brand-icon"></i>
+    <div class="brand-text">
+      <span class="brand-name">HSK</span>
+      <span class="brand-suffix">PRO</span>
+    </div>
   </a>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
+  <!-- Sidebar Content -->
+  <div class="sidebar-content">
     <!-- User Panel -->
-    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-      <div class="image">
-        <img src="assets/dist/img/icon.png" class="img-circle" alt="User">
+    <div class="user-panel">
+      <div class="user-avatar">
+        <i class="fas fa-user-tie user-avatar-icon"></i>
+        <span class="online-badge"></span>
       </div>
-      <div class="info">
-        <p class="d-block mb-1">{{ (authService.currentUser())?.username }}</p>
-        <span class="online-indicator">
-          <i class="fas fa-circle text-success"></i> Online
+      <div class="user-info">
+        <p class="user-name">{{ (authService.currentUser())?.username }}</p>
+        <span class="user-status">
+          <i class="fas fa-circle"></i>
+          Online
         </span>
       </div>
     </div>
 
     <!-- Sidebar Menu -->
-    <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column">
-        <li class="nav-header">MENU</li>
-
+    <nav class="sidebar-menu">
+      <div class="menu-header">MENU UTAMA</div>
+      
+      <ul class="menu-list">
         <ng-container *ngFor="let item of menuItems">
           <!-- Direct Route Item -->
-          <li class="nav-item" *ngIf="!item.children && hasPermission(item.roles)">
+          <li class="menu-item" *ngIf="!item.children && hasPermission(item.roles)">
             <a [routerLink]="item.route" 
                routerLinkActive="active"
-               class="nav-link">
-              <i [class]="item.icon + ' nav-icon'"></i>
-              <p>{{ item.label }}</p>
+               class="menu-link">
+              <i [class]="item.icon"></i>
+              <span class="menu-text">{{ item.label }}</span>
+              <span class="tooltip">{{ item.label }}</span>
+              <span class="menu-badge" *ngIf="item.label === 'Report'">NEW</span>
             </a>
           </li>
 
           <!-- Parent with Children -->
-          <li class="nav-item" *ngIf="item.children && hasPermission(item.roles)">
-            <a (click)="toggleMenu(sanitizeLabel(item.label))" class="nav-link">
-              <i [class]="item.icon + ' nav-icon'"></i>
-              <p>
-                {{ item.label }}
-                <i class="right fas fa-angle-left"></i>
-              </p>
+          <li class="menu-item has-submenu" *ngIf="item.children && hasPermission(item.roles)">
+            <a (click)="toggleMenu(sanitizeLabel(item.label))" class="menu-link parent-link">
+              <i [class]="item.icon"></i>
+              <span class="menu-text">{{ item.label }}</span>
+              <span class="tooltip">{{ item.label }}</span>
+              <i class="fas fa-chevron-right submenu-arrow"></i>
             </a>
 
             <!-- Submenu -->
-            <ul class="nav nav-treeview" 
+            <ul class="submenu" 
                 *ngIf="isMenuExpanded(sanitizeLabel(item.label))">
-              <li class="nav-item" *ngFor="let child of item.children">
+              <li class="submenu-item" *ngFor="let child of item.children">
                 <a [routerLink]="child.route"
                    routerLinkActive="active"
-                   class="nav-link">
-                  <i [class]="child.icon + ' nav-icon'"></i>
-                  <p>{{ child.label }}</p>
+                   class="submenu-link">
+                  <i [class]="child.icon"></i>
+                  <span>{{ child.label }}</span>
                 </a>
               </li>
             </ul>

@@ -6,15 +6,21 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center">
         <div class="btn-group">
-          <button class="btn btn-success btn-sm" (click)="openAddModal()">
-            <i class="bi bi-plus-circle"></i> Add
-          </button>
-          <button class="btn btn-info btn-sm" (click)="openOptionsModal()">
-            <i class="bi bi-gear"></i> Option
-          </button>
-          <button class="btn btn-danger btn-sm" (click)="openOperationModal()">
-            <i class="bi bi-wrench"></i> Operation
-          </button>
+          <select class="btn btn-success btn-sm">
+            <option>Add Barcode</option>
+            <option>Add Barcode by Excel</option>
+          </select>
+          <select class="btn btn-info btn-sm">
+            <option>Option Model</option>
+            <option>Option Size</option>
+            <option>Option Production</option>
+          </select>
+          <select class="btn btn-danger btn-sm">
+            <option>Stock Opname by Excel</option>
+            <option>Record</option>
+            <option>Backup</option>
+            <option>Duplicate</option>
+          </select>
         </div>
         <div class="btn-group">
           <button class="btn btn-outline-success btn-sm" (click)="exportExcel()">

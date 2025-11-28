@@ -103,6 +103,22 @@ export class MasterDataComponent implements OnInit {
     }
   }
 
+  // Modal methods
+  openAddModal() {
+    console.log('Open Add Modal');
+    // TODO: Implement modal opening
+  }
+
+  openOptionsModal() {
+    console.log('Open Options Modal');
+    // TODO: Implement modal opening
+  }
+
+  openOperationModal() {
+    console.log('Open Operation Modal');
+    // TODO: Implement modal opening
+  }
+
   exportExcel() {
     const headers = ['Barcode', 'Brand', 'Model', 'Color', 'Size', 'Quantity', 'Status'];
     const rows = this.filteredData.map(item => [

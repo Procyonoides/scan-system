@@ -1,12 +1,1 @@
-<ng-container *ngIf="authService.isAuthenticated(); else login">
-  <app-navbar></app-navbar>
-  <div class="d-flex">
-    <app-sidebar></app-sidebar>
-    <main style="margin-left: 250px; margin-top: 56px; width: calc(100% - 250px); padding: 20px;">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
-</ng-container>
-<ng-template #login>
-  <router-outlet></router-outlet>
-</ng-template>
+<router-outlet></router-outlet>
