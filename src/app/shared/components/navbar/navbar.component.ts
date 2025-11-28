@@ -19,15 +19,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private timeSubscription: Subscription | null = null;
   
-  constructor(public authService: AuthService, private router: Router) {
-    this.updateTime();
-    setInterval(() => this.updateTime(), 1000);
-  }
+  constructor(public authService: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.updateTime();
     this.timeSubscription = interval(1000).subscribe(() => this.updateTime());
-    this.checkSidebarState();
+    this.loadSidebarState();
   }
 
   ngOnDestroy() {
@@ -38,21 +35,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    const dropdown = document.querySelector('.nav-user-menu');
+    const dropdown = document.querySelector('.navbar-dropdown');
+    const userBtn = document.querySelector('.user-btn');
     const target = event.target as HTMLElement;
     
-    if (dropdown && !dropdown.contains(target)) {
+    // Close dropdown only if clicked outside both dropdown AND user button
+    if (dropdown && !dropdown.contains(target) && !userBtn?.contains(target)) {
       this.showDropdown = false;
     }
   }
 
-  private checkSidebarState() {
-    const saved = localStorage.getItem('sidebarCollapsed');
-    if (saved === 'true') {
-      this.sidebarCollapsed.set(true);
+  private loadSidebarState() {
+    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
+    this.sidebarCollapsed.set(saved);
+    this.applySidebarState(saved);
+  }
+
+  private applySidebarState(collapsed: boolean) {
+    if (collapsed) {
       document.documentElement.setAttribute('data-sidebar-collapse', 'true');
     } else {
-      this.sidebarCollapsed.set(false);
       document.documentElement.removeAttribute('data-sidebar-collapse');
     }
   }
@@ -77,18 +79,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar() {
-    console.log('toggleSidebar called');
     const newState = !this.sidebarCollapsed();
     this.sidebarCollapsed.set(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+    this.applySidebarState(newState);
     
-    if (newState) {
-      document.documentElement.setAttribute('data-sidebar-collapse', 'true');
-      localStorage.setItem('sidebarCollapsed', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-sidebar-collapse');
-      localStorage.setItem('sidebarCollapsed', 'false');
-    }
-    console.log('Sidebar collapsed:', newState);
+    // DEBUG logging
+    console.log('toggleSidebar called:');
+    console.log('  newState:', newState);
+    console.log('  data-sidebar-collapse attribute:', document.documentElement.getAttribute('data-sidebar-collapse'));
+    console.log('  html element:', document.documentElement);
+  }
+
+  toggleDropdown() {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown() {
+    this.showDropdown = false;
   }
 
   goToProfile() {
@@ -102,21 +110,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   logout() {
+    this.closeDropdown();
     this.authService.logout();
   }
-
-  onLogoutClick(event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.logout();
-  }
-
-  toggleDropdown() {
-    this.showDropdown = !this.showDropdown;
-  }
-
-  closeDropdown() {
-    this.showDropdown = false;
-  }
-
 }

@@ -1,3 +1,52 @@
 main {
   background: #f5f5f5;
 }
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+:host {
+  display: block;
+  height: 100vh;
+  width: 100%;
+}
+
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+
+  app-navbar {
+    flex-shrink: 0;
+    z-index: 100;
+  }
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+
+  app-sidebar {
+    flex-shrink: 0;
+  }
+
+  app-layout {
+    flex: 1;
+    overflow: hidden;
+  }
+}

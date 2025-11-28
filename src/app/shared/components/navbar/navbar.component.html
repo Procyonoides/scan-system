@@ -1,56 +1,57 @@
-<nav class="main-header">
-  <!-- Left Section -->
-  <div class="navbar-left">
-    <button class="toggle-sidebar-btn" (click)="toggleSidebar()" title="Toggle Menu">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="navbar-container">
+    <!-- Hamburger Toggle (Left) -->
+    <button class="navbar-toggle" (click)="toggleSidebar()" type="button" title="Toggle Sidebar">
       <i class="fas fa-bars"></i>
     </button>
-    <span class="logo-text">HSK PRO</span>
-  </div>
 
-  <!-- Right Section -->
-  <div class="navbar-right">
-    <!-- Date Info -->
-    <div class="nav-info-item date-info">
-      <i class="fas fa-calendar-alt"></i>
-      <span class="info-text">{{ currentDate }}</span>
-    </div>
+    <!-- Brand -->
+    <span class="navbar-brand">
+      <i class="fas fa-industry"></i> HSK PRO
+    </span>
 
-    <!-- Time Info -->
-    <div class="nav-info-item time-info">
-      <i class="fas fa-clock"></i>
-      <span class="info-text">{{ currentTime }}</span>
-    </div>
+    <!-- Info & User (Right) -->
+    <div class="navbar-info">
+      <!-- Date -->
+      <div class="info-item date-item">
+        <i class="fas fa-calendar-alt"></i>
+        <span>{{ currentDate }}</span>
+      </div>
 
-    <!-- User Menu -->
-    <div class="nav-user-menu">
-      <button class="user-btn" (click)="toggleDropdown()">
-        <i class="fas fa-user-circle user-icon"></i>
-        <i class="fas fa-chevron-down"></i>
-      </button>
+      <!-- Time -->
+      <div class="info-item time-item">
+        <i class="fas fa-clock"></i>
+        <span>{{ currentTime }}</span>
+      </div>
 
-      <!-- User Dropdown Menu -->
-      <div class="user-dropdown" [ngClass]="{'active': showDropdown}">
-        <div class="dropdown-header">
-          <i class="fas fa-user-circle header-icon"></i>
-          <div class="header-info">
-            <p class="user-name">{{ (authService.currentUser())?.username }}</p>
-            <p class="user-role">{{ (authService.currentUser())?.position }}</p>
-          </div>
-        </div>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" (click)="goToProfile()">
+      <!-- User Dropdown -->
+      <div class="dropdown-wrapper">
+        <button class="user-btn" (click)="toggleDropdown()" type="button">
           <i class="fas fa-user-circle"></i>
-          <span>My Profile</span>
-        </a>
-        <a class="dropdown-item" (click)="goToSettings()">
-          <i class="fas fa-cog"></i>
-          <span>Settings</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item logout" (click)="onLogoutClick($event)">
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Logout</span>
-        </a>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="navbar-dropdown" [class.show]="showDropdown">
+          <div class="dropdown-header">
+            <i class="fas fa-user-circle"></i>
+            <div>
+              <p class="user-name">{{ (authService.currentUser())?.username }}</p>
+              <p class="user-role">{{ (authService.currentUser())?.position }}</p>
+            </div>
+          </div>
+          <hr class="dropdown-divider" />
+          <a class="dropdown-item" (click)="goToProfile()">
+            <i class="fas fa-user"></i> My Profile
+          </a>
+          <a class="dropdown-item" (click)="goToSettings()">
+            <i class="fas fa-cog"></i> Settings
+          </a>
+          <hr class="dropdown-divider" />
+          <a class="dropdown-item logout" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
+        </div>
       </div>
     </div>
   </div>

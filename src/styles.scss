@@ -365,3 +365,64 @@ body {
     }
   }
 }
+
+/* ================================================
+   SIDEBAR COLLAPSE STATE - GLOBAL
+   ================================================ */
+
+// Default state - sidebar 270px
+html[data-sidebar-collapse='false'],
+html:not([data-sidebar-collapse]) {
+  app-sidebar {
+    width: 270px !important;
+  }
+  
+  // Hide ::after label when sidebar is open
+  app-sidebar .menu-link::after,
+  app-sidebar .submenu-link::after {
+    display: none !important;
+  }
+}
+
+// Collapsed state - sidebar 80px (icon-only)
+html[data-sidebar-collapse='true'] {
+  app-sidebar {
+    width: 80px !important;
+  }
+  
+  // Hide text content on collapsed state
+  app-sidebar .sidebar-header .sidebar-brand .brand-text {
+    display: none !important;
+  }
+  
+  app-sidebar .sidebar-user .user-details {
+    display: none !important;
+  }
+  
+  app-sidebar .menu-link .menu-label,
+  app-sidebar .submenu-link span {
+    display: none !important;
+  }
+  
+  app-sidebar .menu-section-title,
+  app-sidebar .chevron-icon,
+  app-sidebar .submenu {
+    display: none !important;
+  }
+  
+  // Show labels using ::after pseudo-element
+  app-sidebar .menu-link::after,
+  app-sidebar .submenu-link::after {
+    display: block !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  
+  // Show labels on hover
+  app-sidebar .menu-link:hover::after,
+  app-sidebar .submenu-link:hover::after {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}

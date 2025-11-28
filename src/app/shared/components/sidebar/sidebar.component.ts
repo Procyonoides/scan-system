@@ -93,11 +93,6 @@ export class SidebarComponent {
     return userRole ? roles.includes(userRole) : false;
   }
 
-  isActive(route?: string): boolean {
-    if (!route) return false;
-    return window.location.pathname.includes(route);
-  }
-
   toggleMenu(label: string) {
     this.expandedMenus[label] = !this.expandedMenus[label];
   }
@@ -105,9 +100,4 @@ export class SidebarComponent {
   isMenuExpanded(label: string): boolean {
     return !!this.expandedMenus[label];
   }
-
-  sanitizeLabel(label: string) {
-    return label.replace(/\s/g, '');
-  }
-
 }

@@ -2,10 +2,11 @@
   background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
   border-top: 2px solid rgba(13, 110, 253, 0.3);
   padding: 1.25rem 1.5rem;
-  margin-top: auto;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
+  transition: all 0.3s ease; // PENTING: Smooth transition
 
   .footer-content {
     display: flex;
@@ -13,7 +14,6 @@
     align-items: center;
     gap: 2rem;
     flex-wrap: wrap;
-    max-width: 100%;
 
     .footer-left {
       flex: 1;
@@ -90,10 +90,11 @@
   }
 }
 
-// Responsive Design
-@media (max-width: 576px) {
+// Responsive Design untuk Tablet
+@media (max-width: 768px) {
   .main-footer {
     padding: 1rem;
+    width: 100%;
 
     .footer-content {
       gap: 1rem;
@@ -121,7 +122,38 @@
   }
 }
 
-// Animation for footer top border
+// Responsive Design untuk Mobile
+@media (max-width: 576px) {
+  .main-footer {
+    padding: 0.75rem;
+
+    .footer-content {
+      gap: 0.5rem;
+
+      .footer-left {
+        .footer-text {
+          font-size: 0.8rem;
+          line-height: 1.2;
+
+          strong {
+            display: block;
+            width: 100%;
+            margin-bottom: 0.25rem;
+          }
+        }
+      }
+
+      .footer-right {
+        .version-info {
+          font-size: 0.75rem;
+          padding: 0.4rem 0.6rem;
+        }
+      }
+    }
+  }
+}
+
+// Animation untuk footer border
 @keyframes expandBorder {
   0% {
     width: 0;
@@ -137,7 +169,7 @@
   }
 }
 
-// Dark mode support (optional)
+// Dark mode support
 @media (prefers-color-scheme: dark) {
   .main-footer {
     background: linear-gradient(135deg, #0a1929 0%, #0f2847 100%);
