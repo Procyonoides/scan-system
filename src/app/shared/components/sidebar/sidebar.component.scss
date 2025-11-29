@@ -1,5 +1,3 @@
-// src/app/shared/components/sidebar/sidebar.component.scss
-
 // ============ VARIABLES ============
 $sidebar-width: 260px;
 $sidebar-collapsed-width: 70px;
@@ -16,6 +14,8 @@ $transition-duration: 0.3s ease-in-out;
   height: 100%;
   display: flex;
   align-items: stretch;
+  transition: all $transition-duration;
+  padding: 0;
 }
 
 // ============ MAIN SIDEBAR ============
@@ -24,11 +24,12 @@ $transition-duration: 0.3s ease-in-out;
   background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
   color: $sidebar-text;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  transition: width $transition-duration;
+  transition: width $transition-duration !important;
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
   z-index: 100;
+  min-width: $sidebar-width;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -46,61 +47,191 @@ $transition-duration: 0.3s ease-in-out;
       background: rgba(255, 255, 255, 0.3);
     }
   }
+}
 
-  // Collapsed state
-  &.sidebar-collapsed {
-    width: $sidebar-collapsed-width;
+// ✅ DEFAULT EXPANDED STATE
+.sidebar-main {
+  .sidebar-header a {
+    justify-content: flex-start;
+    padding: 20px 15px;
 
-    .sidebar-header a {
-      justify-content: center;
-      padding: 12px 0;
-
-      i {
-        margin-right: 0;
-      }
-
-      .sidebar-brand-text {
-        display: none;
-      }
+    i {
+      margin-right: 10px;
+      font-size: 1.5rem;
+      display: inline-block;
+      width: auto;
+      text-align: left;
+      flex-shrink: 0;
     }
 
-    .sidebar-user {
-      justify-content: center;
-      padding: 15px 0;
+    .sidebar-brand-text {
+      display: inline;
+    }
+  }
 
-      .user-info {
-        display: none;
-      }
+  .sidebar-user {
+    justify-content: flex-start;
+    padding: 15px;
+    margin: 10px 0;
 
-      .user-avatar {
-        margin: 0;
-      }
+    .user-info {
+      display: block;
+      margin-left: 10px;
     }
 
-    .nav-section-label {
-      display: none;
+    .user-avatar {
+      margin-right: 10px;
+      flex-shrink: 0;
     }
+  }
 
+  .nav-section-label {
+    display: block;
+  }
+
+  .nav-list {
     .nav-link {
-      justify-content: center;
-      padding: 12px 0;
+      justify-content: flex-start;
+      padding: 12px 15px;
+      gap: 12px;
 
       .nav-icon {
-        margin-right: 0;
+        margin: 0;
+        font-size: 1rem;
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+        visibility: visible;
+        opacity: 1;
       }
 
       .nav-text {
-        display: none;
+        display: inline;
+        flex: 1;
+        visibility: visible;
+        opacity: 1;
       }
 
       .nav-chevron {
-        display: none;
+        display: inline;
+        visibility: visible;
+        opacity: 1;
       }
 
       &::after {
+        display: none;
+      }
+    }
+  }
+
+  .nav-submenu {
+    display: block;
+
+    &:not(.show) {
+      max-height: 0;
+      overflow: hidden;
+    }
+
+    &.show {
+      max-height: 500px;
+    }
+  }
+}
+
+// ✅ COLLAPSED STATE - Aggressive override
+html[data-sidebar-collapse='true'] .sidebar-main {
+  width: $sidebar-collapsed-width !important;
+  min-width: $sidebar-collapsed-width !important;
+  overflow: visible !important;
+
+  // Header styling collapsed
+  .sidebar-header {
+    padding: 12px 0;
+
+    a {
+      justify-content: center;
+      padding: 12px 0;
+      gap: 0;
+
+      i {
+        margin-right: 0 !important;
+        margin: 0 !important;
+        font-size: 1.5rem !important;
+        display: block !important;
+        width: auto !important;
+        text-align: center !important;
+        flex-shrink: 0;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: $sidebar-text !important;
+      }
+
+      .sidebar-brand-text {
+        display: none !important;
+      }
+    }
+  }
+
+  // User section collapsed
+  .sidebar-user {
+    justify-content: center;
+    padding: 12px 0;
+    margin: 10px auto;
+
+    .user-info {
+      display: none !important;
+    }
+
+    .user-avatar {
+      margin: 0 auto !important;
+      flex-shrink: 0;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  }
+
+  // Nav labels hidden
+  .nav-section-label {
+    display: none !important;
+  }
+
+  // Nav links collapsed
+  .nav-list {
+    .nav-link {
+      justify-content: center;
+      padding: 12px 0 !important;
+      gap: 0 !important;
+
+      .nav-icon {
+        margin: 0 !important;
+        font-size: 1.2rem !important;
+        display: inline-block !important;
+        width: auto !important;
+        text-align: center !important;
+        flex-shrink: 0;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: $sidebar-text !important;
+      }
+
+      .nav-text {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+
+      .nav-chevron {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+
+      // Tooltip on hover
+      &::after {
         content: attr(data-label);
         position: fixed;
-        left: $sidebar-collapsed-width + 5px;
+        left: calc(#{$sidebar-collapsed-width} + 10px);
         background: #1a1a1a;
         color: white;
         padding: 8px 12px;
@@ -116,14 +247,18 @@ $transition-duration: 0.3s ease-in-out;
       }
 
       &:hover::after {
-        opacity: 1;
-        visibility: visible;
+        opacity: 1 !important;
+        visibility: visible !important;
       }
     }
+  }
 
-    .nav-submenu {
-      display: none !important;
-    }
+  // Hide submenu
+  .nav-submenu {
+    display: none !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
   }
 }
 
@@ -132,17 +267,21 @@ $transition-duration: 0.3s ease-in-out;
   padding: 20px 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  transition: all $transition-duration;
 
   a {
     display: flex;
     align-items: center;
     transition: all $transition-duration;
     font-weight: 600;
+    text-decoration: none;
+    color: inherit;
 
     i {
       font-size: 1.5rem;
       margin-right: 10px;
       transition: transform $transition-duration;
+      flex-shrink: 0;
     }
 
     &:hover {
@@ -186,11 +325,15 @@ $transition-duration: 0.3s ease-in-out;
     font-size: 1.2rem;
     color: white;
     box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    transition: all $transition-duration;
+    flex-shrink: 0;
   }
 
   .user-info {
     flex: 1;
     min-width: 0;
+    transition: all $transition-duration;
+    margin-left: 10px;
 
     .user-name {
       font-weight: 600;
@@ -199,6 +342,7 @@ $transition-duration: 0.3s ease-in-out;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin: 0;
     }
 
     .user-status {
@@ -206,6 +350,8 @@ $transition-duration: 0.3s ease-in-out;
       display: flex;
       align-items: center;
       gap: 5px;
+      font-size: 0.85rem;
+      margin: 4px 0 0 0;
 
       i {
         font-size: 0.5rem;
@@ -227,11 +373,13 @@ $transition-duration: 0.3s ease-in-out;
   letter-spacing: 1px;
   color: $sidebar-text-muted;
   display: block;
+  transition: all $transition-duration;
 }
 
 .nav-list {
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 // ============ NAV LINKS ============
@@ -252,6 +400,8 @@ $transition-duration: 0.3s ease-in-out;
     width: 20px;
     text-align: center;
     flex-shrink: 0;
+    transition: transform $transition-duration;
+    display: inline-block;
   }
 
   .nav-text {
@@ -260,12 +410,15 @@ $transition-duration: 0.3s ease-in-out;
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 500;
+    transition: all $transition-duration;
+    display: inline;
   }
 
   .nav-chevron {
     font-size: 0.75rem;
     margin-left: auto;
     transition: transform $transition-duration;
+    display: inline;
   }
 
   &:hover {
@@ -273,6 +426,10 @@ $transition-duration: 0.3s ease-in-out;
     color: $primary-color;
     border-left-color: $primary-color;
     padding-left: 20px;
+
+    .nav-icon {
+      transform: scale(1.1);
+    }
   }
 
   &.active {
@@ -330,11 +487,36 @@ $transition-duration: 0.3s ease-in-out;
   }
 }
 
-// ============ HOVER SUBMENU (Collapsed State) ============
+// ============ HOVER TOOLTIP (Direct Links - Collapsed State) ============
+.nav-hover-tooltip {
+  position: fixed !important;
+  left: calc(#{$sidebar-collapsed-width} + 12px) !important;
+  top: auto !important;
+  transform: translateY(-50%) !important;
+  background: #1a1a1a;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 9999;
+  animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  .hover-tooltip-content {
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+  }
+}
+
+// ============ HOVER SUBMENU (Submenu Items - Collapsed State) ============
 .nav-hover-submenu {
-  position: fixed;
-  left: $sidebar-collapsed-width + 8px;
-  top: 76px;
+  position: fixed !important;
+  left: calc(#{$sidebar-collapsed-width} + 0px) !important;
+  top: auto !important;
+  transform: translateY(-50%) !important;
   min-width: 240px;
   background: white;
   border: 1px solid #ddd;
@@ -343,6 +525,8 @@ $transition-duration: 0.3s ease-in-out;
   z-index: 9999;
   animation: slideInLeft 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  max-height: 400px;
+  pointer-events: auto;
 
   .hover-submenu-header {
     display: flex;
@@ -358,6 +542,7 @@ $transition-duration: 0.3s ease-in-out;
     i {
       font-size: 1.1rem;
       width: 20px;
+      flex-shrink: 0;
     }
 
     span {
@@ -369,8 +554,9 @@ $transition-duration: 0.3s ease-in-out;
 
   .hover-submenu-body {
     padding: 8px 0;
-    max-height: 300px;
+    max-height: 350px;
     overflow-y: auto;
+    overflow-x: hidden;
 
     .hover-submenu-link {
       display: flex;
@@ -384,6 +570,8 @@ $transition-duration: 0.3s ease-in-out;
 
       i {
         font-size: 0.9rem;
+        margin-right: 8px;
+        flex-shrink: 0;
       }
 
       span {
@@ -473,9 +661,9 @@ $transition-duration: 0.3s ease-in-out;
   .sidebar-main {
     width: 100%;
     position: fixed;
-    top: 50px;
+    top: 64px;
     left: -100%;
-    height: calc(100vh - 50px);
+    height: calc(100vh - 64px);
     transition: left $transition-duration;
     z-index: 900;
     border-radius: 0;

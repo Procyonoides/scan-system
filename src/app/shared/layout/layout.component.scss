@@ -1,11 +1,12 @@
 $sidebar-width: 260px;
 $sidebar-collapsed-width: 70px;
-$navbar-height: 50px;
+$navbar-height: 64px;
 $transition: 0.3s ease-in-out;
 
 // ============ MAIN LAYOUT ============
 .layout-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100%;
   background-color: #f5f7fb;
@@ -22,6 +23,7 @@ app-navbar {
   height: $navbar-height;
   z-index: 1030;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 // ============ SIDEBAR & CONTENT WRAPPER ============
@@ -32,6 +34,7 @@ app-navbar {
   width: 100%;
   overflow: hidden;
   position: relative;
+  transition: all $transition;
 }
 
 // ============ SIDEBAR ============
@@ -40,6 +43,41 @@ app-sidebar {
   height: calc(100vh - #{$navbar-height});
   overflow: hidden;
   border-right: 1px solid #e9ecef;
+  transition: all $transition !important;
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+}
+
+// ✅ EXPANDED STATE - Default
+html:not([data-sidebar-collapse='true']) app-sidebar {
+  width: $sidebar-width !important;
+  min-width: $sidebar-width !important;
+
+  .sidebar-wrapper {
+    width: $sidebar-width !important;
+    min-width: $sidebar-width !important;
+  }
+
+  .sidebar-main {
+    width: $sidebar-width !important;
+    min-width: $sidebar-width !important;
+  }
+}
+
+// ✅ COLLAPSED STATE - When attribute is set
+html[data-sidebar-collapse='true'] app-sidebar {
+  width: $sidebar-collapsed-width !important;
+  min-width: $sidebar-collapsed-width !important;
+
+  .sidebar-wrapper {
+    width: $sidebar-collapsed-width !important;
+    min-width: $sidebar-collapsed-width !important;
+  }
+
+  .sidebar-main {
+    width: $sidebar-collapsed-width !important;
+    min-width: $sidebar-collapsed-width !important;
+  }
 }
 
 // ============ MAIN CONTENT ============
@@ -49,6 +87,7 @@ app-sidebar {
   flex-direction: column;
   overflow: hidden;
   background-color: #f5f7fb;
+  transition: all $transition;
 
   .content-area {
     flex: 1;
@@ -80,6 +119,7 @@ app-footer {
     left: 0;
     right: 0;
     width: 100% !important;
+    min-width: 100% !important;
     transform: translateX(-100%);
     transition: transform $transition;
     z-index: 900;
@@ -119,4 +159,25 @@ app-footer {
   &:hover {
     background: #adb5bd;
   }
+}
+
+// ============ Z-INDEX STACKING ============
+.navbar {
+  position: relative;
+  z-index: 1000;
+}
+
+app-sidebar {
+  position: relative;
+  z-index: 100;
+}
+
+.layout-content {
+  position: relative;
+  z-index: 1;
+}
+
+app-sidebar .nav-hover-submenu {
+  z-index: 9999 !important;
+  position: fixed !important;
 }

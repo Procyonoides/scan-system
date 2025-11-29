@@ -1,3 +1,28 @@
+/* ================================================
+   ADD THIS AT THE TOP OF styles.scss
+   ================================================ */
+
+// Force icons to always show
+i, [class*="fa-"], .icon {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+// Ensure flexbox items don't collapse
+flex-shrink {
+  flex-shrink: 0 !important;
+}
+
+// Remove any overflow hidden that might hide icons
+.sidebar-main {
+  overflow: visible !important;
+}
+
+html[data-sidebar-collapse='true'] .sidebar-main {
+  overflow: visible !important;
+}
+
 /* Global Styles */
 * {
   margin: 0;
@@ -367,102 +392,209 @@ body {
 }
 
 /* ================================================
-   SIDEBAR LAYOUT FIXES
+   SIDEBAR LAYOUT FIXES - CRITICAL SECTION
    ================================================ */
 
-// Main wrapper
-.wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
+$sidebar-width: 260px;
+$sidebar-collapsed-width: 70px;
+$transition: 0.3s ease-in-out;
+
+// ================================================
+// ENSURE ICONS ALWAYS VISIBLE
+// ================================================
+
+i, .icon, [class*="fa-"] {
+  display: inline-block;
+  visibility: visible;
+  opacity: 1;
 }
 
-// Navbar fixed
-.main-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 1000;
-  height: 50px;
-}
+// ================================================
+// EXPANDED STATE - DEFAULT
+// ================================================
 
-// Content area
-.content-wrapper {
-  margin-left: 230px;
-  margin-top: 50px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
+html:not([data-sidebar-collapse='true']) {
+  app-sidebar {
+    width: $sidebar-width !important;
+    min-width: $sidebar-width !important;
+    
+    .sidebar-main {
+      width: $sidebar-width !important;
+      min-width: $sidebar-width !important;
+    }
 
-  @media (max-width: 768px) {
-    margin-left: 0;
-  }
-}
+    .nav-link {
+      .nav-icon {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 20px !important;
+        font-size: 1rem !important;
+      }
 
-// Right sidebar
-.right-side {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background-color: #f5f5f5;
-}
+      .nav-text {
+        display: inline !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
 
-// Footer
-.main-footer {
-  background: #222d32;
-  color: white;
-  padding: 15px;
-  text-align: center;
-  font-size: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.3);
-  margin-top: auto;
-}
+      .nav-chevron {
+        display: inline !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+    }
 
-/* ================================================
-   COLLAPSE STATE ADJUSTMENTS
-   ================================================ */
+    .sidebar-header a i {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      margin-right: 10px !important;
+    }
 
-html[data-sidebar-collapse='true'] {
-  .content-wrapper {
-    margin-left: 50px;
-    transition: margin-left 0.3s ease-in-out;
-
-    @media (max-width: 768px) {
-      margin-left: 0;
+    .user-avatar {
+      display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
   }
+}
 
-  .main-sidebar .hover-submenu {
-    display: block !important;
+// ================================================
+// COLLAPSED STATE - AGGRESSIVE OVERRIDES
+// ================================================
+
+html[data-sidebar-collapse='true'] {
+  app-sidebar {
+    width: $sidebar-collapsed-width !important;
+    min-width: $sidebar-collapsed-width !important;
+
+    .sidebar-main {
+      width: $sidebar-collapsed-width !important;
+      min-width: $sidebar-collapsed-width !important;
+      overflow: visible !important;
+    }
+
+    // Header Icon - MUST BE VISIBLE
+    .sidebar-header a {
+      justify-content: center !important;
+      padding: 12px 0 !important;
+
+      i {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 1.5rem !important;
+        margin-right: 0 !important;
+        margin: 0 !important;
+        width: auto !important;
+        text-align: center !important;
+        color: #ecf0f1 !important;
+      }
+
+      .sidebar-brand-text {
+        display: none !important;
+      }
+    }
+
+    // User Avatar - MUST BE VISIBLE
+    .sidebar-user {
+      justify-content: center !important;
+      padding: 12px 0 !important;
+
+      .user-avatar {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 0 auto !important;
+      }
+
+      .user-info {
+        display: none !important;
+      }
+    }
+
+    // Nav Links - Icons MUST BE VISIBLE
+    .nav-link {
+      justify-content: center !important;
+      padding: 12px 0 !important;
+      gap: 0 !important;
+
+      .nav-icon {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 1.2rem !important;
+        width: auto !important;
+        margin: 0 !important;
+        text-align: center !important;
+        color: #ecf0f1 !important;
+      }
+
+      .nav-text {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+
+      .nav-chevron {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+      }
+    }
+
+    // Hide Submenu
+    .nav-submenu {
+      display: none !important;
+      visibility: hidden !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    // Hide Labels
+    .nav-section-label {
+      display: none !important;
+    }
   }
 }
 
-/* ================================================
-   Z-INDEX STACKING CONTEXT
-   ================================================ */
+// ================================================
+// Z-INDEX STACKING CONTEXT
+// ================================================
 
 .navbar {
   position: relative;
   z-index: 1000;
 }
 
-.main-sidebar {
+app-sidebar {
   position: relative;
   z-index: 100;
 }
 
-.content-wrapper {
+.layout-content {
   position: relative;
   z-index: 1;
 }
 
-app-sidebar .hover-submenu {
+app-sidebar .nav-hover-submenu {
   z-index: 9999 !important;
   position: fixed !important;
+}
+
+// ================================================
+// FORCE ICON VISIBILITY GLOBALLY
+// ================================================
+
+.fa, .fas, .fab, .far, .fal {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+i[class*='fa-'] {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }

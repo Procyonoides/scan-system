@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -19,7 +19,7 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = [
     {
       label: 'Stock Monitoring',
@@ -87,16 +87,48 @@ export class SidebarComponent implements OnInit {
   sidebarCollapsed = signal(false);
   hoveredMenuLabel = signal<string | null>(null);
   expandedMenus: { [key: string]: boolean } = {};
+  private mutationObserver: MutationObserver | null = null;
 
   constructor(public authService: AuthService) {}
 
   ngOnInit() {
     this.loadSidebarState();
+    this.observeAttributeChanges();
+  }
+
+  ngOnDestroy() {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
   }
 
   private loadSidebarState() {
     const saved = localStorage.getItem('sidebarCollapsed') === 'true';
-    this.sidebarCollapsed.set(saved);
+    const htmlAttr = document.documentElement.getAttribute('data-sidebar-collapse') === 'true';
+    const state = saved || htmlAttr;
+    
+    this.sidebarCollapsed.set(state);
+    console.log(`📦 Sidebar loaded state: ${state ? 'COLLAPSED' : 'EXPANDED'}`);
+  }
+
+  private observeAttributeChanges() {
+    const root = document.documentElement;
+    
+    this.mutationObserver = new MutationObserver(() => {
+      const isCollapsed = root.getAttribute('data-sidebar-collapse') === 'true';
+      const currentState = this.sidebarCollapsed();
+      
+      if (isCollapsed !== currentState) {
+        console.log(`🔍 Detected attribute change: ${isCollapsed ? 'COLLAPSED' : 'EXPANDED'}`);
+        this.sidebarCollapsed.set(isCollapsed);
+      }
+    });
+
+    this.mutationObserver.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-sidebar-collapse'],
+      attributeOldValue: true
+    });
   }
 
   hasPermission(roles?: string[]): boolean {
@@ -113,6 +145,16 @@ export class SidebarComponent implements OnInit {
     const newState = !this.sidebarCollapsed();
     this.sidebarCollapsed.set(newState);
     localStorage.setItem('sidebarCollapsed', String(newState));
+    
+    const root = document.documentElement;
+    root.removeAttribute('data-sidebar-collapse');
+    
+    setTimeout(() => {
+      if (newState) {
+        root.setAttribute('data-sidebar-collapse', 'true');
+      }
+      console.log(`✅ Sidebar: ${newState ? 'COLLAPSED' : 'EXPANDED'}`);
+    }, 50);
   }
 
   toggleMenu(label: string, event?: MouseEvent) {
@@ -129,6 +171,18 @@ export class SidebarComponent implements OnInit {
 
   onMenuHover(label: string) {
     this.hoveredMenuLabel.set(label);
+    
+    // Set position saat hover
+    setTimeout(() => {
+      const navLink = document.querySelector(`[data-menu="${label}"]`);
+      if (navLink && this.isCollapsed()) {
+        const rect = navLink.getBoundingClientRect();
+        const hoverMenu = document.querySelector('.nav-hover-submenu') as HTMLElement;
+        if (hoverMenu) {
+          hoverMenu.style.top = `${rect.top}px`;
+        }
+      }
+    }, 50);
   }
 
   onMenuLeave() {

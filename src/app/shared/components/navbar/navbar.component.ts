@@ -39,7 +39,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const userBtn = document.querySelector('.user-btn');
     const target = event.target as HTMLElement;
     
-    // Close dropdown only if clicked outside both dropdown AND user button
     if (dropdown && !dropdown.contains(target) && !userBtn?.contains(target)) {
       this.showDropdown = false;
     }
@@ -52,11 +51,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private applySidebarState(collapsed: boolean) {
-    if (collapsed) {
-      document.documentElement.setAttribute('data-sidebar-collapse', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-sidebar-collapse');
-    }
+    const root = document.documentElement;
+    
+    // Remove attribute dulu
+    root.removeAttribute('data-sidebar-collapse');
+    
+    // Tungah sebentar untuk reset
+    setTimeout(() => {
+      if (collapsed) {
+        root.setAttribute('data-sidebar-collapse', 'true');
+      }
+      console.log(`✅ Navbar: Sidebar ${collapsed ? 'COLLAPSED' : 'EXPANDED'}`);
+      console.log(`📌 Attribute: ${root.getAttribute('data-sidebar-collapse')}`);
+    }, 50);
   }
 
   private updateTime() {
@@ -80,15 +87,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   toggleSidebar() {
     const newState = !this.sidebarCollapsed();
+    console.log(`🔄 Toggle button clicked - Current: ${this.sidebarCollapsed()}, New: ${newState}`);
+    
     this.sidebarCollapsed.set(newState);
     localStorage.setItem('sidebarCollapsed', String(newState));
     this.applySidebarState(newState);
-    
-    // DEBUG logging
-    console.log('toggleSidebar called:');
-    console.log('  newState:', newState);
-    console.log('  data-sidebar-collapse attribute:', document.documentElement.getAttribute('data-sidebar-collapse'));
-    console.log('  html element:', document.documentElement);
   }
 
   toggleDropdown() {
