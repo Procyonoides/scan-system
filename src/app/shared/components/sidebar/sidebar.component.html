@@ -1,8 +1,7 @@
 <div class="sidebar-wrapper">
-  <div class="d-flex flex-column flex-shrink-0 sidebar-main h-100" 
-       [ngClass]="{ 'sidebar-collapsed': isCollapsed() }">
-    
-    <!-- Sidebar Header / Brand -->
+  <div class="d-flex flex-column flex-shrink-0 sidebar-main h-100">
+
+    <!-- HEADER -->
     <div class="sidebar-header">
       <a href="/" class="d-flex align-items-center text-white text-decoration-none">
         <i class="fas fa-industry me-2 fs-5"></i>
@@ -10,10 +9,9 @@
       </a>
     </div>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-0" />
 
-    <!-- User Panel -->
+    <!-- USER INFO -->
     <div class="sidebar-user">
       <div class="user-avatar">
         <i class="fas fa-user-tie"></i>
@@ -26,107 +24,62 @@
       </div>
     </div>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-2" />
 
-    <!-- Navigation Menu -->
+    <!-- MENU NAV -->
     <nav class="sidebar-nav flex-grow-1">
       <div class="nav-section-label">MENU</div>
-      
-      <div class="nav-list" *ngFor="let item of menuItems">
-        <!-- Direct Link - WITH HOVER -->
+
+      <div *ngFor="let item of menuItems">
+
+        <!-- DIRECT LINKS (tanpa children) -->
         <ng-container *ngIf="!item.children && hasPermission(item.roles)">
-          <div class="nav-item-group"
-               (mouseenter)="onMenuHover(item.label)"
-               (mouseleave)="onMenuLeave()"
-               [attr.data-menu]="item.label">
-            
-            <a [routerLink]="item.route"
+          <a [routerLink]="item.route"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}"
+             class="nav-link"
+             [title]="isCollapsed() ? item.label : ''">
+            <i [class]="item.icon + ' nav-icon'"></i>
+            <span class="nav-text">{{ item.label }}</span>
+          </a>
+        </ng-container>
+
+        <!-- SUBMENU (dengan children) -->
+        <ng-container *ngIf="item.children && hasPermission(item.roles)">
+          <a href="javascript:void(0)"
+             class="nav-link"
+             (click)="toggleMenu(item.label, $event)"
+             [ngClass]="{ 'expanded': isMenuExpanded(item.label) }">
+            <i [class]="item.icon + ' nav-icon'"></i>
+            <span class="nav-text">{{ item.label }}</span>
+            <i class="fas fa-chevron-right nav-chevron"></i>
+          </a>
+
+          <!-- SUBMENU ITEMS -->
+          <div class="nav-submenu" [ngClass]="{ 'show': isMenuExpanded(item.label) }">
+            <a *ngFor="let child of item.children"
+               [routerLink]="child.route"
                routerLinkActive="active"
                [routerLinkActiveOptions]="{exact: true}"
-               class="nav-link"
-               [attr.data-label]="item.label"
-               [title]="item.label">
-              <i [class]="item.icon + ' nav-icon'"></i>
-              <span class="nav-text">{{ item.label }}</span>
+               class="nav-link nav-link-submenu">
+              <i [class]="child.icon + ' nav-icon-sub'"></i>
+              <span class="nav-text">{{ child.label }}</span>
             </a>
-
-            <!-- Hover Tooltip untuk direct links (saat collapsed) -->
-            <div class="nav-hover-tooltip"
-                 *ngIf="shouldShowHoverMenu(item.label)"
-                 (mouseenter)="onMenuHover(item.label)"
-                 (mouseleave)="onMenuLeave()">
-              <div class="hover-tooltip-content">
-                {{ item.label }}
-              </div>
-            </div>
           </div>
         </ng-container>
 
-        <!-- Submenu -->
-        <ng-container *ngIf="item.children && hasPermission(item.roles)">
-          <div class="nav-item-group"
-               (mouseenter)="onMenuHover(item.label)"
-               (mouseleave)="onMenuLeave()"
-               [attr.data-menu]="item.label">
-            
-            <!-- Parent Link -->
-            <a href="javascript:void(0)"
-               class="nav-link"
-               (click)="toggleMenu(item.label, $event)"
-               [attr.data-label]="item.label"
-               [ngClass]="{ 'expanded': isMenuExpanded(item.label) }">
-              <i [class]="item.icon + ' nav-icon'"></i>
-              <span class="nav-text">{{ item.label }}</span>
-              <i class="fas fa-chevron-right nav-chevron"></i>
-            </a>
-
-            <!-- Submenu - Normal (collapsed when sidebar not expanded) -->
-            <div class="nav-submenu" [ngClass]="{ 'show': isMenuExpanded(item.label) }">
-              <a *ngFor="let child of item.children"
-                 [routerLink]="child.route"
-                 routerLinkActive="active"
-                 [routerLinkActiveOptions]="{exact: true}"
-                 class="nav-link nav-link-submenu">
-                <i [class]="child.icon + ' nav-icon-sub'"></i>
-                <span class="nav-text">{{ child.label }}</span>
-              </a>
-            </div>
-
-            <!-- Submenu - Hover (appears when collapsed) -->
-            <div class="nav-hover-submenu"
-                 *ngIf="shouldShowHoverMenu(item.label)"
-                 (mouseenter)="onMenuHover(item.label)"
-                 (mouseleave)="onMenuLeave()">
-              <div class="hover-submenu-header">
-                <i [class]="item.icon"></i>
-                <span>{{ item.label }}</span>
-              </div>
-              <div class="hover-submenu-body">
-                <a *ngFor="let child of item.children"
-                   [routerLink]="child.route"
-                   routerLinkActive="active"
-                   [routerLinkActiveOptions]="{exact: true}"
-                   class="hover-submenu-link"
-                   (click)="onMenuLeave()">
-                  <i [class]="child.icon + ' me-2'"></i>
-                  <span>{{ child.label }}</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </ng-container>
       </div>
+
     </nav>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-2" />
 
-    <!-- Footer/Help -->
+    <!-- FOOTER -->
     <div class="sidebar-footer">
       <small class="text-muted d-block text-center">
         <i class="fas fa-info-circle"></i> Need Help?
       </small>
     </div>
+
   </div>
 </div>

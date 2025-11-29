@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
-import { signal } from '@angular/core';
+import { filter } from 'rxjs/operators';
 
 interface MenuItem {
   label: string;
@@ -85,15 +85,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ];
 
   sidebarCollapsed = signal(false);
-  hoveredMenuLabel = signal<string | null>(null);
   expandedMenus: { [key: string]: boolean } = {};
   private mutationObserver: MutationObserver | null = null;
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.loadSidebarState();
     this.observeAttributeChanges();
+    this.checkActiveRoute();
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.checkActiveRoute();
+    });
   }
 
   ngOnDestroy() {
@@ -106,29 +115,32 @@ export class SidebarComponent implements OnInit, OnDestroy {
     const saved = localStorage.getItem('sidebarCollapsed') === 'true';
     const htmlAttr = document.documentElement.getAttribute('data-sidebar-collapse') === 'true';
     const state = saved || htmlAttr;
-    
     this.sidebarCollapsed.set(state);
-    console.log(`📦 Sidebar loaded state: ${state ? 'COLLAPSED' : 'EXPANDED'}`);
   }
 
   private observeAttributeChanges() {
     const root = document.documentElement;
-    
     this.mutationObserver = new MutationObserver(() => {
       const isCollapsed = root.getAttribute('data-sidebar-collapse') === 'true';
-      const currentState = this.sidebarCollapsed();
-      
-      if (isCollapsed !== currentState) {
-        console.log(`🔍 Detected attribute change: ${isCollapsed ? 'COLLAPSED' : 'EXPANDED'}`);
-        this.sidebarCollapsed.set(isCollapsed);
-      }
+      this.sidebarCollapsed.set(isCollapsed);
     });
-
     this.mutationObserver.observe(root, {
       attributes: true,
-      attributeFilter: ['data-sidebar-collapse'],
-      attributeOldValue: true
+      attributeFilter: ['data-sidebar-collapse']
     });
+  }
+
+  toggleSidebar() {
+    const newState = !this.sidebarCollapsed();
+    this.sidebarCollapsed.set(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+
+    const root = document.documentElement;
+    if (newState) {
+      root.setAttribute('data-sidebar-collapse', 'true');
+    } else {
+      root.removeAttribute('data-sidebar-collapse');
+    }
   }
 
   hasPermission(roles?: string[]): boolean {
@@ -141,26 +153,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return this.sidebarCollapsed();
   }
 
-  toggleSidebar() {
-    const newState = !this.sidebarCollapsed();
-    this.sidebarCollapsed.set(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
-    
-    const root = document.documentElement;
-    root.removeAttribute('data-sidebar-collapse');
-    
-    setTimeout(() => {
-      if (newState) {
-        root.setAttribute('data-sidebar-collapse', 'true');
-      }
-      console.log(`✅ Sidebar: ${newState ? 'COLLAPSED' : 'EXPANDED'}`);
-    }, 50);
-  }
-
   toggleMenu(label: string, event?: MouseEvent) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
+    }
+    // Auto expand sidebar jika collapsed dan klik parent menu
+    if (this.isCollapsed() && this.menuItems.find(m => m.label === label && m.children)) {
+      this.toggleSidebar();
     }
     this.expandedMenus[label] = !this.expandedMenus[label];
   }
@@ -169,29 +169,17 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return !!this.expandedMenus[label];
   }
 
-  onMenuHover(label: string) {
-    this.hoveredMenuLabel.set(label);
-    
-    // Set position saat hover
-    setTimeout(() => {
-      const navLink = document.querySelector(`[data-menu="${label}"]`);
-      if (navLink && this.isCollapsed()) {
-        const rect = navLink.getBoundingClientRect();
-        const hoverMenu = document.querySelector('.nav-hover-submenu') as HTMLElement;
-        if (hoverMenu) {
-          hoverMenu.style.top = `${rect.top}px`;
+  private checkActiveRoute() {
+    const currentUrl = this.router.url;
+    this.menuItems.forEach(item => {
+      if (item.children) {
+        const isChildActive = item.children.some(child =>
+          child.route && currentUrl.includes(child.route)
+        );
+        if (isChildActive) {
+          this.expandedMenus[item.label] = true;
         }
       }
-    }, 50);
-  }
-
-  onMenuLeave() {
-    setTimeout(() => {
-      this.hoveredMenuLabel.set(null);
-    }, 150);
-  }
-
-  shouldShowHoverMenu(label: string): boolean {
-    return this.isCollapsed() && this.hoveredMenuLabel() === label;
+    });
   }
 }
