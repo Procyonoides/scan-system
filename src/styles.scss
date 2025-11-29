@@ -367,62 +367,102 @@ body {
 }
 
 /* ================================================
-   SIDEBAR COLLAPSE STATE - GLOBAL
+   SIDEBAR LAYOUT FIXES
    ================================================ */
 
-// Default state - sidebar 270px
-html[data-sidebar-collapse='false'],
-html:not([data-sidebar-collapse]) {
-  app-sidebar {
-    width: 270px !important;
-  }
-  
-  // Hide ::after label when sidebar is open
-  app-sidebar .menu-link::after,
-  app-sidebar .submenu-link::after {
-    display: none !important;
+// Main wrapper
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+// Navbar fixed
+.main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 50px;
+}
+
+// Content area
+.content-wrapper {
+  margin-left: 230px;
+  margin-top: 50px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+
+  @media (max-width: 768px) {
+    margin-left: 0;
   }
 }
 
-// Collapsed state - sidebar 80px (icon-only)
+// Right sidebar
+.right-side {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f5f5f5;
+}
+
+// Footer
+.main-footer {
+  background: #222d32;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  margin-top: auto;
+}
+
+/* ================================================
+   COLLAPSE STATE ADJUSTMENTS
+   ================================================ */
+
 html[data-sidebar-collapse='true'] {
-  app-sidebar {
-    width: 80px !important;
+  .content-wrapper {
+    margin-left: 50px;
+    transition: margin-left 0.3s ease-in-out;
+
+    @media (max-width: 768px) {
+      margin-left: 0;
+    }
   }
-  
-  // Hide text content on collapsed state
-  app-sidebar .sidebar-header .sidebar-brand .brand-text {
-    display: none !important;
-  }
-  
-  app-sidebar .sidebar-user .user-details {
-    display: none !important;
-  }
-  
-  app-sidebar .menu-link .menu-label,
-  app-sidebar .submenu-link span {
-    display: none !important;
-  }
-  
-  app-sidebar .menu-section-title,
-  app-sidebar .chevron-icon,
-  app-sidebar .submenu {
-    display: none !important;
-  }
-  
-  // Show labels using ::after pseudo-element
-  app-sidebar .menu-link::after,
-  app-sidebar .submenu-link::after {
+
+  .main-sidebar .hover-submenu {
     display: block !important;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
   }
-  
-  // Show labels on hover
-  app-sidebar .menu-link:hover::after,
-  app-sidebar .submenu-link:hover::after {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
+}
+
+/* ================================================
+   Z-INDEX STACKING CONTEXT
+   ================================================ */
+
+.navbar {
+  position: relative;
+  z-index: 1000;
+}
+
+.main-sidebar {
+  position: relative;
+  z-index: 100;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+app-sidebar .hover-submenu {
+  z-index: 9999 !important;
+  position: fixed !important;
 }

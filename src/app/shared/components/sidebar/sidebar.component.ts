@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { signal } from '@angular/core';
 
 interface MenuItem {
   label: string;
@@ -18,7 +19,7 @@ interface MenuItem {
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   menuItems: MenuItem[] = [
     {
       label: 'Stock Monitoring',
@@ -44,14 +45,14 @@ export class SidebarComponent {
       children: [
         {
           label: 'Daily Report',
-          icon: 'fas fa-file',
-          route: '/report/daily',
+          icon: 'fas fa-calendar-day',
+          route: '/daily-report',
           roles: ['IT', 'MANAGEMENT']
         },
         {
           label: 'Monthly Report',
-          icon: 'fas fa-file',
-          route: '/report/monthly',
+          icon: 'fas fa-calendar-alt',
+          route: '/monthly-report',
           roles: ['IT', 'MANAGEMENT']
         }
       ],
@@ -83,9 +84,20 @@ export class SidebarComponent {
     }
   ];
 
+  sidebarCollapsed = signal(false);
+  hoveredMenuLabel = signal<string | null>(null);
   expandedMenus: { [key: string]: boolean } = {};
 
   constructor(public authService: AuthService) {}
+
+  ngOnInit() {
+    this.loadSidebarState();
+  }
+
+  private loadSidebarState() {
+    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
+    this.sidebarCollapsed.set(saved);
+  }
 
   hasPermission(roles?: string[]): boolean {
     if (!roles || roles.length === 0) return true;
@@ -93,11 +105,39 @@ export class SidebarComponent {
     return userRole ? roles.includes(userRole) : false;
   }
 
-  toggleMenu(label: string) {
+  isCollapsed(): boolean {
+    return this.sidebarCollapsed();
+  }
+
+  toggleSidebar() {
+    const newState = !this.sidebarCollapsed();
+    this.sidebarCollapsed.set(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+  }
+
+  toggleMenu(label: string, event?: MouseEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     this.expandedMenus[label] = !this.expandedMenus[label];
   }
 
   isMenuExpanded(label: string): boolean {
     return !!this.expandedMenus[label];
+  }
+
+  onMenuHover(label: string) {
+    this.hoveredMenuLabel.set(label);
+  }
+
+  onMenuLeave() {
+    setTimeout(() => {
+      this.hoveredMenuLabel.set(null);
+    }, 150);
+  }
+
+  shouldShowHoverMenu(label: string): boolean {
+    return this.isCollapsed() && this.hoveredMenuLabel() === label;
   }
 }
