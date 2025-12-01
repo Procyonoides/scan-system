@@ -1,72 +1,266 @@
-<div class="row">
-  <!-- Small Card Stats -->
-  <div class="col-lg-3 col-6">
-    <div class="small-box bg-info">
-      <div class="inner">
-        <h3>{{ stats.first_stock | number }}</h3>
-        <p>First Stock</p>
-      </div>
-      <div class="icon">
-        <i class="fas fa-cubes"></i>
-      </div>
-      <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+<div class="dashboard-container">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
-  <div class="col-lg-3 col-6">
-    <div class="small-box bg-success">
-      <div class="inner">
-        <h3>{{ stats.receiving | number }}</h3>
-        <p>Receiving</p>
+  <!-- Warehouse Stats Row -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-info">
+        <div class="stat-inner">
+          <h3 class="stat-value">{{ stats.first_stock | number }}</h3>
+          <p class="stat-label">First Stock</p>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-cubes"></i>
+        </div>
       </div>
-      <div class="icon">
-        <i class="fas fa-arrow-down"></i>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-success">
+        <div class="stat-inner">
+          <h3 class="stat-value">{{ stats.receiving | number }}</h3>
+          <p class="stat-label">Receiving</p>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-arrow-down"></i>
+        </div>
       </div>
-      <a href="/receiving" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-warning">
+        <div class="stat-inner">
+          <h3 class="stat-value">{{ stats.shipping | number }}</h3>
+          <p class="stat-label">Shipping</p>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-danger">
+        <div class="stat-inner">
+          <h3 class="stat-value">{{ stats.warehouse_stock | number }}</h3>
+          <p class="stat-label">Warehouse Stock</p>
+        </div>
+        <div class="stat-icon">
+          <i class="fas fa-warehouse"></i>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="col-lg-3 col-6">
-    <div class="small-box bg-warning">
-      <div class="inner">
-        <h3>{{ stats.shipping | number }}</h3>
-        <p>Shipping</p>
+  <!-- Main Content Row -->
+  <div class="row mb-4">
+    <!-- Daily Chart -->
+    <div class="col-lg-5 col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-chart-line"></i>
+          <h5 class="card-title mb-0">Chart Daily</h5>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="position: relative; height: 400px;">
+            <canvas baseChart 
+                    [data]="chartData"
+                    [options]="chartOptions"
+                    [type]="chartType">
+            </canvas>
+          </div>
+        </div>
       </div>
-      <div class="icon">
-        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Shift Scan Table -->
+    <div class="col-lg-4 col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-chart-bar"></i>
+          <h5 class="card-title mb-0">Scan by Shift on {{ formatDate(yesterday) }}</h5>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th style="width: 10px">NO</th>
+                  <th>SHIFT</th>
+                  <th>STATUS</th>
+                  <th style="width: 10px">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of shiftScanData; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ data.username }}</td>
+                  <td>
+                    <div class="progress progress-sm">
+                      <div class="progress-bar" 
+                           [ngClass]="getProgressColor(data.status)"
+                           [style.width.%]="data.status"></div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-primary">{{ data.percent }}%</span>
+                    <span class="badge bg-teal">{{ data.total }}</span>
+                  </td>
+                </tr>
+                <tr *ngIf="shiftScanData.length === 0">
+                  <td colspan="4" class="text-center text-muted">No data available</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <a href="/shipping" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+    </div>
+
+    <!-- Warehouse Items -->
+    <div class="col-lg-3 col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-boxes"></i>
+          <h5 class="card-title mb-0">Chart Warehouse</h5>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+          <div *ngFor="let item of warehouseItems" class="info-box mb-3" [ngClass]="'bg-' + getItemColor(item.item)">
+            <span class="info-box-icon"><i class="fas fa-box"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text" style="font-size: 14px; font-weight: 600;">{{ item.item }}</span>
+              <span class="info-box-number" style="font-size: 18px;">{{ item.total | number }}</span>
+              <div class="progress">
+                <div class="progress-bar" [style.width.%]="item.status"></div>
+              </div>
+              <span class="progress-description" style="font-size: 12px;">
+                {{ item.status }}% of Stock in Warehouse
+              </span>
+            </div>
+          </div>
+          <div *ngIf="warehouseItems.length === 0" class="text-center text-muted">
+            No warehouse items
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="col-lg-3 col-6">
-    <div class="small-box bg-danger">
-      <div class="inner">
-        <h3>{{ stats.warehouse_stock | number }}</h3>
-        <p>Warehouse Stock</p>
+  <!-- Receiving & Shipping Row -->
+  <div class="row">
+    <!-- Scan Receiving -->
+    <div class="col-lg-6 col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-table"></i>
+          <h5 class="card-title mb-0">Scan Receiving</h5>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover mb-0">
+              <thead class="bg-success text-white">
+                <tr>
+                  <th align="center">DATE/TIME</th>
+                  <th align="center">ORIGINAL BARCODE</th>
+                  <th align="center">MODEL</th>
+                  <th align="center">COLOR</th>
+                  <th align="center">SIZE</th>
+                  <th align="center">QUANTITY</th>
+                  <th align="center">USERNAME</th>
+                  <th align="center">SCAN NO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of receivingList">
+                  <td align="center" style="font-size: 0.85rem;">{{ row.date_time }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.original_barcode }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.model }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.color }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.size }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.quantity }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.username }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.scan_no }}</td>
+                </tr>
+                <tr *ngIf="receivingList.length === 0">
+                  <td colspan="8" class="text-center text-muted">No data available</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="icon">
-        <i class="fas fa-warehouse"></i>
-      </div>
-      <a href="/stock" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
     </div>
-  </div>
-</div>
 
-<!-- Charts Row -->
-<div class="row mt-4">
-  <div class="col-md-12">
-    <div class="card card-primary">
-      <div class="card-header">
-        <h3 class="card-title">Daily Chart</h3>
-      </div>
-      <div class="card-body">
-        <canvas baseChart 
-                [data]="chartData"
-                [options]="chartOptions"
-                [type]="chartType"
-                style="position: relative; height: 400px;">
-        </canvas>
+    <!-- Scan Shipping -->
+    <div class="col-lg-6 col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-table"></i>
+          <h5 class="card-title mb-0">Scan Shipping</h5>
+          <div class="card-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover mb-0">
+              <thead class="bg-warning text-dark">
+                <tr>
+                  <th align="center">DATE/TIME</th>
+                  <th align="center">ORIGINAL BARCODE</th>
+                  <th align="center">MODEL</th>
+                  <th align="center">COLOR</th>
+                  <th align="center">SIZE</th>
+                  <th align="center">QUANTITY</th>
+                  <th align="center">USERNAME</th>
+                  <th align="center">SCAN NO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of shippingList">
+                  <td align="center" style="font-size: 0.85rem;">{{ row.date_time }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.original_barcode }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.model }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.color }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.size }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.quantity }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.username }}</td>
+                  <td align="center" style="font-size: 0.85rem;">{{ row.scan_no }}</td>
+                </tr>
+                <tr *ngIf="shippingList.length === 0">
+                  <td colspan="8" class="text-center text-muted">No data available</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
