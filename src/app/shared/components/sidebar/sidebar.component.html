@@ -38,6 +38,7 @@
              routerLinkActive="active"
              [routerLinkActiveOptions]="{exact: true}"
              class="nav-link"
+             [attr.data-menu]="item.label"
              [title]="isCollapsed() ? item.label : ''">
             <i [class]="item.icon + ' nav-icon'"></i>
             <span class="nav-text">{{ item.label }}</span>
@@ -46,25 +47,45 @@
 
         <!-- SUBMENU (dengan children) -->
         <ng-container *ngIf="item.children && hasPermission(item.roles)">
-          <a href="javascript:void(0)"
-             class="nav-link"
-             (click)="toggleMenu(item.label, $event)"
-             [ngClass]="{ 'expanded': isMenuExpanded(item.label) }">
-            <i [class]="item.icon + ' nav-icon'"></i>
-            <span class="nav-text">{{ item.label }}</span>
-            <i class="fas fa-chevron-right nav-chevron"></i>
-          </a>
-
-          <!-- SUBMENU ITEMS -->
-          <div class="nav-submenu" [ngClass]="{ 'show': isMenuExpanded(item.label) }">
-            <a *ngFor="let child of item.children"
-               [routerLink]="child.route"
-               routerLinkActive="active"
-               [routerLinkActiveOptions]="{exact: true}"
-               class="nav-link nav-link-submenu">
-              <i [class]="child.icon + ' nav-icon-sub'"></i>
-              <span class="nav-text">{{ child.label }}</span>
+          <div class="nav-link-wrapper" (mouseenter)="onMenuMouseEnter(item)" (mouseleave)="onMenuMouseLeave()">
+            <a href="javascript:void(0)"
+               class="nav-link"
+               [attr.data-menu]="item.label"
+               (click)="toggleMenu(item.label, $event)"
+               [title]="isCollapsed() ? item.label : ''"
+               [ngClass]="{ 'expanded': isMenuExpanded(item.label) }">
+              <i [class]="item.icon + ' nav-icon'"></i>
+              <span class="nav-text">{{ item.label }}</span>
+              <i class="fas fa-chevron-right nav-chevron"></i>
             </a>
+
+            <!-- SUBMENU ITEMS - Normal Expanded -->
+            <div class="nav-submenu" [ngClass]="{ 'show': isMenuExpanded(item.label) }">
+              <a *ngFor="let child of item.children"
+                 [routerLink]="child.route"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{exact: true}"
+                 class="nav-link nav-link-submenu">
+                <i [class]="child.icon + ' nav-icon-sub'"></i>
+                <span class="nav-text">{{ child.label }}</span>
+              </a>
+            </div>
+
+            <!-- HOVER SUBMENU - For Collapsed State -->
+            <div class="nav-hover-submenu" *ngIf="isCollapsed() && isMenuHovered(item.label)">
+              <div class="hover-submenu-header">
+                <i [class]="item.icon"></i>
+                <span>{{ item.label }}</span>
+              </div>
+              <a *ngFor="let child of item.children"
+                 [routerLink]="child.route"
+                 routerLinkActive="active"
+                 [routerLinkActiveOptions]="{exact: true}"
+                 class="hover-submenu-item">
+                <i [class]="child.icon"></i>
+                <span>{{ child.label }}</span>
+              </a>
+            </div>
           </div>
         </ng-container>
 

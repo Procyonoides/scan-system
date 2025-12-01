@@ -1,7 +1,8 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 import { filter } from 'rxjs/operators';
 
 interface MenuItem {
@@ -84,18 +85,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  sidebarCollapsed = signal(false);
   expandedMenus: { [key: string]: boolean } = {};
-  private mutationObserver: MutationObserver | null = null;
+  hoveredMenu: string | null = null;
 
   constructor(
     public authService: AuthService,
+    public sidebarService: SidebarService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.loadSidebarState();
-    this.observeAttributeChanges();
     this.checkActiveRoute();
 
     this.router.events.pipe(
@@ -106,41 +105,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
-  }
-
-  private loadSidebarState() {
-    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
-    const htmlAttr = document.documentElement.getAttribute('data-sidebar-collapse') === 'true';
-    const state = saved || htmlAttr;
-    this.sidebarCollapsed.set(state);
-  }
-
-  private observeAttributeChanges() {
-    const root = document.documentElement;
-    this.mutationObserver = new MutationObserver(() => {
-      const isCollapsed = root.getAttribute('data-sidebar-collapse') === 'true';
-      this.sidebarCollapsed.set(isCollapsed);
-    });
-    this.mutationObserver.observe(root, {
-      attributes: true,
-      attributeFilter: ['data-sidebar-collapse']
-    });
-  }
-
-  toggleSidebar() {
-    const newState = !this.sidebarCollapsed();
-    this.sidebarCollapsed.set(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
-
-    const root = document.documentElement;
-    if (newState) {
-      root.setAttribute('data-sidebar-collapse', 'true');
-    } else {
-      root.removeAttribute('data-sidebar-collapse');
-    }
+    // Cleanup if needed
   }
 
   hasPermission(roles?: string[]): boolean {
@@ -150,7 +115,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   isCollapsed(): boolean {
-    return this.sidebarCollapsed();
+    return this.sidebarService.isCollapsed();
   }
 
   toggleMenu(label: string, event?: MouseEvent) {
@@ -158,15 +123,52 @@ export class SidebarComponent implements OnInit, OnDestroy {
       event.preventDefault();
       event.stopPropagation();
     }
-    // Auto expand sidebar jika collapsed dan klik parent menu
+
+    // Jika sidebar collapsed dan menu punya children, expand sidebar dulu
     if (this.isCollapsed() && this.menuItems.find(m => m.label === label && m.children)) {
-      this.toggleSidebar();
+      this.sidebarService.expand();
+      this.expandedMenus[label] = true;
+      return;
     }
+
+    // Toggle menu expansion
     this.expandedMenus[label] = !this.expandedMenus[label];
   }
 
   isMenuExpanded(label: string): boolean {
     return !!this.expandedMenus[label];
+  }
+
+  onMenuMouseEnter(item: MenuItem) {
+    // Hanya untuk collapsed state dengan children
+    if (this.isCollapsed() && item.children) {
+      this.hoveredMenu = item.label;
+    }
+  }
+
+  onMenuMouseLeave() {
+    this.hoveredMenu = null;
+  }
+
+  isMenuHovered(label: string): boolean {
+    return this.hoveredMenu === label;
+  }
+
+  getHoverMenuPosition(label: string): any {
+    if (!this.isCollapsed() || !this.hoveredMenu || this.hoveredMenu !== label) {
+      return null;
+    }
+
+    // Calculate position untuk hover menu
+    const element = document.querySelector(`[data-menu="${label}"]`);
+    if (element) {
+      const rect = element.getBoundingClientRect();
+      return {
+        top: rect.top + 'px',
+        left: '70px' // sidebar collapsed width
+      };
+    }
+    return null;
   }
 
   private checkActiveRoute() {
