@@ -5,16 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
 
 interface User {
-  user_id?: number;
-  id_user?: number;
+  id_user: number;
   username: string;
-  email?: string;
-  full_name?: string;
+  password?: string;
   position: string;
   description?: string;
-  status?: string;
-  created_at?: string;
-  last_login?: string;
 }
 
 @Component({
@@ -33,6 +28,9 @@ export class UserComponent implements OnInit {
   successMessage = '';
   searchTerm = '';
 
+  // Password visibility tracking
+  passwordVisibility: { [key: number]: boolean } = {};
+
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
@@ -47,16 +45,20 @@ export class UserComponent implements OnInit {
 
   // Form data
   userForm: User = {
+    id_user: 0,
     username: '',
-    email: '',
-    full_name: '',
+    password: '',
     position: '',
-    description: '',
-    status: 'ACTIVE'
+    description: ''
   };
 
   positions = ['IT', 'MANAGEMENT', 'RECEIVING', 'SHIPPING', 'SERVER'];
-  statuses = ['ACTIVE', 'INACTIVE'];
+  
+  // Description options based on position
+  descriptionOptions: { [key: string]: string[] } = {
+    'RECEIVING': ['INCOME', 'CU', 'SAMPLE', 'RETURN', 'GRINDING'],
+    'SHIPPING': ['DELIVERY', 'PRESS', 'CU', 'SAMPLE', 'PAINT', 'GRINDING', 'REJECT', 'STOCKFIT']
+  };
 
   constructor(private http: HttpClient) {}
 
@@ -89,9 +91,8 @@ export class UserComponent implements OnInit {
       const term = this.searchTerm.toLowerCase();
       this.filteredUsers = this.users.filter(user =>
         user.username?.toLowerCase().includes(term) ||
-        user.email?.toLowerCase().includes(term) ||
-        user.full_name?.toLowerCase().includes(term) ||
-        user.position?.toLowerCase().includes(term)
+        user.position?.toLowerCase().includes(term) ||
+        user.description?.toLowerCase().includes(term)
       );
     }
     this.currentPage = 1;
@@ -131,20 +132,45 @@ export class UserComponent implements OnInit {
 
   openAddModal() {
     this.userForm = {
+      id_user: 0,
       username: '',
-      email: '',
-      full_name: '',
+      password: '',
       position: '',
-      description: '',
-      status: 'ACTIVE'
+      description: ''
     };
     this.showAddModal = true;
     this.errorMessage = '';
   }
 
+  onPositionChange() {
+    // Reset description when position changes
+    const position = this.userForm.position;
+    if (position === 'RECEIVING' || position === 'SHIPPING') {
+      this.userForm.description = '';
+    } else {
+      this.userForm.description = '-';
+    }
+  }
+
+  getDescriptionOptions(): string[] {
+    const position = this.userForm.position;
+    return this.descriptionOptions[position] || [];
+  }
+
+  shouldShowDescriptionDropdown(): boolean {
+    const position = this.userForm.position;
+    return position === 'RECEIVING' || position === 'SHIPPING';
+  }
+
   openEditModal(user: User) {
     this.selectedUser = user;
-    this.userForm = { ...user };
+    this.userForm = {
+      id_user: user.id_user,
+      username: user.username,
+      password: '',
+      position: user.position,
+      description: user.description || ''
+    };
     this.showEditModal = true;
     this.errorMessage = '';
   }
@@ -152,6 +178,7 @@ export class UserComponent implements OnInit {
   openDeleteModal(user: User) {
     this.selectedUser = user;
     this.showDeleteModal = true;
+    this.errorMessage = '';
   }
 
   closeModal() {
@@ -163,12 +190,21 @@ export class UserComponent implements OnInit {
   }
 
   onAdd() {
-    if (!this.validateForm()) {
+    if (!this.validateAddForm()) {
       return;
     }
 
     this.isLoading = true;
-    this.http.post(`${environment.apiUrl}/users`, this.userForm).subscribe({
+    const payload = {
+      username: this.userForm.username,
+      password: this.userForm.password,
+      position: this.userForm.position,
+      description: this.shouldShowDescriptionDropdown() 
+        ? (this.userForm.description || '') 
+        : '-'
+    };
+
+    this.http.post(`${environment.apiUrl}/users`, payload).subscribe({
       next: () => {
         this.successMessage = 'User added successfully!';
         this.closeModal();
@@ -185,11 +221,27 @@ export class UserComponent implements OnInit {
 
   onEdit() {
     if (!this.selectedUser) return;
+    if (!this.validateEditForm()) return;
 
     this.isLoading = true;
-    const userId = this.selectedUser.user_id || this.selectedUser.id_user;
-    
-    this.http.put(`${environment.apiUrl}/users/${userId}`, this.userForm).subscribe({
+    const payload: any = {
+      position: this.userForm.position,
+      description: this.shouldShowDescriptionDropdown() 
+        ? (this.userForm.description || '') 
+        : '-'
+    };
+
+    // Add password to payload if provided
+    if (this.userForm.password && this.userForm.password.trim() !== '') {
+      if (this.userForm.password.length < 3) {
+        this.errorMessage = 'Password must be at least 3 characters';
+        this.isLoading = false;
+        return;
+      }
+      payload.password = this.userForm.password;
+    }
+
+    this.http.put(`${environment.apiUrl}/users/${this.selectedUser.id_user}`, payload).subscribe({
       next: () => {
         this.successMessage = 'User updated successfully!';
         this.closeModal();
@@ -208,9 +260,7 @@ export class UserComponent implements OnInit {
     if (!this.selectedUser) return;
 
     this.isLoading = true;
-    const userId = this.selectedUser.user_id || this.selectedUser.id_user;
-
-    this.http.delete(`${environment.apiUrl}/users/${userId}`).subscribe({
+    this.http.delete(`${environment.apiUrl}/users/${this.selectedUser.id_user}`).subscribe({
       next: () => {
         this.successMessage = 'User deleted successfully!';
         this.closeModal();
@@ -225,9 +275,17 @@ export class UserComponent implements OnInit {
     });
   }
 
-  validateForm(): boolean {
+  validateAddForm(): boolean {
     if (!this.userForm.username || this.userForm.username.trim() === '') {
       this.errorMessage = 'Username is required';
+      return false;
+    }
+    if (!this.userForm.password || this.userForm.password.trim() === '') {
+      this.errorMessage = 'Password is required';
+      return false;
+    }
+    if (this.userForm.password.length < 3) {
+      this.errorMessage = 'Password must be at least 3 characters';
       return false;
     }
     if (!this.userForm.position || this.userForm.position.trim() === '') {
@@ -237,8 +295,12 @@ export class UserComponent implements OnInit {
     return true;
   }
 
-  getStatusBadgeClass(status?: string): string {
-    return status === 'ACTIVE' ? 'bg-success' : 'bg-secondary';
+  validateEditForm(): boolean {
+    if (!this.userForm.position || this.userForm.position.trim() === '') {
+      this.errorMessage = 'Position is required';
+      return false;
+    }
+    return true;
   }
 
   getPositionBadgeClass(position: string): string {
@@ -252,4 +314,18 @@ export class UserComponent implements OnInit {
     return classes[position] || 'bg-secondary';
   }
 
+  togglePasswordVisibility(userId: number) {
+    this.passwordVisibility[userId] = !this.passwordVisibility[userId];
+  }
+
+  isPasswordVisible(userId: number): boolean {
+    return !!this.passwordVisibility[userId];
+  }
+
+  getDisplayPassword(user: User): string {
+    if (this.isPasswordVisible(user.id_user)) {
+      return user.password || '***';
+    }
+    return '•'.repeat(8);
+  }
 }
