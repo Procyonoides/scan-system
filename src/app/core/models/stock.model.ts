@@ -1,12 +1,18 @@
 export interface Stock {
-  stock_id: number;
-  warehouse_id: number;
-  brand: string;
+  no: number;
   model: string;
   color: string;
   size: string;
-  quantity: number;
+  brand: string;
+  item: string;
+  production: string;
+  stock_awal: number;
+  receiving: number;
+  shipping: number;
+  stock_akhir: number;
+  percentage: number;
   status: string;
+  date: string;
 }
 
 export interface WarehouseStats {

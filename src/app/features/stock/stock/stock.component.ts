@@ -4,16 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { StockService } from '../../../core/services/stock.service';
 
 interface Stock {
-  stock_id: number;
-  warehouse_id: number;
-  original_barcode: string;
-  brand: string;
+  no: number;
   model: string;
   color: string;
   size: string;
-  quantity: number;
+  brand: string;
+  item: string;
+  production: string;
+  stock_awal: number;
+  receiving: number;
+  shipping: number;
+  stock_akhir: number;
+  percentage: number;
   status: string;
-  computed_status?: string;
+  date: string;
 }
 
 @Component({
@@ -43,12 +47,20 @@ export class StockComponent implements OnInit {
   constructor(private stockService: StockService) {}
 
   ngOnInit() {
+    console.log('🚀 Stock Component initialized');
     this.loadStock();
   }
 
   loadStock() {
     this.isLoading = true;
     this.errorMessage = '';
+
+    console.log('📡 Loading stock data...', {
+      page: this.currentPage,
+      limit: this.itemsPerPage,
+      search: this.searchTerm,
+      status: this.statusFilter
+    });
 
     this.stockService.getAll(
       this.currentPage, 
@@ -76,13 +88,19 @@ export class StockComponent implements OnInit {
           this.totalPages = Math.ceil(response.length / this.itemsPerPage);
         }
         
-        console.log(`📦 Loaded ${this.stockList.length} items`);
+        console.log(`📦 Loaded ${this.stockList.length} items (Total: ${this.totalItems})`);
         this.isLoading = false;
       },
       error: (err) => {
         console.error('❌ Failed to load stock:', err);
-        this.errorMessage = err.error?.message || 'Failed to load stock data';
+        this.errorMessage = err.error?.message || err.error?.error || 'Failed to load stock data';
         this.isLoading = false;
+        
+        // Set empty data
+        this.stockList = [];
+        this.filteredStocks = [];
+        this.totalItems = 0;
+        this.totalPages = 0;
       }
     });
   }
@@ -100,6 +118,7 @@ export class StockComponent implements OnInit {
   }
 
   clearFilters() {
+    console.log('🧹 Clearing filters...');
     this.searchTerm = '';
     this.statusFilter = '';
     this.currentPage = 1;
@@ -107,18 +126,14 @@ export class StockComponent implements OnInit {
   }
 
   getStatusBadgeClass(stock: Stock): string {
-    const qty = stock.quantity;
-    
-    if (qty > 100) return 'bg-success';
-    if (qty > 0 && qty <= 100) return 'bg-warning';
+    if (stock.status === 'AVAILABLE') return 'bg-success';
+    if (stock.status === 'LOW_STOCK') return 'bg-warning';
     return 'bg-danger';
   }
 
   getStatusText(stock: Stock): string {
-    const qty = stock.quantity;
-    
-    if (qty > 100) return 'Available';
-    if (qty > 0 && qty <= 100) return 'Low Stock';
+    if (stock.status === 'AVAILABLE') return 'Available';
+    if (stock.status === 'LOW_STOCK') return 'Low Stock';
     return 'Out of Stock';
   }
 
@@ -140,14 +155,15 @@ export class StockComponent implements OnInit {
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      console.log(`📄 Going to page ${page}`);
       this.currentPage = page;
       this.loadStock();
     }
   }
 
   onItemsPerPageChange() {
+    console.log(`📋 Items per page changed to: ${this.itemsPerPage}`);
     this.currentPage = 1;
     this.loadStock();
   }
-
 }

@@ -49,38 +49,45 @@ export class StockService {
    * @param status - Status filter (optional): AVAILABLE, LOW_STOCK, OUT_OF_STOCK
    */
   getAll(page = 1, limit = 10, search = '', status = '') {
-    console.log('📡 Calling:', this.apiUrl);
+    console.log('📡 Calling getAll:', this.apiUrl, { page, limit, search, status });
     
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
     
-    if (search) {
-      params = params.set('search', search);
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
     }
     
-    if (status) {
-      params = params.set('status', status);
+    if (status && status.trim() !== '') {
+      params = params.set('status', status.trim());
     }
+
+    console.log('📋 Request params:', params.toString());
 
     return this.http.get<any>(this.apiUrl, { params }).pipe(
       tap(data => {
-        const count = data.data ? data.data.length : data.length;
-        console.log('✅ Stocks received:', count, 'items');
+        const count = data.data ? data.data.length : (Array.isArray(data) ? data.length : 0);
+        const total = data.pagination ? data.pagination.total : count;
+        console.log('✅ Stocks received:', count, 'items (Total:', total, ')');
       }),
       catchError(err => {
-        console.error('❌ Get stocks error:', err);
+        console.error('❌ Get stocks error:', {
+          status: err.status,
+          message: err.message,
+          error: err.error
+        });
         return throwError(() => err);
       })
     );
   }
 
   /**
-   * Get specific stock by ID
+   * Get specific stock by no (primary key)
    */
-  getById(id: number) {
-    console.log('📡 Calling:', `${this.apiUrl}/${id}`);
-    return this.http.get<Stock>(`${this.apiUrl}/${id}`).pipe(
+  getByNo(no: number) {
+    console.log('📡 Calling:', `${this.apiUrl}/${no}`);
+    return this.http.get<Stock>(`${this.apiUrl}/${no}`).pipe(
       tap(data => console.log('✅ Stock detail received:', data)),
       catchError(err => {
         console.error('❌ Get stock detail error:', err);
