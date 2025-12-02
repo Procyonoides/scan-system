@@ -6,13 +6,10 @@ export interface Stock {
   brand: string;
   item: string;
   production: string;
-  stock_awal: number;
-  receiving: number;
-  shipping: number;
-  stock_akhir: number;
+  stock_akhir: number; // Total stock
   percentage: number;
-  status: string;
-  date: string;
+  status: string; // AVAILABLE, LOW_STOCK, OUT_OF_STOCK
+  status_production: string; // RUN or STOP
 }
 
 export interface WarehouseStats {

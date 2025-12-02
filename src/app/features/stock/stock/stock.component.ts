@@ -11,13 +11,10 @@ interface Stock {
   brand: string;
   item: string;
   production: string;
-  stock_awal: number;
-  receiving: number;
-  shipping: number;
-  stock_akhir: number;
+  stock_akhir: number; // Total stock only
   percentage: number;
   status: string;
-  date: string;
+  status_production: string; // RUN or STOP
 }
 
 @Component({
@@ -135,6 +132,16 @@ export class StockComponent implements OnInit {
     if (stock.status === 'AVAILABLE') return 'Available';
     if (stock.status === 'LOW_STOCK') return 'Low Stock';
     return 'Out of Stock';
+  }
+
+  /**
+   * Get badge class for production status
+   * RUN = success (hijau), STOP = danger (merah)
+   */
+  getProductionStatusBadgeClass(status: string): string {
+    if (status === 'RUN') return 'bg-success';
+    if (status === 'STOP') return 'bg-danger';
+    return 'bg-secondary';
   }
 
   get pageNumbers(): number[] {

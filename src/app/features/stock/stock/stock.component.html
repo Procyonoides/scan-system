@@ -76,8 +76,8 @@
             <td align="center">
               <span 
                 class="badge" 
-                [ngClass]="getStatusBadgeClass(item)">
-                {{ getStatusText(item) }}
+                [ngClass]="getProductionStatusBadgeClass(item.status_production)">
+                {{ item.status_production || 'N/A' }}
               </span>
             </td>
             <td align="center">
