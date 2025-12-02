@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 interface MasterDataItem {
   original_barcode: string;
@@ -33,13 +34,14 @@ interface FilterOptions {
 @Component({
   selector: 'app-master-data',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './master-data.component.html',
   styleUrl: './master-data.component.scss'
 })
 export class MasterDataComponent implements OnInit {
   masterDataList: MasterDataItem[] = [];
   filteredData: MasterDataItem[] = [];
+  
   filterOptions: FilterOptions = {
     models: [],
     sizes: [],
@@ -54,6 +56,7 @@ export class MasterDataComponent implements OnInit {
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 1;
+  totalItems: number = 0;
   Math = Math;
 
   // Modal states
@@ -71,6 +74,7 @@ export class MasterDataComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    console.log('🚀 Master Data Component initialized');
     this.initForm();
     this.loadMasterData();
     this.loadFilterOptions();
@@ -109,30 +113,63 @@ export class MasterDataComponent implements OnInit {
 
   loadMasterData() {
     this.isLoading = true;
+    this.errorMessage = '';
+
+    console.log('📡 Loading master data...', {
+      page: this.currentPage,
+      limit: this.itemsPerPage,
+      search: this.searchTerm
+    });
+
     this.http.get<any>(`${environment.apiUrl}/master-data/barcodes`, {
-      params: { page: this.currentPage, limit: this.itemsPerPage }
+      params: { 
+        page: this.currentPage.toString(), 
+        limit: this.itemsPerPage.toString(),
+        search: this.searchTerm
+      }
     }).subscribe({
       next: (response) => {
-        this.masterDataList = response.data;
-        this.filteredData = response.data;
-        this.totalPages = response.pagination.totalPages;
+        console.log('✅ Master data received:', response);
+        
+        if (response.success && response.data) {
+          this.masterDataList = response.data;
+          this.filteredData = response.data;
+          
+          if (response.pagination) {
+            this.totalItems = response.pagination.total;
+            this.totalPages = response.pagination.totalPages;
+            this.currentPage = response.pagination.page;
+          }
+          
+          console.log(`📦 Loaded ${this.masterDataList.length} items (Total: ${this.totalItems})`);
+        }
+        
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed to load master data:', err);
-        this.errorMessage = 'Failed to load data';
+        console.error('❌ Failed to load master data:', err);
+        this.errorMessage = err.error?.error || err.error?.message || 'Failed to load data';
         this.isLoading = false;
+        
+        // Set empty data
+        this.masterDataList = [];
+        this.filteredData = [];
+        this.totalItems = 0;
+        this.totalPages = 0;
       }
     });
   }
 
   loadFilterOptions() {
-    this.http.get<FilterOptions>(`${environment.apiUrl}/master-data/filter-options`)
+    this.http.get<any>(`${environment.apiUrl}/master-data/filter-options`)
       .subscribe({
-        next: (data) => {
-          this.filterOptions = data;
+        next: (response) => {
+          if (response.success) {
+            this.filterOptions = response;
+          }
+          console.log('✅ Filter options loaded:', this.filterOptions);
         },
-        error: (err) => console.error('Failed to load filter options:', err)
+        error: (err) => console.error('❌ Failed to load filter options:', err)
       });
   }
 
@@ -157,37 +194,27 @@ export class MasterDataComponent implements OnInit {
   fetchModelCode(model: string) {
     this.http.get<any>(`${environment.apiUrl}/master-data/model-code/${model}`)
       .subscribe({
-        next: (data) => {
-          this.barcodeForm.patchValue({ model_code: data.model_code || '' });
+        next: (response) => {
+          if (response.success) {
+            this.barcodeForm.patchValue({ model_code: response.model_code || '' });
+          }
         },
-        error: (err) => console.error('Failed to fetch model code:', err)
+        error: (err) => console.error('❌ Failed to fetch model code:', err)
       });
   }
 
   onSearch() {
-    if (!this.searchTerm) {
-      this.filteredData = this.masterDataList;
-    } else {
-      const term = this.searchTerm.toLowerCase();
-      this.filteredData = this.masterDataList.filter(item =>
-        item.original_barcode?.toLowerCase().includes(term) ||
-        item.brand?.toLowerCase().includes(term) ||
-        item.model?.toLowerCase().includes(term) ||
-        item.color?.toLowerCase().includes(term)
-      );
-    }
+    console.log('🔍 Searching:', this.searchTerm);
     this.currentPage = 1;
-    this.calculatePagination();
+    this.loadMasterData();
   }
 
   calculatePagination() {
-    this.totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+    // Not needed - handled by backend
   }
 
   get paginatedData() {
-    const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredData.slice(start, end);
+    return this.filteredData;
   }
 
   get pageNumbers(): number[] {
@@ -207,9 +234,17 @@ export class MasterDataComponent implements OnInit {
   }
 
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      console.log(`📄 Going to page ${page}`);
       this.currentPage = page;
+      this.loadMasterData();
     }
+  }
+
+  onItemsPerPageChange() {
+    console.log(`📋 Items per page changed to: ${this.itemsPerPage}`);
+    this.currentPage = 1;
+    this.loadMasterData();
   }
 
   // ==================== CRUD OPERATIONS ====================
@@ -217,21 +252,24 @@ export class MasterDataComponent implements OnInit {
   openAddModal() {
     this.showAddModal = true;
     this.barcodeForm.reset({ quantity: 0, stock: 0 });
+    this.errorMessage = '';
   }
 
   openEditModal(barcode: string) {
     this.selectedBarcode = barcode;
     this.isLoading = true;
     
-    this.http.get<MasterDataItem>(`${environment.apiUrl}/master-data/barcode/${barcode}`)
+    this.http.get<any>(`${environment.apiUrl}/master-data/barcode/${barcode}`)
       .subscribe({
-        next: (data) => {
-          this.barcodeForm.patchValue(data);
-          this.showEditModal = true;
+        next: (response) => {
+          if (response.success && response.data) {
+            this.barcodeForm.patchValue(response.data);
+            this.showEditModal = true;
+          }
           this.isLoading = false;
         },
         error: (err) => {
-          this.errorMessage = 'Failed to load barcode data';
+          this.errorMessage = err.error?.error || 'Failed to load barcode data';
           this.isLoading = false;
         }
       });
@@ -240,6 +278,7 @@ export class MasterDataComponent implements OnInit {
   openDeleteModal(barcode: string) {
     this.selectedBarcode = barcode;
     this.showDeleteModal = true;
+    this.errorMessage = '';
   }
 
   onAdd() {
@@ -251,12 +290,14 @@ export class MasterDataComponent implements OnInit {
     this.isLoading = true;
     this.http.post(`${environment.apiUrl}/master-data/barcode`, this.barcodeForm.value)
       .subscribe({
-        next: () => {
-          this.successMessage = 'Barcode added successfully!';
-          this.showAddModal = false;
-          this.loadMasterData();
+        next: (response: any) => {
+          if (response.success) {
+            this.successMessage = 'Barcode added successfully!';
+            this.showAddModal = false;
+            this.loadMasterData();
+            setTimeout(() => this.successMessage = '', 3000);
+          }
           this.isLoading = false;
-          setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to add barcode';
@@ -274,12 +315,14 @@ export class MasterDataComponent implements OnInit {
     this.isLoading = true;
     this.http.put(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`, this.barcodeForm.value)
       .subscribe({
-        next: () => {
-          this.successMessage = 'Barcode updated successfully!';
-          this.showEditModal = false;
-          this.loadMasterData();
+        next: (response: any) => {
+          if (response.success) {
+            this.successMessage = 'Barcode updated successfully!';
+            this.showEditModal = false;
+            this.loadMasterData();
+            setTimeout(() => this.successMessage = '', 3000);
+          }
           this.isLoading = false;
-          setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to update barcode';
@@ -292,12 +335,14 @@ export class MasterDataComponent implements OnInit {
     this.isLoading = true;
     this.http.delete(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`)
       .subscribe({
-        next: () => {
-          this.successMessage = 'Barcode deleted successfully!';
-          this.showDeleteModal = false;
-          this.loadMasterData();
+        next: (response: any) => {
+          if (response.success) {
+            this.successMessage = 'Barcode deleted successfully!';
+            this.showDeleteModal = false;
+            this.loadMasterData();
+            setTimeout(() => this.successMessage = '', 3000);
+          }
           this.isLoading = false;
-          setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to delete barcode';
@@ -310,6 +355,7 @@ export class MasterDataComponent implements OnInit {
     this.showAddModal = false;
     this.showEditModal = false;
     this.showDeleteModal = false;
+    this.selectedBarcode = '';
     this.errorMessage = '';
   }
 
@@ -334,7 +380,7 @@ export class MasterDataComponent implements OnInit {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'master-data.csv';
+    a.download = `master-data-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   }
