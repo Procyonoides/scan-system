@@ -364,7 +364,16 @@
 }
 
 // Hover effect untuk parent row
+.table tbody tr {
+  position: relative;
+  z-index: 1;
+  transition: background-color 0.2s ease;
+}
+
 .table tbody tr:hover {
+  background-color: #e7f1ff !important;
+  z-index: 999; /* naik di atas header */
+  
   .action-buttons .btn {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -375,7 +384,7 @@
 .table {
   font-size: 0.8rem; // DIPERKECIL dari 0.875rem
   margin-bottom: 0;
-  table-layout: fixed; // PENTING: Fixed layout untuk konsistensi
+  table-layout: auto !important;; // PENTING: Fixed layout untuk konsistensi
   width: 100%;
 
   // Column widths
@@ -772,8 +781,8 @@
     thead th:last-child {
       position: sticky;
       right: 0;
-      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      //background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+      //box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
       z-index: 11; // Lebih tinggi dari tbody
     }
     
@@ -785,6 +794,19 @@
       z-index: 5;
     }
   }
+}
+
+.table td, 
+.table th {
+  white-space: normal !important; /* agar teks bisa turun ke baris berikutnya */
+  word-break: break-word; /* pecah kata panjang */
+  vertical-align: middle;
+}
+.table th:last-child,
+.table td:last-child {
+  white-space: nowrap !important;
+  width: 110px;
+  text-align: center;
 }
 
 // Badge untuk stock

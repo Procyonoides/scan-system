@@ -161,6 +161,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
     );
   }
 
+  /**
+   * Animate counter from 0 to target value
+   */
+  private animateCounter(element: HTMLElement, target: number, duration: number = 1000) {
+    const start = 0;
+    const increment = target / (duration / 16); // 60fps
+    let current = start;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        element.textContent = this.formatNumber(Math.floor(target));
+        clearInterval(timer);
+      } else {
+        element.textContent = this.formatNumber(Math.floor(current));
+      }
+    }, 16);
+  }
+
   private processDashboardData(data: any) {
     // Update data WITHOUT triggering loading spinner
     this.stats = data.stats;

@@ -311,12 +311,34 @@
   font-size: 0.85rem;
   margin-bottom: 0;
 
+  &-condensed {
+    thead th,
+    tbody td {
+      padding: 0.5rem 0.25rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  &-bordered {
+    border: 1px solid #dee2e6;
+    
+    th, td {
+      border: 1px solid #dee2e6;
+    }
+  }
+
   thead {
     th {
       font-weight: 600;
-      padding: 1rem 0.75rem;
+      padding: 0.75rem 0.5rem;
       text-align: center;
       white-space: nowrap;
+      vertical-align: middle;
+      font-size: 0.75rem;
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
 
       &.bg-success {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
@@ -354,8 +376,10 @@
       }
 
       td {
-        padding: 0.75rem;
+        padding: 0.5rem 0.25rem;
         vertical-align: middle;
+        text-align: center;
+        font-size: 0.8rem;
       }
     }
   }

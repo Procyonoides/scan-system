@@ -203,29 +203,29 @@
         </div>
         <div class="card-body">
           <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-            <table class="table table-sm table-striped table-hover mb-0">
+            <table class="table table-sm table-condensed table-bordered mb-0">
               <thead class="bg-success text-white sticky-top">
                 <tr>
-                  <th align="center">DATE/TIME</th>
-                  <th align="center">ORIGINAL BARCODE</th>
-                  <th align="center">MODEL</th>
-                  <th align="center">COLOR</th>
-                  <th align="center">SIZE</th>
-                  <th align="center">QUANTITY</th>
-                  <th align="center">USERNAME</th>
-                  <th align="center">SCAN NO</th>
+                  <th class="text-center">DATE/TIME</th>
+                  <th class="text-center">ORIGINAL BARCODE</th>
+                  <th class="text-center">MODEL</th>
+                  <th class="text-center">COLOR</th>
+                  <th class="text-center">SIZE</th>
+                  <th class="text-center">QUANTITY</th>
+                  <th class="text-center">USERNAME</th>
+                  <th class="text-center">SCAN NO</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let row of receivingList">
-                  <td align="center" style="font-size: 0.85rem;">{{ row.date_time }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.original_barcode }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.model }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.color }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.size }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.quantity }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.username }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.scan_no }}</td>
+                  <td class="text-center">{{ row.date_time }}</td>
+                  <td class="text-center">{{ row.original_barcode }}</td>
+                  <td class="text-center">{{ row.model }}</td>
+                  <td class="text-center">{{ row.color }}</td>
+                  <td class="text-center">{{ row.size }}</td>
+                  <td class="text-center">{{ row.quantity }}</td>
+                  <td class="text-center">{{ row.username }}</td>
+                  <td class="text-center">{{ row.scan_no }}</td>
                 </tr>
                 <tr *ngIf="receivingList.length === 0">
                   <td colspan="8" class="text-center text-muted py-3">
@@ -254,29 +254,29 @@
         </div>
         <div class="card-body">
           <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-            <table class="table table-sm table-striped table-hover mb-0">
+            <table class="table table-sm table-condensed table-bordered mb-0">
               <thead class="bg-warning text-dark sticky-top">
                 <tr>
-                  <th align="center">DATE/TIME</th>
-                  <th align="center">ORIGINAL BARCODE</th>
-                  <th align="center">MODEL</th>
-                  <th align="center">COLOR</th>
-                  <th align="center">SIZE</th>
-                  <th align="center">QUANTITY</th>
-                  <th align="center">USERNAME</th>
-                  <th align="center">SCAN NO</th>
+                  <th class="text-center">DATE/TIME</th>
+                  <th class="text-center">ORIGINAL BARCODE</th>
+                  <th class="text-center">MODEL</th>
+                  <th class="text-center">COLOR</th>
+                  <th class="text-center">SIZE</th>
+                  <th class="text-center">QUANTITY</th>
+                  <th class="text-center">USERNAME</th>
+                  <th class="text-center">SCAN NO</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let row of shippingList">
-                  <td align="center" style="font-size: 0.85rem;">{{ row.date_time }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.original_barcode }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.model }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.color }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.size }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.quantity }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.username }}</td>
-                  <td align="center" style="font-size: 0.85rem;">{{ row.scan_no }}</td>
+                  <td class="text-center">{{ row.date_time }}</td>
+                  <td class="text-center">{{ row.original_barcode }}</td>
+                  <td class="text-center">{{ row.model }}</td>
+                  <td class="text-center">{{ row.color }}</td>
+                  <td class="text-center">{{ row.size }}</td>
+                  <td class="text-center">{{ row.quantity }}</td>
+                  <td class="text-center">{{ row.username }}</td>
+                  <td class="text-center">{{ row.scan_no }}</td>
                 </tr>
                 <tr *ngIf="shippingList.length === 0">
                   <td colspan="8" class="text-center text-muted py-3">

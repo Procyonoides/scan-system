@@ -139,9 +139,28 @@ export class StockComponent implements OnInit {
    * RUN = success (hijau), STOP = danger (merah)
    */
   getProductionStatusBadgeClass(status: string): string {
-    if (status === 'RUN') return 'bg-success';
-    if (status === 'STOP') return 'bg-danger';
-    return 'bg-secondary';
+    if (status === 'RUN') return 'status-run';
+    if (status === 'STOP') return 'status-stop';
+    return 'status-unknown';
+  }
+
+  /**
+   * Get percentage color class
+   */
+  getPercentageClass(percentage: number): string {
+    if (percentage >= 75) return 'bg-success';
+    if (percentage >= 50) return 'bg-info';
+    if (percentage >= 25) return 'bg-warning';
+    return 'bg-danger';
+  }
+
+  /**
+   * Get stock badge class based on quantity
+   */
+  getStockClass(stock: number): string {
+    if (stock >= 100) return 'stock-high';
+    if (stock > 0) return 'stock-medium';
+    return 'stock-low';
   }
 
   get pageNumbers(): number[] {

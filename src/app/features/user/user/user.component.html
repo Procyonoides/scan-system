@@ -113,23 +113,49 @@
     <div class="card-footer">
       <div class="row align-items-center">
         <div class="col-md-6">
-          <small class="text-muted">
-            Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to 
-            {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of 
-            {{ filteredUsers.length }} entries
-          </small>
+          <div class="pagination-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
+            <strong>{{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }}</strong> of 
+            <strong>{{ filteredUsers.length }}</strong> entries
+          </div>
         </div>
         <div class="col-md-6">
           <nav>
-            <ul class="pagination pagination-sm justify-content-end mb-0">
+            <ul class="pagination pagination-elegant justify-content-end mb-0">
+              <!-- First Page -->
               <li class="page-item" [class.disabled]="currentPage === 1">
-                <a class="page-link" (click)="goToPage(currentPage - 1)">Previous</a>
+                <a class="page-link page-first" (click)="goToPage(1)" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </a>
               </li>
+
+              <!-- Previous Page -->
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)" title="Previous">
+                  <i class="bi bi-chevron-left"></i>
+                  <span class="d-none d-sm-inline ms-1">Prev</span>
+                </a>
+              </li>
+
+              <!-- Page Numbers -->
               <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="page === currentPage">
                 <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
               </li>
+
+              <!-- Next Page -->
               <li class="page-item" [class.disabled]="currentPage === totalPages">
-                <a class="page-link" (click)="goToPage(currentPage + 1)">Next</a>
+                <a class="page-link" (click)="goToPage(currentPage + 1)" title="Next">
+                  <span class="d-none d-sm-inline me-1">Next</span>
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+
+              <!-- Last Page -->
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link page-last" (click)="goToPage(totalPages)" title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </a>
               </li>
             </ul>
           </nav>
