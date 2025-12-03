@@ -30,7 +30,7 @@
   border: none;
   margin-bottom: 20px;
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible; // PENTING: Biar dropdown terlihat
   transition: all 0.3s ease;
 
   &:hover {
@@ -61,24 +61,48 @@
   }
 }
 
-// Button Styling
-.btn-group {
-  gap: 8px;
+// Action Buttons Container (untuk Add, Option, Operation)
+.header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .button-group-left {
+    display: flex;
+    gap: 8px; // Jarak antar button group Add, Option, Operation
+    flex-wrap: wrap;
+  }
+
+  .button-group-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+// Button Styling - DIPERKECIL
+.btn-group {
+  gap: 0; // Hilangkan gap internal
+  display: inline-flex; // PENTING: Biar button groups berdekatan
+  flex-wrap: nowrap;
+  position: relative; // PENTING untuk dropdown
 
   .btn {
     border-radius: 6px;
     font-weight: 500;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem; // DIPERKECIL dari 0.5rem 1rem
+    font-size: 0.85rem; // DIPERKECIL dari 0.9rem
     transition: all 0.3s ease;
     border: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
 
     i {
-      font-size: 0.9rem;
+      font-size: 0.85rem; // DIPERKECIL
     }
 
     &:hover {
@@ -91,11 +115,11 @@
     }
 
     &-sm {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.875rem;
+      padding: 0.3rem 0.6rem; // DIPERKECIL
+      font-size: 0.8rem; // DIPERKECIL
 
       i {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
       }
     }
 
@@ -148,16 +172,25 @@
       }
     }
   }
+
+  // DROPDOWN MENU STYLING - PENTING!
   .dropdown-menu {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border: none;
     padding: 0.5rem 0;
+    min-width: 180px;
+    z-index: 1050; // PENTING: Biar muncul di atas semua elemen
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    margin-top: 4px !important;
 
     .dropdown-item {
       padding: 0.5rem 1rem;
       transition: all 0.2s ease;
-      font-size: 0.9rem;
+      font-size: 0.85rem; // DIPERKECIL
+      color: #495057;
 
       &:hover {
         background-color: #f8f9fa;
@@ -177,47 +210,194 @@
   }
 }
 
-// Action Buttons in Table
+// Action Buttons in Table - ELEGANT DESIGN
 .action-buttons {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   justify-content: center;
+  align-items: center;
 
   .btn {
-    padding: 0.35rem 0.7rem;
-    font-size: 0.8rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    min-width: 70px;
+    padding: 0;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 38px;
+    height: 38px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    overflow: visible; // PENTING: Biar tooltip terlihat
+    z-index: 1;
 
+    // Icon styling
     i {
-      font-size: 0.75rem;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      z-index: 2;
+      position: relative;
     }
 
+    // Elegant ripple effect background
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease, height 0.4s ease;
+      z-index: 1;
+    }
+
+    // Tooltip - Elegant style
+    &[title]::after {
+      content: attr(title);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      z-index: 1001;
+      letter-spacing: 0.3px;
+    }
+
+    // Tooltip arrow - Elegant
+    &[title]::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 3px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-2px);
+      border: 5px solid transparent;
+      border-top-color: #2d3748;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    // Hover effects
     &:hover {
-      transform: translateY(-1px);
+      transform: translateY(-3px) scale(1.08);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      z-index: 10; // Lebih tinggi saat hover
+
+      &::before {
+        width: 100%;
+        height: 100%;
+      }
+
+      &[title]::after,
+      &[title]::before {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      i {
+        transform: scale(1.1);
+      }
+    }
+
+    // Active state
+    &:active {
+      transform: translateY(-1px) scale(1.02);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    // Edit Button - Info (Cyan/Teal gradient)
+    &.btn-info {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+      }
+
+      &:active {
+        background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+      }
+    }
+
+    // Delete Button - Danger (Red gradient)
+    &.btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+      }
+
+      &:active {
+        background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+      }
+    }
+
+    // Focus visible for accessibility
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
     }
   }
 }
 
-// Table Styling
+// Hover effect untuk parent row
+.table tbody tr:hover {
+  .action-buttons .btn {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Table Styling - DIPERKECIL
 .table {
-  font-size: 0.875rem;
+  font-size: 0.8rem; // DIPERKECIL dari 0.875rem
   margin-bottom: 0;
+  table-layout: fixed; // PENTING: Fixed layout untuk konsistensi
+  width: 100%;
+
+  // Column widths
+  colgroup {
+    col:last-child {
+      width: 110px; // Sedikit lebih lebar untuk action buttons yang lebih besar
+    }
+  }
 
   thead {
     th {
       font-weight: 600;
-      padding: 1rem 0.75rem;
+      padding: 0.75rem 0.5rem; // DIPERKECIL
       text-align: center;
       white-space: nowrap;
       border-bottom: 2px solid #dee2e6;
       vertical-align: middle;
+      font-size: 0.75rem; // DIPERKECIL
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
 
       &.table-primary {
         background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
@@ -233,24 +413,93 @@
 
       &:hover {
         background-color: #f8f9fa;
+        
+        // Hover effect untuk action column juga
+        td:last-child {
+          background-color: #f8f9fa;
+        }
       }
 
       td {
-        padding: 0.875rem 0.75rem;
+        padding: 0.65rem 0.5rem; // DIPERKECIL
         vertical-align: middle;
         text-align: center;
+        font-size: 0.75rem; // DIPERKECIL
+        white-space: nowrap;
+        overflow: visible; // PENTING: Biar tooltip action terlihat
+        text-overflow: ellipsis;
+        background: white;
+
+        // Action column tetap terlihat saat scroll horizontal
+        &:last-child {
+          position: sticky;
+          right: 0;
+          background: white;
+          box-shadow: -2px 0 5px rgba(0, 0, 0, 0.08);
+          z-index: 5;
+          overflow: visible; // PENTING untuk tooltip
+        }
       }
     }
   }
 }
 
-// Form Controls
+// Table Responsive - PERBAIKAN
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 400px); // Batas tinggi tabel
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  
+  // PENTING: Jangan clip content
+  .table {
+    tbody tr {
+      td {
+        overflow: visible !important; // Override untuk tooltip
+      }
+    }
+  }
+  
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f3f5;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ced4da;
+    border-radius: 4px;
+
+    &:hover {
+      background: #adb5bd;
+    }
+  }
+
+  // Shadow untuk indicate scroll
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 110px; // Width of action column
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.08), transparent);
+    pointer-events: none;
+    z-index: 4;
+  }
+}
+
+// Form Controls - DIPERKECIL
 .form-control,
 .form-select {
   border: 1px solid #ced4da;
   border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem; // DIPERKECIL
+  font-size: 0.85rem; // DIPERKECIL
   transition: all 0.3s ease;
 
   &:focus {
@@ -260,7 +509,7 @@
 
   &-sm {
     padding: 0.375rem 0.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.8rem; // DIPERKECIL
   }
 }
 
@@ -275,7 +524,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 0.85rem; // DIPERKECIL
     color: #495057;
   }
 
@@ -297,7 +546,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 0.85rem; // DIPERKECIL
     color: #495057;
   }
 
@@ -318,11 +567,12 @@
       border-radius: 6px;
       border: 1px solid #dee2e6;
       color: #495057;
-      padding: 0.5rem 0.75rem;
+      padding: 0.4rem 0.6rem; // DIPERKECIL
+      font-size: 0.8rem; // DIPERKECIL
       transition: all 0.3s ease;
       cursor: pointer;
       font-weight: 500;
-      min-width: 40px;
+      min-width: 35px;
       text-align: center;
 
       &:hover:not(.disabled) {
@@ -339,7 +589,7 @@
       }
 
       i {
-        font-size: 0.75rem;
+        font-size: 0.7rem; // DIPERKECIL
       }
     }
 
@@ -356,14 +606,6 @@
       background-color: #fff;
       border-color: #dee2e6;
     }
-
-    // First and Last buttons
-    &.page-first,
-    &.page-last {
-      .page-link {
-        font-weight: 600;
-      }
-    }
   }
 }
 
@@ -373,6 +615,7 @@
   border-radius: 8px;
   border-left: 4px solid;
   animation: slideDown 0.3s ease;
+  font-size: 0.85rem; // DIPERKECIL
 
   &-success {
     background-color: #d4edda;
@@ -412,6 +655,7 @@
 
     .modal-title {
       font-weight: 600;
+      font-size: 1.1rem; // DIPERKECIL
     }
 
     .btn-close {
@@ -426,6 +670,12 @@
 
   .modal-body {
     padding: 1.5rem;
+
+    .form-label {
+      font-size: 0.85rem; // DIPERKECIL
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
   }
 
   .modal-footer {
@@ -467,7 +717,7 @@
   }
 
   .table {
-    font-size: 0.75rem;
+    font-size: 0.7rem; // LEBIH KECIL di mobile
 
     thead th,
     tbody td {
@@ -502,10 +752,54 @@
   .pagination {
     .page-item {
       .page-link {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
-        min-width: 35px;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+        min-width: 30px;
       }
     }
+  }
+}
+
+// FIX untuk sidebar expanded - table tetap terlihat
+@media (min-width: 769px) {
+  .table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  
+  // Action column sticky di kanan
+  .table {
+    thead th:last-child {
+      position: sticky;
+      right: 0;
+      background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      z-index: 11; // Lebih tinggi dari tbody
+    }
+    
+    tbody td:last-child {
+      position: sticky;
+      right: 0;
+      background: white;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.08);
+      z-index: 5;
+    }
+  }
+}
+
+// Badge untuk stock
+.badge {
+  padding: 0.3rem 0.5rem; // DIPERKECIL
+  font-size: 0.7rem; // DIPERKECIL
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+// Z-index management untuk dropdown
+.btn-group {
+  position: relative;
+  
+  &.show {
+    z-index: 1051; // Lebih tinggi dari modal backdrop
   }
 }
