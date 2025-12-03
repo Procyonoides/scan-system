@@ -46,9 +46,9 @@ export class MasterDataComponent implements OnInit {
     models: [],
     sizes: [],
     productions: [],
-    brands: [],
-    units: [],
-    items: []
+    brands: ['ADIDAS', 'NEW BALANCE', 'REEBOK', 'ASICS', 'SPECS', 'OTHER BRAND'],
+    units: ['PRS', 'PCS'],
+    items: ['IP', 'PHYLON', 'BLOKER', 'PAINT', 'RUBBER', 'GOODSOLE']
   };
 
   barcodeForm!: FormGroup;
@@ -63,10 +63,30 @@ export class MasterDataComponent implements OnInit {
   showAddModal = false;
   showEditModal = false;
   showDeleteModal = false;
+  showImportModal = false;
+  showStockOpnameModal = false;
   selectedBarcode: string = '';
   isLoading = false;
   successMessage = '';
   errorMessage = '';
+
+  // File upload
+  selectedFile: File | null = null;
+
+  // Size to Four Digit Mapping (dari PHP)
+  sizeMap: { [key: string]: string } = {
+    '10K': '0010', '10TK': '0011', '11K': '0012', '11TK': '0013',
+    '12K': '0014', '12TK': '0015', '13K': '0016', '13TK': '0017',
+    '1': '0018', '1T': '0019', '2': '0020', '2T': '0021',
+    '3': '0022', '3T': '0023', '4': '0024', '4T': '0025',
+    '5': '0026', '5T': '0027', '6': '0028', '6T': '0029',
+    '7': '0030', '7T': '0031', '8': '0032', '8T': '0033',
+    '9': '0034', '9T': '0035', '10': '0036', '10T': '0037',
+    '11': '0038', '11T': '0039', '12': '0040', '12T': '0041',
+    '13': '0042', '13T': '0043', '14': '0044', '14T': '0045',
+    '15': '0046', '15T': '0047', '16': '0048', '16T': '0049',
+    '17': '0050', '17T': '0051', '18': '0052', '18T': '0053'
+  };
 
   constructor(
     private http: HttpClient,
@@ -151,7 +171,6 @@ export class MasterDataComponent implements OnInit {
         this.errorMessage = err.error?.error || err.error?.message || 'Failed to load data';
         this.isLoading = false;
         
-        // Set empty data
         this.masterDataList = [];
         this.filteredData = [];
         this.totalItems = 0;
@@ -165,7 +184,9 @@ export class MasterDataComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.filterOptions = response;
+            this.filterOptions.models = response.models || [];
+            this.filterOptions.sizes = response.sizes || [];
+            this.filterOptions.productions = response.productions || [];
           }
           console.log('✅ Filter options loaded:', this.filterOptions);
         },
@@ -174,21 +195,8 @@ export class MasterDataComponent implements OnInit {
   }
 
   generateFourDigit(size: string) {
-    // Logic to generate four_digit based on size (reference from PHP)
-    const sizeMap: { [key: string]: string } = {
-      '10K': '0010', '10TK': '0011', '11K': '0012', '11TK': '0013',
-      '12K': '0014', '12TK': '0015', '13K': '0016', '13TK': '0017',
-      '1': '0018', '1T': '0019', '2': '0020', '2T': '0021',
-      '3': '0022', '3T': '0023', '4': '0024', '4T': '0025',
-      '5': '0026', '5T': '0027', '6': '0028', '6T': '0029',
-      '7': '0030', '7T': '0031', '8': '0032', '8T': '0033',
-      '9': '0034', '9T': '0035', '10': '0036', '10T': '0037',
-      '11': '0038', '11T': '0039', '12': '0040', '12T': '0041',
-      '13': '0042', '13T': '0043', '14': '0044', '14T': '0045',
-      '15': '0046', '15T': '0047', '16': '0048', '16T': '0049',
-      '17': '0050', '17T': '0051', '18': '0052', '18T': '0053'
-    };
-    this.barcodeForm.patchValue({ four_digit: sizeMap[size] || '' });
+    const fourDigit = this.sizeMap[size] || '';
+    this.barcodeForm.patchValue({ four_digit: fourDigit });
   }
 
   fetchModelCode(model: string) {
@@ -207,10 +215,6 @@ export class MasterDataComponent implements OnInit {
     console.log('🔍 Searching:', this.searchTerm);
     this.currentPage = 1;
     this.loadMasterData();
-  }
-
-  calculatePagination() {
-    // Not needed - handled by backend
   }
 
   get paginatedData() {
@@ -278,6 +282,18 @@ export class MasterDataComponent implements OnInit {
   openDeleteModal(barcode: string) {
     this.selectedBarcode = barcode;
     this.showDeleteModal = true;
+    this.errorMessage = '';
+  }
+
+  openImportModal() {
+    this.showImportModal = true;
+    this.selectedFile = null;
+    this.errorMessage = '';
+  }
+
+  openStockOpnameModal() {
+    this.showStockOpnameModal = true;
+    this.selectedFile = null;
     this.errorMessage = '';
   }
 
@@ -355,37 +371,131 @@ export class MasterDataComponent implements OnInit {
     this.showAddModal = false;
     this.showEditModal = false;
     this.showDeleteModal = false;
+    this.showImportModal = false;
+    this.showStockOpnameModal = false;
     this.selectedBarcode = '';
+    this.selectedFile = null;
     this.errorMessage = '';
   }
 
+  // ==================== FILE HANDLING ====================
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const allowedTypes = [
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/csv'
+      ];
+      
+      if (allowedTypes.includes(file.type)) {
+        this.selectedFile = file;
+        this.errorMessage = '';
+      } else {
+        this.errorMessage = 'Please select a valid Excel or CSV file';
+        this.selectedFile = null;
+      }
+    }
+  }
+
+  onImportExcel() {
+    if (!this.selectedFile) {
+      this.errorMessage = 'Please select a file';
+      return;
+    }
+
+    this.isLoading = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+
+    this.http.post(`${environment.apiUrl}/master-data/import-barcode`, formData)
+      .subscribe({
+        next: (response: any) => {
+          this.successMessage = response.message || 'Import successful!';
+          this.closeModal();
+          this.loadMasterData();
+          this.isLoading = false;
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'Import failed';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  onImportStockOpname() {
+    if (!this.selectedFile) {
+      this.errorMessage = 'Please select a file';
+      return;
+    }
+
+    this.isLoading = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+
+    this.http.post(`${environment.apiUrl}/master-data/import-stock-opname`, formData)
+      .subscribe({
+        next: (response: any) => {
+          this.successMessage = response.message || 'Stock opname import successful!';
+          this.closeModal();
+          this.loadMasterData();
+          this.isLoading = false;
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'Import failed';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  // ==================== EXPORT FUNCTIONS ====================
+
   exportExcel() {
-    const headers = ['Barcode', 'Brand', 'Model', 'Color', 'Size', 'Quantity', 'Stock'];
+    console.log('📥 Exporting to Excel...');
+    
+    // Create CSV content
+    const headers = [
+      'BARCODE', 'BRAND', 'COLOR', 'SIZE', 'FOUR DIGIT', 'UNIT', 
+      'QUANTITY', 'PRODUCTION', 'MODEL', 'MODEL CODE', 'ITEM', 'STOCK'
+    ];
+    
     const rows = this.filteredData.map(item => [
       item.original_barcode,
       item.brand,
-      item.model,
       item.color,
       item.size,
+      item.four_digit,
+      item.unit,
       item.quantity,
+      item.production,
+      item.model,
+      item.model_code,
+      item.item,
       item.stock
     ]);
 
     let csvContent = headers.join(',') + '\n';
     rows.forEach(row => {
-      csvContent += row.join(',') + '\n';
+      csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `master-data-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `Master_Data_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+    
+    this.successMessage = 'Excel exported successfully!';
+    setTimeout(() => this.successMessage = '', 3000);
   }
 
   printMasterData() {
+    console.log('🖨️ Printing master data...');
     window.print();
   }
 }
