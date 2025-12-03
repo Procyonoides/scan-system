@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartOptions, ChartType } from 'chart.js';
+import { ChartOptions, ChartType, ChartData } from 'chart.js';
 import { DashboardService, WarehouseStats, ShiftScanData, WarehouseItem, ScanRecord } from '../../../core/services/dashboard.service';
 import { Subject, interval, forkJoin } from 'rxjs';
 import { takeUntil, switchMap, startWith, catchError } from 'rxjs/operators';
@@ -28,7 +28,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   shippingList: ScanRecord[] = [];
 
   chartType: ChartType = 'line';
-  chartData: any = {
+  chartData: ChartData<'line'> = {
     labels: [],
     datasets: []
   };
@@ -37,11 +37,61 @@ export class DashboardComponent implements OnInit, OnDestroy {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: true, position: 'top' },
-      title: { display: false }
+      legend: { 
+        display: true, 
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 15,
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
+        }
+      },
+      title: { display: false },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleFont: {
+          size: 14,
+          weight: 'bold'
+        },
+        bodyFont: {
+          size: 13
+        },
+        padding: 12,
+        cornerRadius: 8
+      }
     },
     scales: {
-      y: { beginAtZero: true }
+      y: { 
+        beginAtZero: true,
+        ticks: {
+          font: {
+            size: 11
+          }
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
+        }
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 11
+          }
+        },
+        grid: {
+          display: false
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
     }
   };
 
@@ -56,17 +106,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('🚀 Dashboard initialized');
 
-    interval(5000)
+    // Initial load
+    this.loadAllDataParallel().subscribe({
+      next: (data) => this.processDashboardData(data),
+      error: (err) => {
+        console.error('❌ Dashboard initial load error:', err);
+        this.isLoading = false;
+      }
+    });
+
+    // Auto-refresh every 30 seconds (smooth, no flickering)
+    interval(30000)
       .pipe(
-        startWith(0),
         switchMap(() => this.loadAllDataParallel()),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (data) => this.processDashboardData(data),
+        next: (data) => {
+          this.processDashboardData(data);
+          console.log('🔄 Dashboard data refreshed');
+        },
         error: (err) => {
           console.error('❌ Dashboard update error:', err);
-          this.isLoading = false;
         }
       });
   }
@@ -79,7 +140,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // --------------------------- CORE DATA LOADER ---------------------------
   private loadAllDataParallel() {
-    this.isLoading = true;
+    // Don't show loading spinner on refresh (only on initial load)
+    if (!this.stats.first_stock && !this.stats.warehouse_stock) {
+      this.isLoading = true;
+    }
 
     return forkJoin({
       stats: this.dashboardService.getWarehouseStats(),
@@ -98,6 +162,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private processDashboardData(data: any) {
+    // Update data WITHOUT triggering loading spinner
     this.stats = data.stats;
     this.shiftScanData = data.shift;
     this.warehouseItems = data.items;
@@ -110,26 +175,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // --------------------------- CHART HANDLER ---------------------------
   private generateChart(data: any[]) {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      console.warn('⚠️ No chart data available');
+      return;
+    }
 
     this.chartData = {
       labels: data.map(d => d.date),
       datasets: [
         {
-          label: 'Receiving',
+          label: 'RECEIVING',
           data: data.map(d => d.receiving || 0),
           borderColor: '#28a745',
           backgroundColor: 'rgba(40,167,69,0.1)',
           borderWidth: 3,
           tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#28a745',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          fill: true
         },
         {
-          label: 'Shipping',
+          label: 'SHIPPING',
           data: data.map(d => d.shipping || 0),
           borderColor: '#ffc107',
           backgroundColor: 'rgba(255,193,7,0.1)',
           borderWidth: 3,
           tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffc107',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          fill: true
         }
       ]
     };
@@ -145,18 +225,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   getItemColor(item: string): string {
     const colors: { [key: string]: string } = {
-      IP: 'danger',
-      PHYLON: 'warning',
-      BLOKER: 'success',
-      PAINT: 'primary',
-      RUBBER: 'secondary',
-      GOODSOLE: 'secondary'
+      'IP': 'red',
+      'PHYLON': 'orange',
+      'BLOKER': 'green',
+      'BLOKR': 'green',
+      'PAINT': 'light-blue',
+      'RUBBER': 'gray',
+      'GOODSOLE': 'teal',
+      'RUBER': 'gray'
     };
 
-    return colors[item.toUpperCase()] ?? 'dark';
+    const upperItem = (item || '').toUpperCase().trim();
+    return colors[upperItem] ?? 'dark';
   }
 
   formatDate(date: Date): string {
     return date.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  }
+
+  /**
+   * Parse percent string (format: "25,50" -> 25.50)
+   */
+  parsePercent(percent: string | number): number {
+    if (typeof percent === 'number') return percent;
+    if (!percent) return 0;
+    
+    // Replace comma with dot and convert to number
+    const cleaned = String(percent).replace(',', '.');
+    return parseFloat(cleaned) || 0;
+  }
+
+  /**
+   * Format number with thousand separator
+   */
+  formatNumber(num: number): string {
+    return new Intl.NumberFormat('id-ID').format(num || 0);
   }
 }

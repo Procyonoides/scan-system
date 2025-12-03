@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
 
 export interface WarehouseStats {
   first_stock: number;
@@ -18,7 +19,7 @@ export interface DailyChartData {
 export interface ShiftScanData {
   username: string;
   total: number;
-  percent: number;
+  percent: string; // Format: "25,50" (dengan koma)
   status: number;
 }
 
@@ -47,27 +48,27 @@ export class DashboardService {
 
   constructor(private http: HttpClient) { }
 
-  getWarehouseStats() {
+  getWarehouseStats(): Observable<WarehouseStats> {
     return this.http.get<WarehouseStats>(`${this.apiUrl}/warehouse-stats`);
   }
 
-  getDailyChart() {
+  getDailyChart(): Observable<DailyChartData[]> {
     return this.http.get<DailyChartData[]>(`${this.apiUrl}/daily-chart`);
   }
 
-  getShiftScan() {
+  getShiftScan(): Observable<ShiftScanData[]> {
     return this.http.get<ShiftScanData[]>(`${this.apiUrl}/shift-scan`);
   }
 
-  getWarehouseItems() {
+  getWarehouseItems(): Observable<WarehouseItem[]> {
     return this.http.get<WarehouseItem[]>(`${this.apiUrl}/warehouse-items`);
   }
 
-  getReceivingList() {
+  getReceivingList(): Observable<ScanRecord[]> {
     return this.http.get<ScanRecord[]>(`${this.apiUrl}/receiving-list`);
   }
 
-  getShippingList() {
+  getShippingList(): Observable<ScanRecord[]> {
     return this.http.get<ScanRecord[]>(`${this.apiUrl}/shipping-list`);
   }
 }
