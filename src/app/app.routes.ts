@@ -66,6 +66,12 @@ export const routes: Routes = [
             loadChildren: () => import('./features/user/user.routes').then(m => m.USER_ROUTES)
         },
         {
+            path: 'option',
+            canActivate: [roleGuard],
+            data: { roles: ['IT'] },
+            loadChildren: () => import('./features/option/option.routes').then(m => m.OPTION_ROUTES)
+        },
+        {
             path: '',
             redirectTo: 'dashboard',
             pathMatch: 'full'

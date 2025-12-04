@@ -58,10 +58,29 @@ export class SidebarComponent implements OnInit, OnDestroy {
       ],
       roles: ['IT', 'MANAGEMENT']
     },
+    // {
+    //   label: 'Master Data',
+    //   icon: 'fas fa-database',
+    //   route: '/master-data',
+    //   roles: ['IT']
+    // },
     {
       label: 'Master Data',
       icon: 'fas fa-database',
-      route: '/master-data',
+      children: [
+        {
+          label: 'Barcode',
+          icon: 'fas fa-barcode',
+          route: '/master-data',
+          roles: ['IT']
+        },
+        {
+          label: 'Option',
+          icon: 'fas fa-cog',
+          route: '/option',
+          roles: ['IT']
+        }
+      ],
       roles: ['IT']
     },
     {
