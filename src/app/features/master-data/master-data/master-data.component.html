@@ -40,9 +40,9 @@
               <i class="bi bi-gear"></i> Option
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openOptionModal('model')">Option Model</a></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openOptionModal('size')">Option Size</a></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openOptionModal('production')">Option Production</a></li>
+              <li><a class="dropdown-item" [routerLink]="['/option/model']">Option Model</a></li>
+              <li><a class="dropdown-item" [routerLink]="['/option/size']">Option Size</a></li>
+              <li><a class="dropdown-item" [routerLink]="['/option/production']">Option Production</a></li>
             </ul>
           </div>
 

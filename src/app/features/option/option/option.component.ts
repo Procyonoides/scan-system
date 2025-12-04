@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { OptionService, Model, Size, Production } from '../../../core/services/option.service';
 
 @Component({
   selector: 'app-option',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './option.component.html',
   styleUrl: './option.component.scss'
 })
@@ -38,16 +39,27 @@ export class OptionComponent implements OnInit {
 
   selectedItem: any = null;
 
-  constructor(private optionService: OptionService) {}
+  constructor(
+    private optionService: OptionService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.loadData();
+    // Get initial tab from route data
+    this.route.data.subscribe(data => {
+      if (data['tab']) {
+        this.activeTab = data['tab'];
+        this.loadData();
+      }
+    });
   }
 
   // ==================== TAB SWITCHING ====================
   
   switchTab(tab: 'model' | 'size' | 'production') {
     this.activeTab = tab;
+    this.router.navigate(['/option', tab]);
     this.loadData();
   }
 
@@ -61,9 +73,11 @@ export class OptionComponent implements OnInit {
       this.optionService.getModels().subscribe({
         next: (data) => {
           this.models = data;
+          console.log('✅ Models loaded:', data);
           this.isLoading = false;
         },
         error: (err) => {
+          console.error('❌ Failed to load models:', err);
           this.errorMessage = err.error?.error || 'Failed to load models';
           this.isLoading = false;
         }
@@ -72,9 +86,11 @@ export class OptionComponent implements OnInit {
       this.optionService.getSizes().subscribe({
         next: (data) => {
           this.sizes = data;
+          console.log('✅ Sizes loaded:', data);
           this.isLoading = false;
         },
         error: (err) => {
+          console.error('❌ Failed to load sizes:', err);
           this.errorMessage = err.error?.error || 'Failed to load sizes';
           this.isLoading = false;
         }
@@ -83,9 +99,11 @@ export class OptionComponent implements OnInit {
       this.optionService.getProductions().subscribe({
         next: (data) => {
           this.productions = data;
+          console.log('✅ Productions loaded:', data);
           this.isLoading = false;
         },
         error: (err) => {
+          console.error('❌ Failed to load productions:', err);
           this.errorMessage = err.error?.error || 'Failed to load productions';
           this.isLoading = false;
         }
@@ -326,5 +344,19 @@ export class OptionComponent implements OnInit {
     if (this.activeTab === 'size') return 'Size';
     if (this.activeTab === 'production') return 'Production';
     return '';
+  }
+
+  getCodeMaxLength(): number {
+    if (this.activeTab === 'model') return 3;
+    if (this.activeTab === 'size') return 4;
+    if (this.activeTab === 'production') return 2;
+    return 10;
+  }
+
+  getNameMaxLength(): number {
+    if (this.activeTab === 'model') return 35;
+    if (this.activeTab === 'size') return 4;
+    if (this.activeTab === 'production') return 30;
+    return 50;
   }
 }

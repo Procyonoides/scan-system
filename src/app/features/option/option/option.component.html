@@ -24,7 +24,7 @@
         <li class="nav-item">
           <a class="nav-link" 
              [class.active]="activeTab === 'model'" 
-             (click)="switchTab('model')"
+             [routerLink]="['/option/model']"
              style="cursor: pointer;">
             <i class="bi bi-box"></i> Option Model
           </a>
@@ -32,7 +32,7 @@
         <li class="nav-item">
           <a class="nav-link" 
              [class.active]="activeTab === 'size'" 
-             (click)="switchTab('size')"
+             [routerLink]="['/option/size']"
              style="cursor: pointer;">
             <i class="bi bi-rulers"></i> Option Size
           </a>
@@ -40,7 +40,7 @@
         <li class="nav-item">
           <a class="nav-link" 
              [class.active]="activeTab === 'production'" 
-             (click)="switchTab('production')"
+             [routerLink]="['/option/production']"
              style="cursor: pointer;">
             <i class="bi bi-factory"></i> Option Production
           </a>
@@ -67,13 +67,15 @@
       <table class="table table-striped table-hover table-sm mb-0">
         <thead class="table-primary">
           <tr>
+            <th width="50">NO</th>
             <th>{{ getTabTitle() | uppercase }} CODE</th>
             <th>{{ getTabTitle() | uppercase }}</th>
             <th width="180">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of getActiveData()">
+          <tr *ngFor="let item of getActiveData(); let i = index">
+            <td class="text-center">{{ i + 1 }}</td>
             <td><strong>{{ getItemCode(item) }}</strong></td>
             <td>{{ getItemName(item) }}</td>
             <td>
@@ -86,13 +88,13 @@
             </td>
           </tr>
           <tr *ngIf="getActiveData().length === 0 && !isLoading">
-            <td colspan="3" class="text-center text-muted py-4">
+            <td colspan="4" class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               No data available
             </td>
           </tr>
           <tr *ngIf="isLoading">
-            <td colspan="3" class="text-center text-muted py-4">
+            <td colspan="4" class="text-center text-muted py-4">
               <div class="spinner-border spinner-border-sm me-2"></div>
               Loading data...
             </td>
@@ -118,12 +120,12 @@
                  class="form-control" 
                  [(ngModel)]="formData.code" 
                  [placeholder]="'Enter ' + getTabTitle() + ' Code'"
-                 [maxlength]="activeTab === 'model' ? 3 : activeTab === 'size' ? 4 : 2"
+                 [maxlength]="getCodeMaxLength()"
                  style="text-transform: uppercase;"
                  (input)="formData.code = formData.code.toUpperCase()"
                  required>
           <small class="text-muted">
-            Max {{ activeTab === 'model' ? '3' : activeTab === 'size' ? '4' : '2' }} characters
+            Max {{ getCodeMaxLength() }} characters
           </small>
         </div>
 
@@ -133,12 +135,12 @@
                  class="form-control" 
                  [(ngModel)]="formData.name" 
                  [placeholder]="'Enter ' + getTabTitle()"
-                 [maxlength]="activeTab === 'model' ? 35 : activeTab === 'size' ? 4 : 30"
+                 [maxlength]="getNameMaxLength()"
                  style="text-transform: uppercase;"
                  (input)="formData.name = formData.name.toUpperCase()"
                  required>
           <small class="text-muted">
-            Max {{ activeTab === 'model' ? '35' : activeTab === 'size' ? '4' : '30' }} characters
+            Max {{ getNameMaxLength() }} characters
           </small>
         </div>
 
@@ -186,7 +188,7 @@
                  class="form-control" 
                  [(ngModel)]="formData.name" 
                  [placeholder]="'Enter ' + getTabTitle()"
-                 [maxlength]="activeTab === 'model' ? 35 : activeTab === 'size' ? 4 : 30"
+                 [maxlength]="getNameMaxLength()"
                  style="text-transform: uppercase;"
                  (input)="formData.name = formData.name.toUpperCase()"
                  required>

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 interface MasterDataItem {
   original_barcode: string;
@@ -34,7 +35,7 @@ interface FilterOptions {
 @Component({
   selector: 'app-master-data',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './master-data.component.html',
   styleUrl: './master-data.component.scss'
 })
@@ -65,13 +66,11 @@ export class MasterDataComponent implements OnInit {
   showDeleteModal = false;
   showImportModal = false;
   showStockOpnameModal = false;
-  showOptionModal = false;
   showRecordModal = false;
   showBackupModal = false;
   showDuplicateModal = false;
   
   selectedBarcode: string = '';
-  selectedOptionType: string = '';
   isLoading = false;
   successMessage = '';
   errorMessage = '';
@@ -304,14 +303,7 @@ export class MasterDataComponent implements OnInit {
     this.selectedFile = null;
     this.errorMessage = '';
   }
-
-  openOptionModal(type: string) {
-    this.selectedOptionType = type;
-    this.showOptionModal = true;
-    this.errorMessage = '';
-    console.log('📝 Opening option modal for:', type);
-  }
-
+  
   openRecordModal() {
     this.showRecordModal = true;
     this.errorMessage = '';
@@ -408,7 +400,6 @@ export class MasterDataComponent implements OnInit {
     this.showDeleteModal = false;
     this.showImportModal = false;
     this.showStockOpnameModal = false;
-    this.showOptionModal = false;
     this.showRecordModal = false;
     this.showBackupModal = false;
     this.showDuplicateModal = false;
