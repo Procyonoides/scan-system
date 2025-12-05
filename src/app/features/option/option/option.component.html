@@ -58,6 +58,42 @@
     </div>
   </div>
 
+  <!-- Search & Entries -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-2 mb-md-0">
+          <div class="entries-control">
+            <label>
+              Show
+              <select class="form-select form-select-sm" 
+                      [(ngModel)]="itemsPerPage" 
+                      (change)="onItemsPerPageChange()">
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+                <option [value]="100">100</option>
+              </select>
+              entries
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="search-control">
+            <label>
+              Search:
+              <input type="text" 
+                     class="form-control form-control-sm" 
+                     [(ngModel)]="searchTerm" 
+                     (keyup.enter)="onSearch()" 
+                     placeholder="Search...">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Data Table -->
   <div class="card">
     <div class="card-header">
@@ -75,7 +111,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of getActiveData(); let i = index">
-            <td class="text-center">{{ i + 1 }}</td>
+            <td class="text-center">{{ ((currentPage - 1) * itemsPerPage) + i + 1 }}</td>
             <td><strong>{{ getItemCode(item) }}</strong></td>
             <td>{{ getItemName(item) }}</td>
             <td>
@@ -90,7 +126,7 @@
           <tr *ngIf="getActiveData().length === 0 && !isLoading">
             <td colspan="4" class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-              No data available
+              {{ searchTerm ? 'No matching data found' : 'No data available' }}
             </td>
           </tr>
           <tr *ngIf="isLoading">
@@ -101,6 +137,62 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="card-footer" *ngIf="totalPages > 0">
+      <div class="row align-items-center">
+        <div class="col-md-6 mb-2 mb-md-0">
+          <div class="pagination-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
+            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of 
+            <strong>{{ totalItems }}</strong> entries
+          </div>
+        </div>
+        <div class="col-md-6">
+          <nav>
+            <ul class="pagination pagination-elegant justify-content-end mb-0">
+              <!-- First Page -->
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link page-first" (click)="goToPage(1)" title="First Page">
+                  <i class="bi bi-chevron-double-left"></i>
+                </a>
+              </li>
+
+              <!-- Previous Page -->
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)" title="Previous">
+                  <i class="bi bi-chevron-left"></i>
+                  <span class="d-none d-sm-inline ms-1">Prev</span>
+                </a>
+              </li>
+
+              <!-- Page Numbers -->
+              <li class="page-item" 
+                  *ngFor="let page of pageNumbers" 
+                  [class.active]="page === currentPage">
+                <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+              </li>
+
+              <!-- Next Page -->
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1)" title="Next">
+                  <span class="d-none d-sm-inline me-1">Next</span>
+                  <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+
+              <!-- Last Page -->
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link page-last" (click)="goToPage(totalPages)" title="Last Page">
+                  <i class="bi bi-chevron-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
     </div>
   </div>
 </div>

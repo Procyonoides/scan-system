@@ -21,6 +21,13 @@ export class OptionComponent implements OnInit {
   sizes: Size[] = [];
   productions: Production[] = [];
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  totalPages = 1;
+  Math = Math;
+
   // Loading & Messages
   isLoading = false;
   successMessage = '';
@@ -59,6 +66,8 @@ export class OptionComponent implements OnInit {
   
   switchTab(tab: 'model' | 'size' | 'production') {
     this.activeTab = tab;
+    this.currentPage = 1;
+    this.searchTerm = '';
     this.router.navigate(['/option', tab]);
     this.loadData();
   }
@@ -66,14 +75,24 @@ export class OptionComponent implements OnInit {
   // ==================== LOAD DATA ====================
   
   loadData() {
-    this.isLoading = true;
-    this.errorMessage = '';
+  this.isLoading = true;
+  this.errorMessage = '';
+  
+    console.log('🔄 Loading data:', {
+      tab: this.activeTab,
+      page: this.currentPage,
+      limit: this.itemsPerPage,
+      search: this.searchTerm
+    });
 
     if (this.activeTab === 'model') {
-      this.optionService.getModels().subscribe({
-        next: (data) => {
-          this.models = data;
-          console.log('✅ Models loaded:', data);
+      this.optionService.getModels(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
+        next: (response) => {
+          this.models = response.data;
+          this.totalItems = response.pagination.total;
+          this.totalPages = response.pagination.totalPages;
+          this.currentPage = response.pagination.page;
+          console.log('✅ Models loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
@@ -83,10 +102,13 @@ export class OptionComponent implements OnInit {
         }
       });
     } else if (this.activeTab === 'size') {
-      this.optionService.getSizes().subscribe({
-        next: (data) => {
-          this.sizes = data;
-          console.log('✅ Sizes loaded:', data);
+      this.optionService.getSizes(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
+        next: (response) => {
+          this.sizes = response.data;
+          this.totalItems = response.pagination.total;
+          this.totalPages = response.pagination.totalPages;
+          this.currentPage = response.pagination.page;
+          console.log('✅ Sizes loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
@@ -96,10 +118,13 @@ export class OptionComponent implements OnInit {
         }
       });
     } else if (this.activeTab === 'production') {
-      this.optionService.getProductions().subscribe({
-        next: (data) => {
-          this.productions = data;
-          console.log('✅ Productions loaded:', data);
+      this.optionService.getProductions(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
+        next: (response) => {
+          this.productions = response.data;
+          this.totalItems = response.pagination.total;
+          this.totalPages = response.pagination.totalPages;
+          this.currentPage = response.pagination.page;
+          console.log('✅ Productions loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
@@ -108,6 +133,43 @@ export class OptionComponent implements OnInit {
           this.isLoading = false;
         }
       });
+    }
+  }
+
+  // ==================== SEARCH & PAGINATION ====================
+
+  onSearch() {
+    console.log('🔍 Searching:', this.searchTerm);
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  onItemsPerPageChange() {
+    console.log('📋 Items per page changed to:', this.itemsPerPage);
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  get pageNumbers(): number[] {
+    const pages = [];
+    const maxVisible = 5;
+    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push (i);
+    }
+      return pages;
+  }
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      console.log('📄 Going to page:', page);
+      this.currentPage = page;
+      this.loadData();
     }
   }
 
