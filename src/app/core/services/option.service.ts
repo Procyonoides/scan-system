@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, tap, catchError } from 'rxjs';
 import { throwError } from 'rxjs';
@@ -20,6 +20,17 @@ export interface Production {
   production: string;
 }
 
+export interface PaginationResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -30,10 +41,19 @@ export class OptionService {
 
   // ==================== MODEL CRUD ====================
   
-  getModels(): Observable<Model[]> {
-    console.log('📡 Fetching models from:', `${this.apiUrl}/models`);
-    return this.http.get<Model[]>(`${this.apiUrl}/models`).pipe(
-      tap(data => console.log('✅ Models received:', data)),
+  getModels(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Model>> {
+    console.log('📡 Fetching models from:', `${this.apiUrl}/models`, { page, limit, search });
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get<PaginationResponse<Model>>(`${this.apiUrl}/models`, { params }).pipe(
+      tap(response => console.log('✅ Models received:', response)),
       catchError(err => {
         console.error('❌ Get models error:', err);
         return throwError(() => err);
@@ -76,10 +96,19 @@ export class OptionService {
 
   // ==================== SIZE CRUD ====================
   
-  getSizes(): Observable<Size[]> {
-    console.log('📡 Fetching sizes from:', `${this.apiUrl}/sizes`);
-    return this.http.get<Size[]>(`${this.apiUrl}/sizes`).pipe(
-      tap(data => console.log('✅ Sizes received:', data)),
+  getSizes(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Size>> {
+    console.log('📡 Fetching sizes from:', `${this.apiUrl}/sizes`, { page, limit, search });
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get<PaginationResponse<Size>>(`${this.apiUrl}/sizes`, { params }).pipe(
+      tap(response => console.log('✅ Sizes received:', response)),
       catchError(err => {
         console.error('❌ Get sizes error:', err);
         return throwError(() => err);
@@ -88,23 +117,53 @@ export class OptionService {
   }
 
   addSize(data: { size_code: string; size: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/sizes`, data);
+    console.log('📤 Adding size:', data);
+    return this.http.post(`${this.apiUrl}/sizes`, data).pipe(
+      tap(response => console.log('✅ Size added:', response)),
+      catchError(err => {
+        console.error('❌ Add size error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   updateSize(size_code: string, data: { size: string }): Observable<any> {
-    return this.http.put(`${this.apiUrl}/sizes/${size_code}`, data);
+    console.log('📤 Updating size:', size_code, data);
+    return this.http.put(`${this.apiUrl}/sizes/${size_code}`, data).pipe(
+      tap(response => console.log('✅ Size updated:', response)),
+      catchError(err => {
+        console.error('❌ Update size error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   deleteSize(size_code: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/sizes/${size_code}`);
+    console.log('📤 Deleting size:', size_code);
+    return this.http.delete(`${this.apiUrl}/sizes/${size_code}`).pipe(
+      tap(response => console.log('✅ Size deleted:', response)),
+      catchError(err => {
+        console.error('❌ Delete size error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   // ==================== PRODUCTION CRUD ====================
   
-  getProductions(): Observable<Production[]> {
-    console.log('📡 Fetching productions from:', `${this.apiUrl}/productions`);
-    return this.http.get<Production[]>(`${this.apiUrl}/productions`).pipe(
-      tap(data => console.log('✅ Productions received:', data)),
+  getProductions(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Production>> {
+    console.log('📡 Fetching productions from:', `${this.apiUrl}/productions`, { page, limit, search });
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    if (search && search.trim() !== '') {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get<PaginationResponse<Production>>(`${this.apiUrl}/productions`, { params }).pipe(
+      tap(response => console.log('✅ Productions received:', response)),
       catchError(err => {
         console.error('❌ Get productions error:', err);
         return throwError(() => err);
@@ -113,14 +172,35 @@ export class OptionService {
   }
 
   addProduction(data: { production_code: string; production: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/productions`, data);
+    console.log('📤 Adding production:', data);
+    return this.http.post(`${this.apiUrl}/productions`, data).pipe(
+      tap(response => console.log('✅ Production added:', response)),
+      catchError(err => {
+        console.error('❌ Add production error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   updateProduction(production_code: string, data: { production: string }): Observable<any> {
-    return this.http.put(`${this.apiUrl}/productions/${production_code}`, data);
+    console.log('📤 Updating production:', production_code, data);
+    return this.http.put(`${this.apiUrl}/productions/${production_code}`, data).pipe(
+      tap(response => console.log('✅ Production updated:', response)),
+      catchError(err => {
+        console.error('❌ Update production error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   deleteProduction(production_code: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/productions/${production_code}`);
+    console.log('📤 Deleting production:', production_code);
+    return this.http.delete(`${this.apiUrl}/productions/${production_code}`).pipe(
+      tap(response => console.log('✅ Production deleted:', response)),
+      catchError(err => {
+        console.error('❌ Delete production error:', err);
+        return throwError(() => err);
+      })
+    );
   }
 }

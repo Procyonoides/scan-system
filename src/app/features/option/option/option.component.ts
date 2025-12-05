@@ -21,6 +21,9 @@ export class OptionComponent implements OnInit {
   sizes: Size[] = [];
   productions: Production[] = [];
 
+  // Search
+  searchTerm: string = '';
+
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
@@ -75,9 +78,9 @@ export class OptionComponent implements OnInit {
   // ==================== LOAD DATA ====================
   
   loadData() {
-  this.isLoading = true;
-  this.errorMessage = '';
-  
+    this.isLoading = true;
+    this.errorMessage = '';
+    
     console.log('🔄 Loading data:', {
       tab: this.activeTab,
       page: this.currentPage,
@@ -88,48 +91,57 @@ export class OptionComponent implements OnInit {
     if (this.activeTab === 'model') {
       this.optionService.getModels(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
         next: (response) => {
-          this.models = response.data;
-          this.totalItems = response.pagination.total;
-          this.totalPages = response.pagination.totalPages;
-          this.currentPage = response.pagination.page;
+          this.models = response.data || [];
+          this.totalItems = response.pagination?.total || 0;
+          this.totalPages = response.pagination?.totalPages || 1;
+          this.currentPage = response.pagination?.page || 1;
           console.log('✅ Models loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
           console.error('❌ Failed to load models:', err);
           this.errorMessage = err.error?.error || 'Failed to load models';
+          this.models = [];
+          this.totalItems = 0;
+          this.totalPages = 0;
           this.isLoading = false;
         }
       });
     } else if (this.activeTab === 'size') {
       this.optionService.getSizes(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
         next: (response) => {
-          this.sizes = response.data;
-          this.totalItems = response.pagination.total;
-          this.totalPages = response.pagination.totalPages;
-          this.currentPage = response.pagination.page;
+          this.sizes = response.data || [];
+          this.totalItems = response.pagination?.total || 0;
+          this.totalPages = response.pagination?.totalPages || 1;
+          this.currentPage = response.pagination?.page || 1;
           console.log('✅ Sizes loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
           console.error('❌ Failed to load sizes:', err);
           this.errorMessage = err.error?.error || 'Failed to load sizes';
+          this.sizes = [];
+          this.totalItems = 0;
+          this.totalPages = 0;
           this.isLoading = false;
         }
       });
     } else if (this.activeTab === 'production') {
       this.optionService.getProductions(this.currentPage, this.itemsPerPage, this.searchTerm).subscribe({
         next: (response) => {
-          this.productions = response.data;
-          this.totalItems = response.pagination.total;
-          this.totalPages = response.pagination.totalPages;
-          this.currentPage = response.pagination.page;
+          this.productions = response.data || [];
+          this.totalItems = response.pagination?.total || 0;
+          this.totalPages = response.pagination?.totalPages || 1;
+          this.currentPage = response.pagination?.page || 1;
           console.log('✅ Productions loaded:', response);
           this.isLoading = false;
         },
         error: (err) => {
           console.error('❌ Failed to load productions:', err);
           this.errorMessage = err.error?.error || 'Failed to load productions';
+          this.productions = [];
+          this.totalItems = 0;
+          this.totalPages = 0;
           this.isLoading = false;
         }
       });
@@ -161,10 +173,11 @@ export class OptionComponent implements OnInit {
     }
     
     for (let i = startPage; i <= endPage; i++) {
-      pages.push (i);
+      pages.push(i);
     }
-      return pages;
+    return pages;
   }
+
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       console.log('📄 Going to page:', page);
@@ -231,6 +244,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Model added successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -247,6 +261,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Size added successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -263,6 +278,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Production added successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -290,6 +306,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Model updated successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -305,6 +322,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Size updated successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -320,6 +338,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Production updated successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -342,6 +361,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Model deleted successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -355,6 +375,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Size deleted successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {
@@ -368,6 +389,7 @@ export class OptionComponent implements OnInit {
           this.successMessage = 'Production deleted successfully!';
           this.closeModal();
           this.loadData();
+          this.isLoading = false;
           setTimeout(() => this.successMessage = '', 3000);
         },
         error: (err) => {

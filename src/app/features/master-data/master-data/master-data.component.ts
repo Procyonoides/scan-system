@@ -78,20 +78,8 @@ export class MasterDataComponent implements OnInit {
   // File upload
   selectedFile: File | null = null;
 
-  // Size to Four Digit Mapping
-  sizeMap: { [key: string]: string } = {
-    '10K': '0010', '10TK': '0011', '11K': '0012', '11TK': '0013',
-    '12K': '0014', '12TK': '0015', '13K': '0016', '13TK': '0017',
-    '1': '0018', '1T': '0019', '2': '0020', '2T': '0021',
-    '3': '0022', '3T': '0023', '4': '0024', '4T': '0025',
-    '5': '0026', '5T': '0027', '6': '0028', '6T': '0029',
-    '7': '0030', '7T': '0031', '8': '0032', '8T': '0033',
-    '9': '0034', '9T': '0035', '10': '0036', '10T': '0037',
-    '11': '0038', '11T': '0039', '12': '0040', '12T': '0041',
-    '13': '0042', '13T': '0043', '14': '0044', '14T': '0045',
-    '15': '0046', '15T': '0047', '16': '0048', '16T': '0049',
-    '17': '0050', '17T': '0051', '18': '0052', '18T': '0053'
-  };
+  // Size to Four Digit Mapping - Will be loaded from database
+  sizeMap: { [key: string]: string } = {};
 
   constructor(
     private http: HttpClient,
@@ -187,34 +175,65 @@ export class MasterDataComponent implements OnInit {
   }
 
   loadFilterOptions() {
+    console.log('📡 Loading filter options from database...');
+    
     this.http.get<any>(`${environment.apiUrl}/master-data/filter-options`)
       .subscribe({
         next: (response) => {
           if (response.success) {
+            // Update options dari database
             this.filterOptions.models = response.models || [];
             this.filterOptions.sizes = response.sizes || [];
             this.filterOptions.productions = response.productions || [];
+            
+            // Build size map dari database
+            if (response.sizeMap) {
+              this.sizeMap = response.sizeMap;
+              console.log('✅ Size map loaded from database:', Object.keys(this.sizeMap).length, 'entries');
+            }
+            
+            // Brands, units, items tetap dari static array
+            this.filterOptions.brands = response.brands || ['ADIDAS', 'NEW BALANCE', 'REEBOK', 'ASICS', 'SPECS', 'OTHER BRAND'];
+            this.filterOptions.units = response.units || ['PRS', 'PCS'];
+            this.filterOptions.items = response.items || ['IP', 'PHYLON', 'BLOKER', 'PAINT', 'RUBBER', 'GOODSOLE'];
+            
+            console.log('✅ Filter options loaded:', {
+              models: this.filterOptions.models.length,
+              sizes: this.filterOptions.sizes.length,
+              productions: this.filterOptions.productions.length,
+              sizeMapEntries: Object.keys(this.sizeMap).length
+            });
           }
-          console.log('✅ Filter options loaded:', this.filterOptions);
         },
-        error: (err) => console.error('❌ Failed to load filter options:', err)
+        error: (err) => {
+          console.error('❌ Failed to load filter options:', err);
+          this.errorMessage = 'Failed to load dropdown options';
+        }
       });
   }
 
   generateFourDigit(size: string) {
     const fourDigit = this.sizeMap[size] || '';
     this.barcodeForm.patchValue({ four_digit: fourDigit });
+    console.log(`🔢 Generated four_digit for size ${size}: ${fourDigit}`);
   }
 
   fetchModelCode(model: string) {
+    console.log('📡 Fetching model_code for:', model);
+    
     this.http.get<any>(`${environment.apiUrl}/master-data/model-code/${model}`)
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.barcodeForm.patchValue({ model_code: response.model_code || '' });
+            const modelCode = response.model_code || '';
+            this.barcodeForm.patchValue({ model_code: modelCode });
+            console.log(`✅ Model code fetched: ${modelCode}`);
           }
         },
-        error: (err) => console.error('❌ Failed to fetch model code:', err)
+        error: (err) => {
+          console.error('❌ Failed to fetch model code:', err);
+          this.barcodeForm.patchValue({ model_code: '' });
+        }
       });
   }
 
@@ -264,6 +283,10 @@ export class MasterDataComponent implements OnInit {
     this.showAddModal = true;
     this.barcodeForm.reset({ quantity: 0, stock: 0 });
     this.errorMessage = '';
+    
+    // Reload filter options untuk memastikan data terbaru
+    this.loadFilterOptions();
+    console.log('📝 Opening Add Modal with options:', this.filterOptions);
   }
 
   openAddByExcelModal() {
@@ -276,12 +299,16 @@ export class MasterDataComponent implements OnInit {
     this.selectedBarcode = barcode;
     this.isLoading = true;
     
+    // Reload filter options untuk edit modal
+    this.loadFilterOptions();
+    
     this.http.get<any>(`${environment.apiUrl}/master-data/barcode/${barcode}`)
       .subscribe({
         next: (response) => {
           if (response.success && response.data) {
             this.barcodeForm.patchValue(response.data);
             this.showEditModal = true;
+            console.log('✅ Barcode data loaded for edit:', response.data);
           }
           this.isLoading = false;
         },
@@ -331,6 +358,8 @@ export class MasterDataComponent implements OnInit {
     }
 
     this.isLoading = true;
+    console.log('📤 Adding barcode:', this.barcodeForm.value);
+    
     this.http.post(`${environment.apiUrl}/master-data/barcode`, this.barcodeForm.value)
       .subscribe({
         next: (response: any) => {
@@ -339,12 +368,14 @@ export class MasterDataComponent implements OnInit {
             this.showAddModal = false;
             this.loadMasterData();
             setTimeout(() => this.successMessage = '', 3000);
+            console.log('✅ Barcode added successfully');
           }
           this.isLoading = false;
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to add barcode';
           this.isLoading = false;
+          console.error('❌ Failed to add barcode:', err);
         }
       });
   }
@@ -356,6 +387,8 @@ export class MasterDataComponent implements OnInit {
     }
 
     this.isLoading = true;
+    console.log('📤 Updating barcode:', this.selectedBarcode);
+    
     this.http.put(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`, this.barcodeForm.value)
       .subscribe({
         next: (response: any) => {
@@ -364,18 +397,22 @@ export class MasterDataComponent implements OnInit {
             this.showEditModal = false;
             this.loadMasterData();
             setTimeout(() => this.successMessage = '', 3000);
+            console.log('✅ Barcode updated successfully');
           }
           this.isLoading = false;
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to update barcode';
           this.isLoading = false;
+          console.error('❌ Failed to update barcode:', err);
         }
       });
   }
 
   onDelete() {
     this.isLoading = true;
+    console.log('🗑️ Deleting barcode:', this.selectedBarcode);
+    
     this.http.delete(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`)
       .subscribe({
         next: (response: any) => {
@@ -384,12 +421,14 @@ export class MasterDataComponent implements OnInit {
             this.showDeleteModal = false;
             this.loadMasterData();
             setTimeout(() => this.successMessage = '', 3000);
+            console.log('✅ Barcode deleted successfully');
           }
           this.isLoading = false;
         },
         error: (err) => {
           this.errorMessage = err.error?.error || 'Failed to delete barcode';
           this.isLoading = false;
+          console.error('❌ Failed to delete barcode:', err);
         }
       });
   }
@@ -486,7 +525,6 @@ export class MasterDataComponent implements OnInit {
   downloadFormatExcel() {
     console.log('📥 Downloading format Excel...');
     
-    // Create sample data for format
     const headers = [
       'ORIGINAL_BARCODE', 'BRAND', 'COLOR', 'SIZE', 'FOUR_DIGIT', 'UNIT', 
       'QUANTITY', 'PRODUCTION', 'MODEL', 'MODEL_CODE', 'ITEM', 'STOCK'
