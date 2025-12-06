@@ -1,7 +1,45 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ScanReceiving } from '../models/scan.model';
+
+export interface ReceivingRecord {
+  original_barcode: string;
+  brand: string;
+  color: string;
+  size: string;
+  four_digit: string;
+  unit: string;
+  quantity: number;
+  production: string;
+  model: string;
+  model_code: string;
+  item: string;
+  date_time: string;
+  scan_no: number;
+  username: string;
+  description: string;
+}
+
+export interface ScanResponse {
+  success: boolean;
+  message: string;
+  data: {
+    scan_no: number;
+    original_barcode: string;
+    model: string;
+    color: string;
+    size: string;
+    quantity: number;
+    date_time: string;
+    username: string;
+  };
+}
+
+export interface HistoryResponse {
+  success: boolean;
+  data: ReceivingRecord[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,13 +48,27 @@ export class ReceivingService {
   private apiUrl = `${environment.apiUrl}/receiving`;
 
   constructor(private http: HttpClient) { }
-  getList(page = 1, limit = 10) {
-    return this.http.get<ScanReceiving[]>(this.apiUrl, {
-      params: { page, limit }
-    });
+
+  /**
+   * Get receiving history (last 10 records for current user)
+   */
+  getHistory(): Observable<HistoryResponse> {
+    return this.http.get<HistoryResponse>(`${this.apiUrl}/history`);
   }
 
-  recordScan(data: ScanReceiving) {
-    return this.http.post(`${this.apiUrl}/scan`, data);
+  /**
+   * Scan barcode for receiving
+   */
+  scanBarcode(barcode: string): Observable<ScanResponse> {
+    return this.http.post<ScanResponse>(`${this.apiUrl}/scan`, { barcode });
+  }
+
+  /**
+   * Get receiving list with pagination (for IT view)
+   */
+  getList(page = 1, limit = 10): Observable<any> {
+    return this.http.get<any>(this.apiUrl, {
+      params: { page: page.toString(), limit: limit.toString() }
+    });
   }
 }

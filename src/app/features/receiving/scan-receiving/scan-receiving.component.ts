@@ -1,7 +1,42 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ReceivingService } from '../../../core/services/receiving.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/auth/auth.service';
+
+interface ReceivingRecord {
+  original_barcode: string;
+  brand: string;
+  color: string;
+  size: string;
+  four_digit: string;
+  unit: string;
+  quantity: number;
+  production: string;
+  model: string;
+  model_code: string;
+  item: string;
+  date_time: string;
+  scan_no: number;
+  username: string;
+  description: string;
+}
+
+interface ScanResponse {
+  success: boolean;
+  message: string;
+  data: {
+    scan_no: number;
+    original_barcode: string;
+    model: string;
+    color: string;
+    size: string;
+    quantity: number;
+    date_time: string;
+    username: string;
+  };
+}
 
 @Component({
   selector: 'app-scan-receiving',
@@ -10,59 +45,229 @@ import { ReceivingService } from '../../../core/services/receiving.service';
   templateUrl: './scan-receiving.component.html',
   styleUrl: './scan-receiving.component.scss'
 })
-export class ScanReceivingComponent implements OnInit{
+export class ScanReceivingComponent implements OnInit, AfterViewInit {
+  @ViewChild('barcodeInput') barcodeInput!: ElementRef<HTMLInputElement>;
 
   scanForm = this.fb.group({
-    original_barcode: ['', Validators.required]
+    barcode: ['', Validators.required]
   });
 
-  receivingList: any[] = [];
+  receivingList: ReceivingRecord[] = [];
+  
+  // Last scan result
+  lastScan = {
+    model: '-',
+    color: '-',
+    size: '-',
+    quantity: '-'
+  };
+
   successMessage = '';
   errorMessage = '';
+  isLoading = false;
+  username = '';
 
   constructor(
     private fb: FormBuilder,
-    private receivingService: ReceivingService
+    private http: HttpClient,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    this.loadReceivingList();
+    this.username = this.authService.currentUser()?.username || '';
+    console.log('📦 Scan Receiving initialized for user:', this.username);
+    this.loadReceivingHistory();
   }
 
-  loadReceivingList() {
-    this.receivingService.getList().subscribe({
-      next: (data) => {
-        this.receivingList = data;
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.error || 'Failed to load data';
-      }
-    });
+  ngAfterViewInit() {
+    // Auto-focus pada input barcode setelah view init
+    setTimeout(() => {
+      this.focusBarcodeInput();
+    }, 100);
   }
 
+  /**
+   * Focus ke input barcode
+   */
+  focusBarcodeInput() {
+    if (this.barcodeInput) {
+      this.barcodeInput.nativeElement.focus();
+    }
+  }
+
+  /**
+   * Load receiving history (last 10 records)
+   */
+  loadReceivingHistory() {
+    this.http.get<any>(`${environment.apiUrl}/receiving/history`)
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.receivingList = response.data;
+            console.log('✅ Receiving history loaded:', this.receivingList.length, 'records');
+          }
+        },
+        error: (err) => {
+          console.error('❌ Failed to load receiving history:', err);
+        }
+      });
+  }
+
+  /**
+   * Handle scan submit
+   */
   onScan() {
-    if (this.scanForm.invalid) return;
+    if (this.scanForm.invalid) {
+      this.errorMessage = 'Please enter a barcode';
+      return;
+    }
 
-    const scanData = {
-      ...this.scanForm.value,
-      warehouse_id: 1,
-      model: 'N/A',
-      color: 'N/A',
-      size: 'N/A',
-      quantity: 1
-    };
+    const barcode = this.scanForm.value.barcode?.trim();
+    
+    if (!barcode) {
+      this.errorMessage = 'Barcode cannot be empty';
+      return;
+    }
 
-    this.receivingService.recordScan(scanData as any).subscribe({
-      next: () => {
-        this.successMessage = 'Scan recorded successfully!';
-        this.scanForm.reset();
-        this.loadReceivingList();
-        setTimeout(() => this.successMessage = '', 3000);
-      },
-      error: (err) => {
-        this.errorMessage = err.error?.error || 'Failed to record scan';
-      }
-    });
+    console.log('📷 Scanning barcode:', barcode);
+
+    this.isLoading = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.http.post<ScanResponse>(`${environment.apiUrl}/receiving/scan`, { barcode })
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Scan response:', response);
+
+          if (response.success) {
+            // Update last scan display
+            this.lastScan = {
+              model: response.data.model,
+              color: response.data.color,
+              size: response.data.size,
+              quantity: String(response.data.quantity)
+            };
+
+            // Show success message
+            this.successMessage = response.message || 'Data Berhasil Diinputkan';
+
+            // Clear form
+            this.scanForm.reset();
+
+            // Reload history
+            this.loadReceivingHistory();
+
+            // Auto-hide success message after 3 seconds
+            setTimeout(() => {
+              this.successMessage = '';
+            }, 3000);
+
+            // Play success sound (optional)
+            this.playSuccessSound();
+          }
+
+          this.isLoading = false;
+
+          // Auto-focus back to input
+          setTimeout(() => {
+            this.focusBarcodeInput();
+          }, 100);
+        },
+        error: (err) => {
+          console.error('❌ Scan error:', err);
+          
+          // Handle specific error types
+          if (err.error?.error === 'SYSTEM_MAINTENANCE') {
+            this.errorMessage = 'Harap tidak melakukan transaksi, sedang proses perpindahan data';
+            this.lastScan = {
+              model: '-',
+              color: '-',
+              size: '-',
+              quantity: '-'
+            };
+          } else if (err.error?.error === 'BARCODE_NOT_FOUND') {
+            this.errorMessage = 'Data Gagal Diinputkan - Barcode tidak ditemukan';
+            this.lastScan = {
+              model: '-',
+              color: '-',
+              size: '-',
+              quantity: '-'
+            };
+          } else {
+            this.errorMessage = err.error?.message || 'Scan failed';
+          }
+
+          // Play error sound (optional)
+          this.playErrorSound();
+
+          this.isLoading = false;
+
+          // Auto-focus back to input
+          setTimeout(() => {
+            this.focusBarcodeInput();
+          }, 100);
+        }
+      });
   }
 
+  /**
+   * Play success sound
+   */
+  playSuccessSound() {
+    try {
+      const audio = new Audio('assets/sounds/success.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Sound play failed:', e));
+    } catch (e) {
+      console.log('Sound not available');
+    }
+  }
+
+  /**
+   * Play error sound
+   */
+  playErrorSound() {
+    try {
+      const audio = new Audio('assets/sounds/error.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Sound play failed:', e));
+    } catch (e) {
+      console.log('Sound not available');
+    }
+  }
+
+  /**
+   * Format date for display
+   */
+  formatDate(dateStr: string): string {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('id-ID', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  /**
+   * Get item badge class
+   */
+  getItemBadgeClass(item: string): string {
+    const classes: { [key: string]: string } = {
+      'IP': 'badge-ip',
+      'PHYLON': 'badge-phylon',
+      'BLOKER': 'badge-bloker',
+      'PAINT': 'badge-paint',
+      'RUBBER': 'badge-rubber',
+      'GOODSOLE': 'badge-goodsole'
+    };
+    return classes[item] || 'badge-default';
+  }
 }

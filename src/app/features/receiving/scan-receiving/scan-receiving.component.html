@@ -1,22 +1,46 @@
-<div class="container-fluid">
-  <h3 class="mb-4">Scan Receiving</h3>
+<div class="scan-receiving-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2 class="page-title">
+        <i class="fas fa-arrow-circle-down"></i>
+        Scan Receiving
+      </h2>
+      <p class="page-subtitle">Scan barcode untuk menerima barang masuk gudang</p>
+    </div>
+  </div>
 
-  <div class="card mb-4">
-    <div class="card-body bg-success text-white">
+  <!-- Scan Form Card -->
+  <div class="card scan-card">
+    <div class="card-body">
       <form [formGroup]="scanForm" (ngSubmit)="onScan()">
-        <div class="row">
-          <div class="col-md-8">
-            <label class="form-label">Barcode</label>
+        <div class="row align-items-end">
+          <div class="col-lg-9 col-md-8 mb-3 mb-md-0">
+            <label class="form-label fw-bold">
+              <i class="fas fa-barcode me-2"></i> Scan Barcode
+            </label>
             <input 
+              #barcodeInput
               type="text" 
-              class="form-control form-control-lg" 
-              formControlName="original_barcode"
-              placeholder="Scan barcode"
+              class="form-control form-control-lg barcode-input" 
+              formControlName="barcode"
+              placeholder="Scan atau ketik barcode disini..."
+              [disabled]="isLoading"
               autofocus>
           </div>
-          <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-light w-100">
-              <i class="bi bi-search"></i> Scan
+          
+          <div class="col-lg-3 col-md-4">
+            <button 
+              type="submit" 
+              class="btn btn-scan w-100"
+              [disabled]="scanForm.invalid || isLoading">
+              <span *ngIf="!isLoading">
+                <i class="fas fa-search me-2"></i> Scan
+              </span>
+              <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Scanning...
+              </span>
             </button>
           </div>
         </div>
@@ -24,41 +48,178 @@
     </div>
   </div>
 
-  <div *ngIf="successMessage" class="alert alert-success alert-dismissible">
-    {{ successMessage }}
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="alert alert-success alert-modern alert-dismissible fade show">
+    <div class="alert-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="alert-content">
+      <h5 class="alert-heading">Success!</h5>
+      <p class="mb-0">{{ successMessage }}</p>
+    </div>
     <button type="button" class="btn-close" (click)="successMessage = ''"></button>
   </div>
 
-  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible">
-    {{ errorMessage }}
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-modern alert-dismissible fade show">
+    <div class="alert-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="alert-content">
+      <h5 class="alert-heading">Error!</h5>
+      <p class="mb-0">{{ errorMessage }}</p>
+    </div>
     <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
   </div>
 
-  <div class="card">
+  <!-- Last Scan Result -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="result-card result-model">
+        <div class="result-icon">
+          <i class="fas fa-tag"></i>
+        </div>
+        <div class="result-content">
+          <span class="result-label">MODEL</span>
+          <h4 class="result-value">{{ lastScan.model }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="result-card result-color">
+        <div class="result-icon">
+          <i class="fas fa-palette"></i>
+        </div>
+        <div class="result-content">
+          <span class="result-label">COLOR</span>
+          <h4 class="result-value">{{ lastScan.color }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="result-card result-size">
+        <div class="result-icon">
+          <i class="fas fa-rulers"></i>
+        </div>
+        <div class="result-content">
+          <span class="result-label">SIZE</span>
+          <h4 class="result-value">{{ lastScan.size }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="result-card result-quantity">
+        <div class="result-icon">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <div class="result-content">
+          <span class="result-label">QUANTITY</span>
+          <h4 class="result-value">{{ lastScan.quantity }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Scans Table -->
+  <div class="card table-card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i> Recent Scans
+          </h5>
+          <small class="text-muted">Showing last 10 scans</small>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" (click)="loadReceivingHistory()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+    </div>
+
     <div class="table-responsive">
-      <table class="table table-striped table-hover mb-0">
-        <thead class="bg-success text-white">
+      <table class="table table-hover table-striped mb-0">
+        <thead class="table-success">
           <tr>
-            <th>DATE/TIME</th>
+            <th width="180">DATE/TIME</th>
             <th>BARCODE</th>
+            <th>BRAND</th>
             <th>MODEL</th>
-            <th>QUANTITY</th>
-            <th>USERNAME</th>
+            <th>COLOR</th>
+            <th>SIZE</th>
+            <th width="100" class="text-center">QTY</th>
+            <th>ITEM</th>
+            <th>PRODUCTION</th>
+            <th width="80" class="text-center">SCAN NO</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of receivingList; let i = index">
-            <td>{{ item.scan_date | date:'short' }}</td>
-            <td>{{ item.original_barcode }}</td>
-            <td>{{ item.model }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.username }}</td>
+          <tr *ngFor="let item of receivingList; let i = index" 
+              [class.latest-scan]="i === 0"
+              [@fadeIn]>
+            <td>
+              <small class="text-muted">
+                <i class="far fa-clock me-1"></i>
+                {{ formatDate(item.date_time) }}
+              </small>
+            </td>
+            <td>
+              <strong class="text-primary">{{ item.original_barcode }}</strong>
+            </td>
+            <td>{{ item.brand }}</td>
+            <td>
+              <span class="badge bg-info">{{ item.model }}</span>
+            </td>
+            <td>{{ item.color }}</td>
+            <td class="text-center">
+              <span class="size-badge">{{ item.size }}</span>
+            </td>
+            <td class="text-center">
+              <span class="quantity-badge">{{ item.quantity }}</span>
+            </td>
+            <td>
+              <span class="item-badge" [ngClass]="getItemBadgeClass(item.item)">
+                {{ item.item }}
+              </span>
+            </td>
+            <td>
+              <small class="text-muted">{{ item.production }}</small>
+            </td>
+            <td class="text-center">
+              <span class="scan-no-badge">{{ item.scan_no }}</span>
+            </td>
           </tr>
-          <tr *ngIf="receivingList.length === 0">
-            <td colspan="5" class="text-center text-muted">No data available</td>
+
+          <tr *ngIf="receivingList.length === 0 && !isLoading">
+            <td colspan="10" class="text-center text-muted py-5">
+              <div class="empty-state">
+                <i class="fas fa-inbox fs-1 mb-3"></i>
+                <p class="mb-0">No scans yet. Start scanning to see history.</p>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="isLoading">
+            <td colspan="10" class="text-center py-5">
+              <div class="spinner-border text-success me-2"></div>
+              <span class="text-muted">Loading...</span>
+            </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- User Info Footer -->
+  <div class="user-info-footer">
+    <div class="d-flex align-items-center gap-3">
+      <i class="fas fa-user-circle fs-3 text-success"></i>
+      <div>
+        <small class="text-muted d-block">Logged in as</small>
+        <strong class="text-success">{{ username }}</strong>
+      </div>
     </div>
   </div>
 </div>
