@@ -34,6 +34,7 @@ export interface ScanResponse {
     date_time: string;
     username: string;
   };
+  error?: string;
 }
 
 export interface HistoryResponse {
@@ -51,6 +52,7 @@ export class ReceivingService {
 
   /**
    * Get receiving history (last 10 records for current user)
+   * ✅ Sesuai PHP: model_scan.php - fetchdatar()
    */
   getHistory(): Observable<HistoryResponse> {
     return this.http.get<HistoryResponse>(`${this.apiUrl}/history`);
@@ -58,13 +60,15 @@ export class ReceivingService {
 
   /**
    * Scan barcode for receiving
+   * ✅ Sesuai PHP: controller_scan.php - getscanrec()
+   * @param barcode - Barcode yang di-scan
    */
   scanBarcode(barcode: string): Observable<ScanResponse> {
     return this.http.post<ScanResponse>(`${this.apiUrl}/scan`, { barcode });
   }
 
   /**
-   * Get receiving list with pagination (for IT view)
+   * Get receiving list with pagination (untuk IT view)
    */
   getList(page = 1, limit = 10): Observable<any> {
     return this.http.get<any>(this.apiUrl, {
