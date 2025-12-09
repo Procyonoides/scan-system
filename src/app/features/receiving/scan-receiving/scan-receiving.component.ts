@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 interface ReceivingRecord {
   original_barcode: string;
@@ -36,6 +37,7 @@ interface ScanResponse {
     date_time: string;
     username: string;
   };
+  error?: string;
 }
 
 @Component({
@@ -43,13 +45,21 @@ interface ScanResponse {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './scan-receiving.component.html',
-  styleUrl: './scan-receiving.component.scss'
+  styleUrl: './scan-receiving.component.scss',
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class ScanReceivingComponent implements OnInit, AfterViewInit {
   @ViewChild('barcodeInput') barcodeInput!: ElementRef<HTMLInputElement>;
 
   scanForm = this.fb.group({
-    barcode: ['', Validators.required]
+    barcode: ['', [Validators.required, Validators.minLength(1)]]
   });
 
   receivingList: ReceivingRecord[] = [];
@@ -65,7 +75,15 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
   successMessage = '';
   errorMessage = '';
   isLoading = false;
+  isDeleting = false;
   username = '';
+  userPosition = '';
+
+  // Modal states
+  showEditModal = false;
+  showDeleteModal = false;
+  selectedItem: ReceivingRecord | null = null;
+  editForm: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -75,7 +93,8 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.username = this.authService.currentUser()?.username || '';
-    console.log('📦 Scan Receiving initialized for user:', this.username);
+    this.userPosition = this.authService.currentUser()?.position || '';
+    console.log('📦 Scan Receiving initialized for user:', this.username, 'Position:', this.userPosition);
     this.loadReceivingHistory();
   }
 
@@ -135,6 +154,7 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
     this.successMessage = '';
     this.errorMessage = '';
 
+    // ✅ FIXED: Sesuai dengan backend PHP - POST dengan parameter 'barcode'
     this.http.post<ScanResponse>(`${environment.apiUrl}/receiving/scan`, { barcode })
       .subscribe({
         next: (response) => {
@@ -165,6 +185,10 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
 
             // Play success sound (optional)
             this.playSuccessSound();
+          } else {
+            // Handle unsuccessful response
+            this.errorMessage = response.message || 'Scan failed';
+            this.playErrorSound();
           }
 
           this.isLoading = false;
@@ -177,28 +201,22 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
         error: (err) => {
           console.error('❌ Scan error:', err);
           
-          // Handle specific error types
+          // ✅ FIXED: Handle specific error types sesuai backend PHP
           if (err.error?.error === 'SYSTEM_MAINTENANCE') {
             this.errorMessage = 'Harap tidak melakukan transaksi, sedang proses perpindahan data';
-            this.lastScan = {
-              model: '-',
-              color: '-',
-              size: '-',
-              quantity: '-'
-            };
+            this.lastScan = { model: '-', color: '-', size: '-', quantity: '-' };
           } else if (err.error?.error === 'BARCODE_NOT_FOUND') {
             this.errorMessage = 'Data Gagal Diinputkan - Barcode tidak ditemukan';
-            this.lastScan = {
-              model: '-',
-              color: '-',
-              size: '-',
-              quantity: '-'
-            };
+            this.lastScan = { model: '-', color: '-', size: '-', quantity: '-' };
+          } else if (err.error?.error === 'BARCODE_REQUIRED') {
+            this.errorMessage = 'Barcode harus diisi';
+          } else if (err.error?.error === 'INVALID_POSITION') {
+            this.errorMessage = 'Username tidak sesuai - Harus posisi RECEIVING';
           } else {
             this.errorMessage = err.error?.message || 'Scan failed';
           }
 
-          // Play error sound (optional)
+          // Play error sound
           this.playErrorSound();
 
           this.isLoading = false;
@@ -269,5 +287,92 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
       'GOODSOLE': 'badge-goodsole'
     };
     return classes[item] || 'badge-default';
+  }
+
+  /**
+   * Check if user can manage scans (Edit/Delete)
+   * Only IT and MANAGEMENT can manage
+   */
+  canManageScans(): boolean {
+    const position = this.authService.currentUser()?.position;
+    return position === 'IT' || position === 'MANAGEMENT';
+  }
+
+  /**
+   * Open Edit Modal
+   */
+  openEditModal(item: ReceivingRecord) {
+    this.selectedItem = item;
+    this.editForm = this.fb.group({
+      original_barcode: [item.original_barcode],
+      brand: [item.brand],
+      color: [item.color],
+      size: [item.size],
+      four_digit: [item.four_digit],
+      model: [item.model],
+      item: [item.item],
+      production: [item.production],
+      quantity: [item.quantity],
+      username: [item.username]
+    });
+    this.showEditModal = true;
+  }
+
+  /**
+   * Close Edit Modal
+   */
+  closeEditModal() {
+    this.showEditModal = false;
+    this.selectedItem = null;
+    this.editForm = null;
+  }
+
+  /**
+   * Open Delete Modal
+   */
+  openDeleteModal(item: ReceivingRecord) {
+    this.selectedItem = item;
+    this.showDeleteModal = true;
+  }
+
+  /**
+   * Close Delete Modal
+   */
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.selectedItem = null;
+  }
+
+  /**
+   * Confirm Delete
+   */
+  confirmDelete() {
+    if (!this.selectedItem) return;
+
+    this.isDeleting = true;
+
+    this.http.delete(`${environment.apiUrl}/receiving/${this.selectedItem.date_time}/${this.selectedItem.scan_no}/${this.selectedItem.username}`)
+      .subscribe({
+        next: (response: any) => {
+          console.log('✅ Delete successful:', response);
+          this.successMessage = 'Record deleted successfully!';
+          this.closeDeleteModal();
+          this.loadReceivingHistory();
+          this.isDeleting = false;
+
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (err) => {
+          console.error('❌ Delete error:', err);
+          this.errorMessage = err.error?.message || 'Failed to delete record';
+          this.isDeleting = false;
+
+          setTimeout(() => {
+            this.errorMessage = '';
+          }, 5000);
+        }
+      });
   }
 }

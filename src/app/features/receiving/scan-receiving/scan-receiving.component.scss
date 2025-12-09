@@ -43,6 +43,74 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+// ==================== MODAL STYLING ====================
+.modal {
+  &.show {
+    display: block !important;
+  }
+
+  .modal-dialog {
+    margin-top: 100px;
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal-header {
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+    padding: 1.5rem;
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+  }
+}
+
+.modal-backdrop {
+  &.show {
+    opacity: 0.5;
+  }
+}
+
+// ==================== ACTION BUTTONS ====================
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &.btn-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border: none;
+    color: white;
+  }
+
+  &.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+  }
+}
+
 // ==================== SCAN CARD ====================
 .scan-card {
   background: white;
