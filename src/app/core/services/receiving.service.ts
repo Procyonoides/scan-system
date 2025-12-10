@@ -75,4 +75,29 @@ export class ReceivingService {
       params: { page: page.toString(), limit: limit.toString() }
     });
   }
+
+   /**
+   * ✅ NEW: Move Data Receiving (Pindahkan data dari receiving ke data_receiving)
+   */
+  moveData(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/move`, {});
+  }
+
+  /**
+   * ✅ NEW: Print Detail (Download Excel detail)
+   */
+  printDetail(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/print-detail`, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * ✅ NEW: Print Summary (Download Excel summary)
+   */
+  printSummary(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/print-summary`, {
+      responseType: 'blob'
+    });
+  }
 }

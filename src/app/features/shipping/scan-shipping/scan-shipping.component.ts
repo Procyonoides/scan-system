@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ShippingService } from '../../../core/services/shipping.service';
 
 interface ShippingRecord {
   original_barcode: string;
@@ -85,10 +86,15 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
   selectedItem: ShippingRecord | null = null;
   editForm: any = null;
 
+  isMoving = false; // ✅ NEW
+  isPrintingDetail = false; // ✅ NEW
+  isPrintingSummary = false;
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private shippingService: ShippingService
   ) {}
 
   ngOnInit() {
@@ -350,28 +356,134 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
 
     this.isDeleting = true;
 
-    this.http.delete(`${environment.apiUrl}/shipping/${this.selectedItem.date_time}/${this.selectedItem.scan_no}/${this.selectedItem.username}`)
-      .subscribe({
-        next: (response: any) => {
-          console.log('✅ Delete successful:', response);
-          this.successMessage = 'Record deleted successfully!';
-          this.closeDeleteModal();
-          this.loadShippingHistory();
-          this.isDeleting = false;
+    this.http.delete(`${environment.apiUrl}/shipping/${this.selectedItem.date_time}/${this.selectedItem.scan_no}/${this.selectedItem.username}`).subscribe({
+      next: (response: any) => {
+        console.log('✅ Delete successful:', response);
+        this.successMessage = 'Record deleted successfully!';
+        this.closeDeleteModal();
+        this.loadShippingHistory();
+        this.isDeleting = false;
 
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 3000);
-        },
-        error: (err) => {
-          console.error('❌ Delete error:', err);
-          this.errorMessage = err.error?.message || 'Failed to delete record';
-          this.isDeleting = false;
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (err) => {
+        console.error('❌ Delete error:', err);
+        this.errorMessage = err.error?.message || 'Failed to delete record';
+        this.isDeleting = false;
 
-          setTimeout(() => {
-            this.errorMessage = '';
-          }, 5000);
-        }
-      });
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * ✅ NEW: Move Data
+   */
+  onMoveData() {
+    if (!confirm('Are you sure you want to move all shipping data to history? This action cannot be undone.')) {
+      return;
+    }
+
+    this.isMoving = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.shippingService.moveData().subscribe({
+      next: (response) => {
+        console.log('✅ Move data successful:', response);
+        this.successMessage = 'Data berhasil dipindahkan ke history!';
+        this.loadShippingHistory();
+        this.isMoving = false;
+
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (err) => {
+        console.error('❌ Move data error:', err);
+        this.errorMessage = err.error?.message || 'Failed to move data';
+        this.isMoving = false;
+
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * ✅ NEW: Print Detail
+   */
+  onPrintDetail() {
+    this.isPrintingDetail = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.shippingService.printDetail().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Shipping_Detail_${new Date().toISOString().split('T')[0]}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        this.successMessage = 'Detail report downloaded successfully!';
+        this.isPrintingDetail = false;
+
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (err) => {
+        console.error('❌ Print detail error:', err);
+        this.errorMessage = 'Failed to download detail report';
+        this.isPrintingDetail = false;
+
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * ✅ NEW: Print Summary
+   */
+  onPrintSummary() {
+    this.isPrintingSummary = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.shippingService.printSummary().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Shipping_Summary_${new Date().toISOString().split('T')[0]}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        this.successMessage = 'Summary report downloaded successfully!';
+        this.isPrintingSummary = false;
+
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (err) => {
+        console.error('❌ Print summary error:', err);
+        this.errorMessage = 'Failed to download summary report';
+        this.isPrintingSummary = false;
+
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 5000);
+      }
+    });
   }
 }

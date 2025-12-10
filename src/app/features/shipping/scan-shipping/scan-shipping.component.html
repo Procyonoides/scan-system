@@ -133,8 +133,53 @@
           </h5>
           <small class="text-muted">Showing last 10 scans</small>
         </div>
-        <button class="btn btn-sm btn-outline-primary" (click)="loadShippingHistory()">
+        <!-- ✅ NEW: Action Buttons -->
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-outline-primary" (click)="loadShippingHistory()" [disabled]="isLoading">
           <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+
+        <!-- Move Data Button (Only for IT) -->
+        <button 
+          *ngIf="canManageScans()" 
+          class="btn btn-sm btn-warning" 
+          (click)="onMoveData()" 
+          [disabled]="isMoving"
+          title="Move data to history">
+          <span *ngIf="!isMoving">
+            <i class="fas fa-exchange-alt me-1"></i> Move Data
+          </span>
+          <span *ngIf="isMoving">
+            <span class="spinner-border spinner-border-sm me-1"></span> Moving...
+          </span>
+        </button>
+
+        <!-- Print Detail Button -->
+        <button 
+          class="btn btn-sm btn-success" 
+          (click)="onPrintDetail()" 
+          [disabled]="isPrintingDetail"
+          title="Download detail report">
+          <span *ngIf="!isPrintingDetail">
+            <i class="fas fa-file-excel me-1"></i> Print Detail
+          </span>
+          <span *ngIf="isPrintingDetail">
+            <span class="spinner-border spinner-border-sm me-1"></span> Printing...
+          </span>
+        </button>
+
+        <!-- Print Summary Button -->
+        <button 
+          class="btn btn-sm btn-info" 
+          (click)="onPrintSummary()" 
+          [disabled]="isPrintingSummary"
+          title="Download summary report">
+          <span *ngIf="!isPrintingSummary">
+            <i class="fas fa-chart-pie me-1"></i> Print Summary
+          </span>
+          <span *ngIf="isPrintingSummary">
+            <span class="spinner-border spinner-border-sm me-1"></span> Printing...
+          </span>
         </button>
       </div>
     </div>
