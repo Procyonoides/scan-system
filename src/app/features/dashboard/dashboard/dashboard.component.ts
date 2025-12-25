@@ -4,8 +4,8 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ChartOptions, ChartType, ChartData } from 'chart.js';
 import { DashboardService, WarehouseStats, ShiftScanData, WarehouseItem, ScanRecord } from '../../../core/services/dashboard.service';
 import { SocketService } from '../../../core/services/socket.service';
-import { Subject, interval, forkJoin } from 'rxjs';
-import { takeUntil, switchMap, startWith, catchError } from 'rxjs/operators';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
 
 interface DashboardUpdate {
   type: 'RECEIVING' | 'SHIPPING';
@@ -119,14 +119,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    console.log('🚀 Dashboard initialized with Real-time updates');
+    console.log('🚀 Dashboard initialized - Real-time updates only (No auto-refresh)');
 
     // Connect to Socket.IO
     this.socketService.connect();
     this.isConnected = this.socketService.isConnected();
-
-    // Initial data load
-    this.loadAllData();
 
     // ============ LISTEN TO REAL-TIME UPDATES ============
     this.socketService.on<DashboardUpdate>('dashboard:update')
@@ -144,30 +141,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
       error: (err) => console.error('❌ Socket error:', err)
     });
 
-    // Initial load
+    // Initial load ONLY (no auto-refresh)
     this.loadAllDataParallel().subscribe({
-      next: (data) => this.processDashboardData(data),
+      next: (data) => {
+        this.processDashboardData(data);
+        console.log('✅ Dashboard initial data loaded successfully');
+      },
       error: (err) => {
         console.error('❌ Dashboard initial load error:', err);
         this.isLoading = false;
       }
     });
 
-    // Auto-refresh every 30 seconds (smooth, no flickering)
-    interval(30000)
-      .pipe(
-        switchMap(() => this.loadAllDataParallel()),
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (data) => {
-          this.processDashboardData(data);
-          console.log('🔄 Dashboard data refreshed');
-        },
-        error: (err) => {
-          console.error('❌ Dashboard update error:', err);
-        }
-      });
+    // ✅ AUTO-REFRESH REMOVED
+    console.log('✅ Auto-refresh disabled - Dashboard will update via Socket.IO real-time events only');
   }
 
   ngOnDestroy() {
@@ -179,7 +166,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // --------------------------- CORE DATA LOADER ---------------------------
   private loadAllDataParallel() {
-    // Don't show loading spinner on refresh (only on initial load)
+    // Show loading spinner only on initial load
     if (!this.stats.first_stock && !this.stats.warehouse_stock) {
       this.isLoading = true;
     }
@@ -200,27 +187,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Animate counter from 0 to target value
-   */
-  private animateCounter(element: HTMLElement, target: number, duration: number = 1000) {
-    const start = 0;
-    const increment = target / (duration / 16); // 60fps
-    let current = start;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        element.textContent = this.formatNumber(Math.floor(target));
-        clearInterval(timer);
-      } else {
-        element.textContent = this.formatNumber(Math.floor(current));
-      }
-    }, 16);
-  }
-
   private processDashboardData(data: any) {
-    // Update data WITHOUT triggering loading spinner
+    // Update data without triggering loading spinner
     this.stats = data.stats;
     this.shiftScanData = data.shift;
     this.warehouseItems = data.items;
@@ -230,48 +198,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.generateChart(data.chart);
     this.isLoading = false;
   }
-
-  // --------------------------- CHART HANDLER ---------------------------
-  // private generateChart(data: any[]) {
-  //   if (!data || data.length === 0) {
-  //     console.warn('⚠️ No chart data available');
-  //     return;
-  //   }
-
-  //   this.chartData = {
-  //     labels: data.map(d => d.date),
-  //     datasets: [
-  //       {
-  //         label: 'RECEIVING',
-  //         data: data.map(d => d.receiving || 0),
-  //         borderColor: '#28a745',
-  //         backgroundColor: 'rgba(40,167,69,0.1)',
-  //         borderWidth: 3,
-  //         tension: 0.4,
-  //         pointRadius: 5,
-  //         pointHoverRadius: 7,
-  //         pointBackgroundColor: '#28a745',
-  //         pointBorderColor: '#fff',
-  //         pointBorderWidth: 2,
-  //         fill: true
-  //       },
-  //       {
-  //         label: 'SHIPPING',
-  //         data: data.map(d => d.shipping || 0),
-  //         borderColor: '#ffc107',
-  //         backgroundColor: 'rgba(255,193,7,0.1)',
-  //         borderWidth: 3,
-  //         tension: 0.4,
-  //         pointRadius: 5,
-  //         pointHoverRadius: 7,
-  //         pointBackgroundColor: '#ffc107',
-  //         pointBorderColor: '#fff',
-  //         pointBorderWidth: 2,
-  //         fill: true
-  //       }
-  //     ]
-  //   };
-  // }
 
   // --------------------------- UI HELPERS ---------------------------
   getProgressColor(status: number): string {
@@ -301,14 +227,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
   }
 
-  /**
-   * Parse percent string (format: "25,50" -> 25.50)
-   */
   parsePercent(percent: string | number): number {
     if (typeof percent === 'number') return percent;
     if (!percent) return 0;
     
-    // Replace comma with dot and convert to number
     const cleaned = String(percent).replace(',', '.');
     return parseFloat(cleaned) || 0;
   }
@@ -317,11 +239,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Handle receiving update - AUTO INCREMENT
    */
   handleReceivingUpdate(update: DashboardUpdate) {
-    // Update stats (like WhatsApp unread count)
+    // Update stats
     this.stats.receiving += update.quantity;
     this.stats.warehouse_stock += update.quantity;
     
-    // Add to list (prepend like new chat message)
+    // Add to list (prepend)
     const newItem = {
       date_time: this.formatDateTime(update.timestamp),
       original_barcode: update.barcode,
@@ -335,12 +257,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     this.receivingList.unshift(newItem);
     
-    // Keep only last 10 items (like chat limit)
+    // Keep only last 10 items
     if (this.receivingList.length > 10) {
       this.receivingList = this.receivingList.slice(0, 10);
     }
     
-    console.log('✅ Receiving list updated (auto-prepend)');
+    console.log('✅ Receiving list updated (real-time)');
   }
 
   /**
@@ -370,42 +292,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.shippingList = this.shippingList.slice(0, 10);
     }
     
-    console.log('✅ Shipping list updated (auto-prepend)');
+    console.log('✅ Shipping list updated (real-time)');
   }
 
   /**
-   * Load all dashboard data (initial only)
-   */
-  loadAllData() {
-    this.isLoading = true;
-
-    forkJoin({
-      stats: this.dashboardService.getWarehouseStats(),
-      chart: this.dashboardService.getDailyChart(),
-      shift: this.dashboardService.getShiftScan(),
-      items: this.dashboardService.getWarehouseItems(),
-      receiving: this.dashboardService.getReceivingList(),
-      shipping: this.dashboardService.getShippingList()
-    }).subscribe({
-      next: (data) => {
-        this.stats = data.stats;
-        this.shiftScanData = data.shift;
-        this.warehouseItems = data.items;
-        this.receivingList = data.receiving;
-        this.shippingList = data.shipping;
-        this.generateChart(data.chart);
-        this.isLoading = false;
-        console.log('✅ Initial data loaded');
-      },
-      error: (err) => {
-        console.error('❌ Failed to load data:', err);
-        this.isLoading = false;
-      }
-    });
-  }
-
-  /**
-   * Generate chart (dummy for now)
+   * Generate chart
    */
   generateChart(data: any[]) {
     if (!data || data.length === 0) return;
@@ -418,14 +309,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
           data: data.map(d => d.receiving || 0),
           borderColor: '#28a745',
           backgroundColor: 'rgba(40,167,69,0.1)',
-          tension: 0.4
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#28a745',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          fill: true
         },
         {
           label: 'SHIPPING',
           data: data.map(d => d.shipping || 0),
           borderColor: '#ffc107',
           backgroundColor: 'rgba(255,193,7,0.1)',
-          tension: 0.4
+          borderWidth: 3,
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffc107',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          fill: true
         }
       ]
     };
@@ -454,10 +359,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Manual refresh (optional)
+   * Manual refresh (if needed)
    */
   refreshData() {
     console.log('🔄 Manual refresh triggered');
-    this.loadAllData();
+    this.isLoading = true;
+    
+    this.loadAllDataParallel().subscribe({
+      next: (data) => {
+        this.processDashboardData(data);
+        console.log('✅ Manual refresh completed');
+      },
+      error: (err) => {
+        console.error('❌ Manual refresh failed:', err);
+        this.isLoading = false;
+      }
+    });
   }
 }

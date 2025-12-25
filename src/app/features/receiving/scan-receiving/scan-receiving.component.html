@@ -123,151 +123,133 @@
     </div>
   </div>
 
-  <!-- Recent Scans Table -->
+  <!-- Recent Scans Table (NEW - Dashboard Style) -->
   <div class="card table-card">
     <div class="card-header">
-      <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-          <h5 class="card-title mb-0">
+          <h5 class="card-title mb-1">
             <i class="fas fa-history me-2"></i> Recent Scans
           </h5>
           <small class="text-muted">Showing last 10 scans</small>
         </div>
-        <!-- ✅ NEW: Action Buttons -->
-      <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-sm btn-outline-primary" (click)="loadReceivingHistory()" [disabled]="isLoading">
-          <i class="fas fa-sync-alt"></i> Refresh
-        </button>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-primary" (click)="loadReceivingHistory()" [disabled]="isLoading">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
 
-        <!-- Move Data Button (Only for IT) -->
-        <button 
-          *ngIf="canManageScans()" 
-          class="btn btn-sm btn-warning" 
-          (click)="onMoveData()" 
-          [disabled]="isMoving"
-          title="Move data to history">
-          <span *ngIf="!isMoving">
-            <i class="fas fa-exchange-alt me-1"></i> Move Data
-          </span>
-          <span *ngIf="isMoving">
-            <span class="spinner-border spinner-border-sm me-1"></span> Moving...
-          </span>
-        </button>
+          <!-- Move Data Button (Only for IT) -->
+          <button 
+            *ngIf="canManageScans()" 
+            class="btn btn-sm btn-warning" 
+            (click)="onMoveData()" 
+            [disabled]="isMoving"
+            title="Move data to history">
+            <span *ngIf="!isMoving">
+              <i class="fas fa-exchange-alt me-1"></i> Move Data
+            </span>
+            <span *ngIf="isMoving">
+              <span class="spinner-border spinner-border-sm me-1"></span> Moving...
+            </span>
+          </button>
 
-        <!-- Print Detail Button -->
-        <button 
-          class="btn btn-sm btn-success" 
-          (click)="onPrintDetail()" 
-          [disabled]="isPrintingDetail"
-          title="Download detail report">
-          <span *ngIf="!isPrintingDetail">
-            <i class="fas fa-file-excel me-1"></i> Print Detail
-          </span>
-          <span *ngIf="isPrintingDetail">
-            <span class="spinner-border spinner-border-sm me-1"></span> Printing...
-          </span>
-        </button>
+          <!-- Print Detail Button -->
+          <button 
+            class="btn btn-sm btn-success" 
+            (click)="onPrintDetail()" 
+            [disabled]="isPrintingDetail"
+            title="Download detail report">
+            <span *ngIf="!isPrintingDetail">
+              <i class="fas fa-file-excel me-1"></i> Print Detail
+            </span>
+            <span *ngIf="isPrintingDetail">
+              <span class="spinner-border spinner-border-sm me-1"></span> Printing...
+            </span>
+          </button>
 
-        <!-- Print Summary Button -->
-        <button 
-          class="btn btn-sm btn-info" 
-          (click)="onPrintSummary()" 
-          [disabled]="isPrintingSummary"
-          title="Download summary report">
-          <span *ngIf="!isPrintingSummary">
-            <i class="fas fa-chart-pie me-1"></i> Print Summary
-          </span>
-          <span *ngIf="isPrintingSummary">
-            <span class="spinner-border spinner-border-sm me-1"></span> Printing...
-          </span>
-        </button>
+          <!-- Print Summary Button -->
+          <button 
+            class="btn btn-sm btn-info" 
+            (click)="onPrintSummary()" 
+            [disabled]="isPrintingSummary"
+            title="Download summary report">
+            <span *ngIf="!isPrintingSummary">
+              <i class="fas fa-chart-pie me-1"></i> Print Summary
+            </span>
+            <span *ngIf="isPrintingSummary">
+              <span class="spinner-border spinner-border-sm me-1"></span> Printing...
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-hover table-striped mb-0">
-        <thead class="table-success">
-          <tr>
-            <th width="180">DATE/TIME</th>
-            <th>BARCODE</th>
-            <th>BRAND</th>
-            <th>MODEL</th>
-            <th>COLOR</th>
-            <th>SIZE</th>
-            <th width="100" class="text-center">QTY</th>
-            <th>ITEM</th>
-            <th>PRODUCTION</th>
-            <th width="80" class="text-center">SCAN NO</th>
-            <th *ngIf="canManageScans()" width="140" class="text-center">ACTION</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of receivingList; let i = index" 
-              [class.latest-scan]="i === 0"
-              [@fadeIn]>
-            <td>
-              <small class="text-muted">
-                <i class="far fa-clock me-1"></i>
-                {{ formatDate(item.date_time) }}
-              </small>
-            </td>
-            <td>
-              <strong class="text-primary">{{ item.original_barcode }}</strong>
-            </td>
-            <td>{{ item.brand }}</td>
-            <td>
-              <span class="badge bg-info">{{ item.model }}</span>
-            </td>
-            <td>{{ item.color }}</td>
-            <td class="text-center">
-              <span class="size-badge">{{ item.size }}</span>
-            </td>
-            <td class="text-center">
-              <span class="quantity-badge">{{ item.quantity }}</span>
-            </td>
-            <td>
-              <span class="item-badge" [ngClass]="getItemBadgeClass(item.item)">
-                {{ item.item }}
-              </span>
-            </td>
-            <td>
-              <small class="text-muted">{{ item.production }}</small>
-            </td>
-            <td class="text-center">
-              <span class="scan-no-badge">{{ item.scan_no }}</span>
-            </td>
-            <td *ngIf="canManageScans()" class="text-center">
-              <button class="btn btn-sm btn-info me-1" (click)="openEditModal(item)" title="Edit">
-                <i class="fas fa-pencil-alt"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" (click)="openDeleteModal(item)" title="Delete">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </td>
-          </tr>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-striped mb-0">
+          <thead class="table-success sticky-top">
+            <tr>
+              <th class="text-center">DATE/TIME</th>
+              <th class="text-center">ORIGINAL BARCODE</th>
+              <th class="text-center">MODEL</th>
+              <th class="text-center">COLOR</th>
+              <th class="text-center">SIZE</th>
+              <th class="text-center">QUANTITY</th>
+              <th class="text-center">USERNAME</th>
+              <th class="text-center">SCAN NO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of receivingList; let i = index" 
+                [class.latest-scan]="i === 0"
+                [@fadeIn]>
+              <td class="text-center">
+                <small>{{ formatDate(item.date_time) }}</small>
+              </td>
+              <td class="text-center">
+                <strong class="text-primary">{{ item.original_barcode }}</strong>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-info">{{ item.model }}</span>
+              </td>
+              <td class="text-center">{{ item.color }}</td>
+              <td class="text-center">
+                <span class="size-badge">{{ item.size }}</span>
+              </td>
+              <td class="text-center">
+                <span class="quantity-badge">{{ item.quantity }}</span>
+              </td>
+              <td class="text-center">{{ item.username }}</td>
+              <td class="text-center">
+                <span class="scan-no-badge">{{ item.scan_no }}</span>
+              </td>
+            </tr>
 
-          <tr *ngIf="receivingList.length === 0 && !isLoading">
-            <td [attr.colspan]="canManageScans() ? 11 : 10" class="text-center text-muted py-5">
-              <div class="empty-state">
-                <i class="fas fa-inbox fs-1 mb-3"></i>
-                <p class="mb-0">No scans yet. Start scanning to see history.</p>
-              </div>
-            </td>
-          </tr>
+            <tr *ngIf="receivingList.length === 0 && !isLoading">
+              <td colspan="8" class="text-center text-muted py-5">
+                <div class="empty-state">
+                  <i class="fas fa-inbox fs-1 mb-3"></i>
+                  <p class="mb-0">No scans yet. Start scanning to see history.</p>
+                </div>
+              </td>
+            </tr>
 
-          <tr *ngIf="isLoading">
-            <td [attr.colspan]="canManageScans() ? 11 : 10" class="text-center py-5">
-              <div class="spinner-border text-success me-2"></div>
-              <span class="text-muted">Loading...</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <tr *ngIf="isLoading">
+              <td colspan="8" class="text-center py-5">
+                <div class="spinner-border text-success me-2"></div>
+                <span class="text-muted">Loading...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <!-- User Info Footer -->
-  <div class="user-info-footer">
+  <div class="user-info-footer mt-4">
     <div class="d-flex align-items-center gap-3">
       <i class="fas fa-user-circle fs-3 text-success"></i>
       <div>
@@ -278,120 +260,3 @@
     </div>
   </div>
 </div>
-
-<!-- Edit Modal -->
-<div class="modal fade" [class.show]="showEditModal" [style.display]="showEditModal ? 'block' : 'none'" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-info text-white">
-        <h5 class="modal-title">
-          <i class="fas fa-pencil-alt me-2"></i> Edit Receiving Record
-        </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="closeEditModal()"></button>
-      </div>
-      <div class="modal-body">
-        <form [formGroup]="editForm" *ngIf="editForm">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Original Barcode</label>
-                <input type="text" class="form-control" formControlName="original_barcode" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Brand</label>
-                <input type="text" class="form-control" formControlName="brand" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Color</label>
-                <input type="text" class="form-control" formControlName="color" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Size</label>
-                <input type="text" class="form-control" formControlName="size" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Four Digit</label>
-                <input type="text" class="form-control" formControlName="four_digit" readonly>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">Model</label>
-                <input type="text" class="form-control" formControlName="model" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Item</label>
-                <input type="text" class="form-control" formControlName="item" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Production</label>
-                <input type="text" class="form-control" formControlName="production" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Quantity</label>
-                <input type="number" class="form-control" formControlName="quantity" readonly>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-control" formControlName="username" readonly>
-              </div>
-            </div>
-          </div>
-          <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Note:</strong> Edit functionality is read-only for now. Contact IT to modify records.
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
-          <i class="fas fa-times me-2"></i> Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal-backdrop fade" [class.show]="showEditModal" *ngIf="showEditModal"></div>
-
-<!-- Delete Modal -->
-<div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">
-          <i class="fas fa-trash-alt me-2"></i> Delete Receiving Record
-        </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="closeDeleteModal()"></button>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-warning">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          <strong>Warning:</strong> This action cannot be undone!
-        </div>
-        <p>Are you sure you want to delete this receiving record?</p>
-        <div *ngIf="selectedItem" class="card">
-          <div class="card-body">
-            <p class="mb-1"><strong>Barcode:</strong> {{ selectedItem.original_barcode }}</p>
-            <p class="mb-1"><strong>Model:</strong> {{ selectedItem.model }}</p>
-            <p class="mb-1"><strong>Quantity:</strong> {{ selectedItem.quantity }}</p>
-            <p class="mb-0"><strong>Scan No:</strong> {{ selectedItem.scan_no }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">
-          <i class="fas fa-times me-2"></i> Cancel
-        </button>
-        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
-          <span *ngIf="!isDeleting">
-            <i class="fas fa-trash-alt me-2"></i> Delete
-          </span>
-          <span *ngIf="isDeleting">
-            <span class="spinner-border spinner-border-sm me-2"></span> Deleting...
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="modal-backdrop fade" [class.show]="showDeleteModal" *ngIf="showDeleteModal"></div>

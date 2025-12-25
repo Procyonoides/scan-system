@@ -37,6 +37,9 @@ export class UserComponent implements OnInit {
   totalPages = 1;
   Math = Math;
 
+  // Available page size options
+  pageSizeOptions = [10, 25, 50, 100];
+
   // Modal states
   showAddModal = false;
   showEditModal = false;
@@ -99,6 +102,11 @@ export class UserComponent implements OnInit {
     this.calculatePagination();
   }
 
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.calculatePagination();
+  }
+
   calculatePagination() {
     this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
   }
@@ -143,7 +151,6 @@ export class UserComponent implements OnInit {
   }
 
   onPositionChange() {
-    // Reset description when position changes
     const position = this.userForm.position;
     if (position === 'RECEIVING' || position === 'SHIPPING') {
       this.userForm.description = '';
@@ -231,7 +238,6 @@ export class UserComponent implements OnInit {
         : '-'
     };
 
-    // Add password to payload if provided
     if (this.userForm.password && this.userForm.password.trim() !== '') {
       if (this.userForm.password.length < 3) {
         this.errorMessage = 'Password must be at least 3 characters';

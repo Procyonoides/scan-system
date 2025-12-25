@@ -6,6 +6,19 @@
     </div>
   </div>
 
+  <!-- Manual Refresh Button (Optional) -->
+  <div class="row mb-3">
+    <div class="col-12 text-end">
+      <button class="btn btn-outline-primary btn-sm" (click)="refreshData()" [disabled]="isLoading">
+        <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+        {{ isLoading ? 'Refreshing...' : 'Refresh Data' }}
+      </button>
+      <small class="text-muted ms-2">
+        <i class="fas fa-info-circle"></i> Auto-refresh disabled. Data updates via real-time Socket.IO.
+      </small>
+    </div>
+  </div>
+
   <!-- Warehouse Stats Row -->
   <div class="row mb-4">
     <div class="col-lg-3 col-md-6 mb-3">
