@@ -69,6 +69,7 @@ export class MasterDataComponent implements OnInit {
   showRecordModal = false;
   showBackupModal = false;
   showDuplicateModal = false;
+  showResetStockConfirm = false;
   
   selectedBarcode: string = '';
   isLoading = false;
@@ -442,9 +443,45 @@ export class MasterDataComponent implements OnInit {
     this.showRecordModal = false;
     this.showBackupModal = false;
     this.showDuplicateModal = false;
+    this.showResetStockConfirm = false;
     this.selectedBarcode = '';
     this.selectedFile = null;
     this.errorMessage = '';
+  }
+
+  openResetStockConfirm() {
+    this.showResetStockConfirm = true;
+    this.errorMessage = '';
+  }
+
+  closeResetStockConfirm() {
+    this.showResetStockConfirm = false;
+    this.errorMessage = '';
+  }
+
+  onResetStock() {
+    this.isLoading = true;
+    console.log('🔄 Resetting all stock to 0');
+
+    this.http.post(`${environment.apiUrl}/master-data/reset-stock`, {})
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            this.successMessage = response.message || 'Stock reset successfully!';
+            this.showResetStockConfirm = false;
+            this.showStockOpnameModal = false;
+            this.loadMasterData();
+            setTimeout(() => this.successMessage = '', 3000);
+            console.log('✅ Stock reset successfully');
+          }
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'Failed to reset stock';
+          this.isLoading = false;
+          console.error('❌ Failed to reset stock:', err);
+        }
+      });
   }
 
   // ==================== FILE HANDLING ====================

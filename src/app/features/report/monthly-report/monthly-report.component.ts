@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import * as XLSX from 'xlsx';
 
 interface MonthlyReportData {
   no: number;
@@ -213,40 +214,56 @@ export class MonthlyReportComponent implements OnInit {
     }
 
     this.isExporting = true;
+
+    // Create workbook and worksheet
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([]);
     
-    let params = new HttpParams()
-      .set('tipe', this.filters.tipe);
+    // Add header row
+    const header = [
+      'NO',
+      'PRODUCTION',
+      'BRAND',
+      'MODEL',
+      'COLOR',
+      'SIZE',
+      'DESCRIPTION',
+      'TOTAL'
+    ];
+    XLSX.utils.sheet_add_aoa(ws, [header], { origin: 0 });
 
-    if (this.filters.model) params = params.set('model', this.filters.model);
-    if (this.filters.color) params = params.set('color', this.filters.color);
-    if (this.filters.size) params = params.set('size', this.filters.size);
-    if (this.filters.user) params = params.set('user', this.filters.user);
-    if (this.filters.tanggal1) params = params.set('tanggal1', this.filters.tanggal1);
-    if (this.filters.tanggal2) params = params.set('tanggal2', this.filters.tanggal2);
+    // Add data rows
+    const data = this.reportData.map(row => [
+      row.no,
+      row.production,
+      row.brand,
+      row.model,
+      row.color,
+      row.size,
+      row.description,
+      row.total
+    ]);
+    XLSX.utils.sheet_add_aoa(ws, data, { origin: 1 });
 
-    this.http.get(`${environment.apiUrl}/reports/monthly/export`, { 
-      params, 
-      responseType: 'blob' 
-    }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Monthly_Report_${this.filters.tipe}_${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        this.successMessage = 'Report exported successfully!';
-        setTimeout(() => this.successMessage = '', 3000);
-        this.isExporting = false;
-      },
-      error: (err) => {
-        console.error('❌ Export error:', err);
-        this.errorMessage = 'Failed to export report';
-        this.isExporting = false;
-      }
-    });
+    // Add grand total row
+    const totalRow = ['', '', '', '', '', '', 'GRAND TOTAL', this.grandTotal];
+    XLSX.utils.sheet_add_aoa(ws, [totalRow], { origin: this.reportData.length + 2 });
+
+    // Set column widths
+    const colWidths = [6, 15, 12, 12, 15, 10, 15, 12];
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+    // Create workbook
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
+
+    // Generate filename
+    const filename = `Monthly_Report_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}_to_${this.filters.tanggal2}.xlsx`;
+    
+    // Write file
+    XLSX.writeFile(wb, filename);
+
+    this.successMessage = 'Report exported successfully!';
+    setTimeout(() => this.successMessage = '', 3000);
+    this.isExporting = false;
   }
 }

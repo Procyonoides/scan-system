@@ -591,9 +591,36 @@
   }
 }
 
-// Apply fadeIn to table rows
+// Remove fadeIn animation from tbody tr
 tbody tr {
-  animation: fadeIn 0.3s ease-in-out;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.002);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  &.latest-scan {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    border-left: 4px solid #2e7d32;
+
+    td {
+      font-weight: 600;
+    }
+  }
+}
+
+// Keep only essential animations
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
 }
 
 // ==================== RESPONSIVE ====================
@@ -660,4 +687,118 @@ tbody tr {
       padding: 0.75rem 0.5rem;
     }
   }
+}
+
+// ==================== PAGINATION STYLING ====================
+
+.card-footer {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-top: 2px solid #dee2e6;
+  padding: 1rem 1.5rem;
+
+  .form-select-sm {
+    padding: 0.4rem 2rem 0.4rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    background-color: white;
+    transition: all 0.3s ease;
+
+    &:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    &:hover {
+      border-color: #0d6efd;
+    }
+  }
+
+  .pagination {
+    .page-item {
+      margin: 0 2px;
+
+      .page-link {
+        border: 1px solid #dee2e6;
+        color: #495057;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        min-width: 40px;
+        text-align: center;
+
+        &:hover {
+          background-color: #e9ecef;
+          border-color: #0d6efd;
+          color: #0d6efd;
+          transform: translateY(-2px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        i {
+          font-size: 0.85rem;
+        }
+      }
+
+      &.active .page-link {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border-color: #0d6efd;
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+        background-color: #f8f9fa;
+
+        &:hover {
+          transform: none;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+
+  label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+// Responsive pagination
+@media (max-width: 768px) {
+  .card-footer {
+    padding: 1rem;
+
+    .d-flex {
+      flex-direction: column;
+      align-items: flex-start !important;
+
+      > div {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .pagination {
+      justify-content: center;
+      margin-top: 0.5rem;
+
+      .page-item .page-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+        min-width: 35px;
+      }
+    }
+  }
+}
+
+// Smooth transitions
+.card-footer * {
+  transition: all 0.3s ease;
 }

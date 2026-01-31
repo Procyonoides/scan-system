@@ -548,8 +548,191 @@
   </div>
 </div>
 
+<!-- ==================== IMPORT BARCODE EXCEL MODAL ==================== -->
+<div class="modal" [class.show]="showImportModal" [style.display]="showImportModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-file-earmark-excel"></i> Add Barcode By Excel
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <p class="text-muted mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Upload an Excel file containing barcode data. The file should include columns for:
+            <code>original_barcode, brand, color, size, unit, quantity, production, model, item</code>
+          </p>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-upload me-2"></i> Select File
+          </label>
+          <div class="file-upload-area">
+            <input 
+              type="file" 
+              #fileInput 
+              (change)="onFileSelected($event)" 
+              accept=".xlsx,.xls,.csv"
+              class="form-control"
+              id="barcodeFileInput">
+          </div>
+          <small class="text-muted d-block mt-2">
+            Supported formats: .xlsx, .xls, .csv
+          </small>
+        </div>
+
+        <!-- File Selected Status -->
+        <div *ngIf="selectedFile" class="alert alert-success alert-sm">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong>File selected:</strong> {{ selectedFile.name }}
+          <small class="d-block mt-1">Size: {{ (selectedFile.size / 1024).toFixed(2) }} KB</small>
+        </div>
+
+        <!-- Download Template -->
+        <div class="mb-3">
+          <button class="btn btn-outline-info btn-sm w-100" (click)="downloadFormatExcel()">
+            <i class="bi bi-download me-2"></i> Download Format Template
+          </button>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+        <button type="button" class="btn btn-success" (click)="onImportExcel()" [disabled]="isLoading || !selectedFile">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-cloud-upload"></i> Import
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Importing...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STOCK OPNAME MODAL ==================== -->
+<div class="modal" [class.show]="showStockOpnameModal" [style.display]="showStockOpnameModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-file-earmark-excel"></i> Stock Opname By Excel
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <p class="text-muted mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Upload an Excel file containing stock opname data. The file should include barcode information and quantities.
+          </p>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            <i class="bi bi-upload me-2"></i> Select File
+          </label>
+          <div class="file-upload-area">
+            <input 
+              type="file" 
+              #fileInput 
+              (change)="onFileSelected($event)" 
+              accept=".xlsx,.xls,.csv"
+              class="form-control"
+              id="stockOpnameFileInput">
+          </div>
+          <small class="text-muted d-block mt-2">
+            Supported formats: .xlsx, .xls, .csv
+          </small>
+        </div>
+
+        <!-- File Selected Status -->
+        <div *ngIf="selectedFile" class="alert alert-success alert-sm">
+          <i class="bi bi-check-circle me-2"></i>
+          <strong>File selected:</strong> {{ selectedFile.name }}
+          <small class="d-block mt-1">Size: {{ (selectedFile.size / 1024).toFixed(2) }} KB</small>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="openResetStockConfirm()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise"></i> Reset Stock
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+        <button type="button" class="btn btn-success" (click)="onImportStockOpname()" [disabled]="isLoading || !selectedFile">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-cloud-upload"></i> Import
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Importing...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RESET STOCK CONFIRMATION MODAL ==================== -->
+<div class="modal" [class.show]="showResetStockConfirm" [style.display]="showResetStockConfirm ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-circle me-2"></i> Reset Stock Confirmation
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeResetStockConfirm()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Warning!</strong> This will set all stock values to 0.
+        </div>
+        <p>Are you sure you want to reset all stock in the system?</p>
+        <p class="text-danger fw-bold">This action cannot be undone!</p>
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeResetStockConfirm()">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onResetStock()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-arrow-clockwise"></i> Reset All Stock
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Processing...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Backdrop -->
 <div class="modal-backdrop fade" 
-     [class.show]="showAddModal || showEditModal || showDeleteModal"
-     *ngIf="showAddModal || showEditModal || showDeleteModal">
+     [class.show]="showAddModal || showEditModal || showDeleteModal || showImportModal || showStockOpnameModal"
+     *ngIf="showAddModal || showEditModal || showDeleteModal || showImportModal || showStockOpnameModal">
 </div>

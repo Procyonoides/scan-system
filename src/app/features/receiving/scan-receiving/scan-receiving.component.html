@@ -129,14 +129,14 @@
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h5 class="card-title mb-1">
-            <i class="fas fa-history me-2"></i> Recent Scans
+            <i class="fas fa-calendar-day me-2"></i> Today's Scans
           </h5>
-          <small class="text-muted">Showing last 10 scans</small>
+          <small class="text-muted">Showing all receiving scans for today ({{ getCurrentDate() }})</small>
         </div>
         
         <!-- Action Buttons -->
         <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-outline-primary" (click)="loadReceivingHistory()" [disabled]="isLoading">
+          <button class="btn btn-sm btn-outline-primary" (click)="loadTodayScans()" [disabled]="isLoading">
             <i class="fas fa-sync-alt"></i> Refresh
           </button>
 
@@ -202,9 +202,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of receivingList; let i = index" 
-                [class.latest-scan]="i === 0"
-                [@fadeIn]>
+            <tr *ngFor="let item of receivingList; let i = index; trackBy: trackByScanNo" 
+                [class.latest-scan]="i === 0">
               <td class="text-center">
                 <small>{{ formatDate(item.date_time) }}</small>
               </td>
@@ -231,7 +230,7 @@
               <td colspan="8" class="text-center text-muted py-5">
                 <div class="empty-state">
                   <i class="fas fa-inbox fs-1 mb-3"></i>
-                  <p class="mb-0">No scans yet. Start scanning to see history.</p>
+                  <p class="mb-0">No scans today. Start scanning to see data.</p>
                 </div>
               </td>
             </tr>
@@ -244,6 +243,65 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="card-footer bg-light" *ngIf="totalItems > 0">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <!-- Items Per Page -->
+        <div class="d-flex align-items-center gap-2">
+          <label class="mb-0 text-muted small">Show:</label>
+          <select class="form-select form-select-sm" style="width: auto;" (change)="changeItemsPerPage($event)" [value]="itemsPerPage">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+          <span class="text-muted small">entries</span>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="text-muted small">
+          Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ totalItems }} entries
+        </div>
+
+        <!-- Pagination Controls -->
+        <nav aria-label="Page navigation">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="previousPage()" style="cursor: pointer;">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+
+            <li class="page-item" *ngIf="pages[0] > 1">
+              <a class="page-link" (click)="goToPage(1)" style="cursor: pointer;">1</a>
+            </li>
+
+            <li class="page-item disabled" *ngIf="pages[0] > 2">
+              <span class="page-link">...</span>
+            </li>
+
+            <li class="page-item" *ngFor="let page of pages" [class.active]="page === currentPage">
+              <a class="page-link" (click)="goToPage(page)" style="cursor: pointer;">{{ page }}</a>
+            </li>
+
+            <li class="page-item disabled" *ngIf="pages[pages.length - 1] < totalPages - 1">
+              <span class="page-link">...</span>
+            </li>
+
+            <li class="page-item" *ngIf="pages[pages.length - 1] < totalPages">
+              <a class="page-link" (click)="goToPage(totalPages)" style="cursor: pointer;">{{ totalPages }}</a>
+            </li>
+
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="nextPage()" style="cursor: pointer;">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>

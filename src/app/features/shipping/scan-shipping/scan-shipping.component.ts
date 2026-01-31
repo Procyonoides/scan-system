@@ -4,25 +4,24 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
-import { trigger, transition, style, animate } from '@angular/animations';
 import { ShippingService } from '../../../core/services/shipping.service';
 
 interface ShippingRecord {
   original_barcode: string;
-  brand: string;
+  brand?: string;
   color: string;
   size: string;
-  four_digit: string;
-  unit: string;
+  four_digit?: string;
+  unit?: string;
   quantity: number;
-  production: string;
+  production?: string;
   model: string;
-  model_code: string;
-  item: string;
+  model_code?: string;
+  item?: string;
   date_time: string;
   scan_no: number;
   username: string;
-  description: string;
+  description?: string;
 }
 
 interface ScanResponse {
@@ -46,15 +45,7 @@ interface ScanResponse {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './scan-shipping.component.html',
-  styleUrl: './scan-shipping.component.scss',
-  animations: [
-    trigger('fadeIn', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(10px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
-    ])
-  ]
+  styleUrl: './scan-shipping.component.scss'
 })
 export class ScanShippingComponent implements OnInit, AfterViewInit {
   @ViewChild('barcodeInput') barcodeInput!: ElementRef<HTMLInputElement>;
@@ -65,7 +56,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
 
   shippingList: ShippingRecord[] = [];
   
-  // Last scan result
   lastScan = {
     model: '-',
     color: '-',
@@ -73,21 +63,20 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     quantity: '-'
   };
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  totalPages = 0;
+  pages: number[] = [];
+
   successMessage = '';
   errorMessage = '';
   isLoading = false;
-  isDeleting = false;
   username = '';
   userPosition = '';
-
-  // Modal states
-  showEditModal = false;
-  showDeleteModal = false;
-  selectedItem: ShippingRecord | null = null;
-  editForm: any = null;
-
-  isMoving = false; // ✅ NEW
-  isPrintingDetail = false; // ✅ NEW
+  isMoving = false;
+  isPrintingDetail = false;
   isPrintingSummary = false;
 
   constructor(
@@ -101,19 +90,17 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     this.username = this.authService.currentUser()?.username || '';
     this.userPosition = this.authService.currentUser()?.position || '';
     console.log('📦 Scan Shipping initialized for user:', this.username, 'Position:', this.userPosition);
-    this.loadShippingHistory();
+    
+    // ✅ LOAD TODAY'S SCANS instead of user history
+    this.loadTodayScans();
   }
 
   ngAfterViewInit() {
-    // Auto-focus pada input barcode setelah view init
     setTimeout(() => {
       this.focusBarcodeInput();
     }, 100);
   }
 
-  /**
-   * Focus ke input barcode
-   */
   focusBarcodeInput() {
     if (this.barcodeInput) {
       this.barcodeInput.nativeElement.focus();
@@ -121,26 +108,45 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Load shipping history (last 10 records)
+   * ✅ NEW: Load today's scans (like dashboard) with pagination
    */
-  loadShippingHistory() {
-    this.http.get<any>(`${environment.apiUrl}/shipping/history`)
+  loadTodayScans() {
+    this.isLoading = true;
+    const params = {
+      page: this.currentPage,
+      limit: this.itemsPerPage
+    };
+    
+    this.http.get<any>(`${environment.apiUrl}/shipping/today`, { params })
       .subscribe({
         next: (response) => {
           if (response.success) {
             this.shippingList = response.data;
-            console.log('✅ Shipping history loaded:', this.shippingList.length, 'records');
+            
+            if (response.pagination) {
+              this.totalItems = response.pagination.total;
+              this.totalPages = response.pagination.totalPages;
+              this.updatePagination();
+            }
+            
+            console.log('✅ Today shipping scans loaded:', this.shippingList.length, 'records (Page', this.currentPage, 'of', this.totalPages + ')');
           }
+          this.isLoading = false;
         },
         error: (err) => {
-          console.error('❌ Failed to load shipping history:', err);
+          console.error('❌ Failed to load today scans:', err);
+          this.isLoading = false;
         }
       });
   }
 
   /**
-   * Handle scan submit
+   * Keep old method for compatibility
    */
+  loadShippingHistory() {
+    this.loadTodayScans();
+  }
+
   onScan() {
     if (this.scanForm.invalid) {
       this.errorMessage = 'Please enter a barcode';
@@ -166,7 +172,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
           console.log('✅ Scan response:', response);
 
           if (response.success) {
-            // Update last scan display
             this.lastScan = {
               model: response.data.model,
               color: response.data.color,
@@ -174,31 +179,24 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
               quantity: String(response.data.quantity)
             };
 
-            // Show success message
             this.successMessage = response.message || 'Data Berhasil Diinputkan';
-
-            // Clear form
             this.scanForm.reset();
+            
+            // ✅ Reload today's scans
+            this.loadTodayScans();
 
-            // Reload history
-            this.loadShippingHistory();
-
-            // Auto-hide success message after 3 seconds
             setTimeout(() => {
               this.successMessage = '';
             }, 3000);
 
-            // Play success sound (optional)
             this.playSuccessSound();
           } else {
-            // Handle unsuccessful response
             this.errorMessage = response.message || 'Scan failed';
             this.playErrorSound();
           }
 
           this.isLoading = false;
 
-          // Auto-focus back to input
           setTimeout(() => {
             this.focusBarcodeInput();
           }, 100);
@@ -206,7 +204,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
         error: (err) => {
           console.error('❌ Scan error:', err);
           
-          // Handle specific error types
           if (err.error?.error === 'SYSTEM_MAINTENANCE') {
             this.errorMessage = 'Harap tidak melakukan transaksi, sedang proses perpindahan data';
             this.lastScan = { model: '-', color: '-', size: '-', quantity: '-' };
@@ -221,12 +218,9 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
             this.errorMessage = err.error?.message || 'Scan failed';
           }
 
-          // Play error sound
           this.playErrorSound();
-
           this.isLoading = false;
 
-          // Auto-focus back to input
           setTimeout(() => {
             this.focusBarcodeInput();
           }, 100);
@@ -234,9 +228,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
       });
   }
 
-  /**
-   * Play success sound
-   */
   playSuccessSound() {
     try {
       const audio = new Audio('assets/sounds/success.mp3');
@@ -247,9 +238,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Play error sound
-   */
   playErrorSound() {
     try {
       const audio = new Audio('assets/sounds/error.mp3');
@@ -260,9 +248,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Format date for display
-   */
   formatDate(dateStr: string): string {
     try {
       const date = new Date(dateStr);
@@ -279,110 +264,75 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Get item badge class
-   */
-  getItemBadgeClass(item: string): string {
-    const classes: { [key: string]: string } = {
-      'IP': 'badge-ip',
-      'PHYLON': 'badge-phylon',
-      'BLOKER': 'badge-bloker',
-      'PAINT': 'badge-paint',
-      'RUBBER': 'badge-rubber',
-      'GOODSOLE': 'badge-goodsole'
-    };
-    return classes[item] || 'badge-default';
-  }
-
-  /**
-   * Check if user can manage scans (Edit/Delete)
-   * Only IT and MANAGEMENT can manage
-   */
   canManageScans(): boolean {
     const position = this.authService.currentUser()?.position;
     return position === 'IT' || position === 'MANAGEMENT';
   }
 
-  /**
-   * Open Edit Modal
-   */
-  openEditModal(item: ShippingRecord) {
-    this.selectedItem = item;
-    this.editForm = this.fb.group({
-      original_barcode: [item.original_barcode],
-      brand: [item.brand],
-      color: [item.color],
-      size: [item.size],
-      four_digit: [item.four_digit],
-      model: [item.model],
-      item: [item.item],
-      production: [item.production],
-      quantity: [item.quantity],
-      username: [item.username]
-    });
-    this.showEditModal = true;
-  }
-
-  /**
-   * Close Edit Modal
-   */
-  closeEditModal() {
-    this.showEditModal = false;
-    this.selectedItem = null;
-    this.editForm = null;
-  }
-
-  /**
-   * Open Delete Modal
-   */
-  openDeleteModal(item: ShippingRecord) {
-    this.selectedItem = item;
-    this.showDeleteModal = true;
-  }
-
-  /**
-   * Close Delete Modal
-   */
-  closeDeleteModal() {
-    this.showDeleteModal = false;
-    this.selectedItem = null;
-  }
-
-  /**
-   * Confirm Delete
-   */
-  confirmDelete() {
-    if (!this.selectedItem) return;
-
-    this.isDeleting = true;
-
-    this.http.delete(`${environment.apiUrl}/shipping/${this.selectedItem.date_time}/${this.selectedItem.scan_no}/${this.selectedItem.username}`).subscribe({
-      next: (response: any) => {
-        console.log('✅ Delete successful:', response);
-        this.successMessage = 'Record deleted successfully!';
-        this.closeDeleteModal();
-        this.loadShippingHistory();
-        this.isDeleting = false;
-
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 3000);
-      },
-      error: (err) => {
-        console.error('❌ Delete error:', err);
-        this.errorMessage = err.error?.message || 'Failed to delete record';
-        this.isDeleting = false;
-
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
-      }
+  getCurrentDate(): string {
+    const today = new Date();
+    return today.toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   }
 
-  /**
-   * ✅ NEW: Move Data
-   */
+  trackByScanNo(index: number, item: ShippingRecord): number {
+    return item.scan_no;
+  }
+
+  // ==================== PAGINATION METHODS ====================
+  
+  updatePagination() {
+    this.pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      this.pages.push(i);
+    }
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) {
+      return;
+    }
+    this.currentPage = page;
+    this.loadTodayScans();
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  changeItemsPerPage(event: any) {
+    this.itemsPerPage = parseInt(event.target.value);
+    this.currentPage = 1;
+    this.loadTodayScans();
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  getEndIndex(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
+  }
+
   onMoveData() {
     if (!confirm('Are you sure you want to move all shipping data to history? This action cannot be undone.')) {
       return;
@@ -396,7 +346,7 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
       next: (response) => {
         console.log('✅ Move data successful:', response);
         this.successMessage = 'Data berhasil dipindahkan ke history!';
-        this.loadShippingHistory();
+        this.loadTodayScans();
         this.isMoving = false;
 
         setTimeout(() => {
@@ -415,9 +365,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * ✅ NEW: Print Detail
-   */
   onPrintDetail() {
     this.isPrintingDetail = true;
     this.successMessage = '';
@@ -451,9 +398,6 @@ export class ScanShippingComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * ✅ NEW: Print Summary
-   */
   onPrintSummary() {
     this.isPrintingSummary = true;
     this.successMessage = '';

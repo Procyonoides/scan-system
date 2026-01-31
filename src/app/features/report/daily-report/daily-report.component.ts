@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import * as XLSX from 'xlsx';
 
 interface DailyReportData {
   date_time: string;
@@ -212,40 +213,63 @@ export class DailyReportComponent implements OnInit {
     }
 
     this.isExporting = true;
+
+    // Create workbook and worksheet
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([]);
     
-    let params = new HttpParams()
-      .set('tipe', this.filters.tipe);
+    // Add header row with styling
+    const header = [
+      'SCAN NO',
+      'DATE/TIME',
+      'PRODUCTION',
+      'BRAND',
+      'MODEL',
+      'COLOR',
+      'SIZE',
+      'QUANTITY',
+      'USERNAME',
+      'DESCRIPTION'
+    ];
+    XLSX.utils.sheet_add_aoa(ws, [header], { origin: 0 });
 
-    if (this.filters.model) params = params.set('model', this.filters.model);
-    if (this.filters.color) params = params.set('color', this.filters.color);
-    if (this.filters.size) params = params.set('size', this.filters.size);
-    if (this.filters.user) params = params.set('user', this.filters.user);
-    if (this.filters.tanggal1) params = params.set('tanggal1', this.filters.tanggal1);
-    if (this.filters.tanggal2) params = params.set('tanggal2', this.filters.tanggal2);
+    // Add data rows
+    const data = this.reportData.map(row => [
+      row.scan_no,
+      row.date_time,
+      row.production,
+      row.brand,
+      row.model,
+      row.color,
+      row.size,
+      row.quantity,
+      row.username,
+      row.description
+    ]);
+    XLSX.utils.sheet_add_aoa(ws, data, { origin: 1 });
 
-    this.http.get(`${environment.apiUrl}/reports/daily/export`, { 
-      params, 
-      responseType: 'blob' 
-    }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Daily_Report_${this.filters.tipe}_${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        this.successMessage = 'Report exported successfully!';
-        setTimeout(() => this.successMessage = '', 3000);
-        this.isExporting = false;
-      },
-      error: (err) => {
-        console.error('❌ Export error:', err);
-        this.errorMessage = 'Failed to export report';
-        this.isExporting = false;
-      }
-    });
+    // Calculate grand total
+    const grandTotal = this.reportData.reduce((sum, row) => sum + row.quantity, 0);
+    
+    // Add grand total row
+    const totalRow = ['', '', '', '', '', '', '', grandTotal, '', 'GRAND TOTAL'];
+    XLSX.utils.sheet_add_aoa(ws, [totalRow], { origin: this.reportData.length + 2 });
+
+    // Set column widths
+    const colWidths = [12, 20, 15, 12, 12, 15, 10, 12, 15, 15];
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+    // Create workbook
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Report');
+
+    // Generate filename
+    const filename = `Daily_Report_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}_to_${this.filters.tanggal2}.xlsx`;
+    
+    // Write file
+    XLSX.writeFile(wb, filename);
+
+    this.successMessage = 'Report exported successfully!';
+    setTimeout(() => this.successMessage = '', 3000);
+    this.isExporting = false;
   }
 }
