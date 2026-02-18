@@ -1,6 +1,6 @@
 <div class="container-fluid">
   <h3 class="mb-4"><i class="bi bi-gear"></i> Option Management</h3>
-  
+
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="loading-overlay">
     <div class="spinner-border text-primary"></div>
@@ -22,26 +22,20 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item">
-          <a class="nav-link" 
-             [class.active]="activeTab === 'model'" 
-             [routerLink]="['/option/model']"
-             style="cursor: pointer;">
+          <a class="nav-link" [class.active]="activeTab === 'model'" [routerLink]="['/option/model']"
+            style="cursor: pointer;">
             <i class="bi bi-box"></i> Option Model
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" 
-             [class.active]="activeTab === 'size'" 
-             [routerLink]="['/option/size']"
-             style="cursor: pointer;">
+          <a class="nav-link" [class.active]="activeTab === 'size'" [routerLink]="['/option/size']"
+            style="cursor: pointer;">
             <i class="bi bi-rulers"></i> Option Size
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" 
-             [class.active]="activeTab === 'production'" 
-             [routerLink]="['/option/production']"
-             style="cursor: pointer;">
+          <a class="nav-link" [class.active]="activeTab === 'production'" [routerLink]="['/option/production']"
+            style="cursor: pointer;">
             <i class="bi bi-factory"></i> Option Production
           </a>
         </li>
@@ -49,11 +43,14 @@
     </div>
   </div>
 
-  <!-- Add Button -->
+  <!-- Add Button & Batch Actions -->
   <div class="card mb-3">
     <div class="card-body">
-      <button class="btn btn-success" (click)="openAddModal()">
+      <button class="btn btn-success me-2" (click)="openAddModal()">
         <i class="bi bi-plus-circle"></i> Add {{ getTabTitle() }}
+      </button>
+      <button *ngIf="hasSelectedItems" class="btn btn-danger" (click)="openBatchDeleteModal()">
+        <i class="bi bi-trash"></i> Delete Selected ({{ selectedCodes.size }})
       </button>
     </div>
   </div>
@@ -66,9 +63,7 @@
           <div class="entries-control">
             <label>
               Show
-              <select class="form-select form-select-sm" 
-                      [(ngModel)]="itemsPerPage" 
-                      (change)="onItemsPerPageChange()">
+              <select class="form-select form-select-sm" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
                 <option [value]="10">10</option>
                 <option [value]="25">25</option>
                 <option [value]="50">50</option>
@@ -82,11 +77,8 @@
           <div class="search-control">
             <label>
               Search:
-              <input type="text" 
-                     class="form-control form-control-sm" 
-                     [(ngModel)]="searchTerm" 
-                     (keyup.enter)="onSearch()" 
-                     placeholder="Search...">
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()" placeholder="Search...">
             </label>
           </div>
         </div>
@@ -103,6 +95,10 @@
       <table class="table table-striped table-hover table-sm mb-0">
         <thead class="table-primary">
           <tr>
+            <th width="40" class="text-center">
+              <input type="checkbox" class="form-check-input" [checked]="allItemsSelected"
+                (change)="allItemsSelected ? deselectAllItems() : selectAllItems()" title="Select All">
+            </th>
             <th width="50">NO</th>
             <th>{{ getTabTitle() | uppercase }} CODE</th>
             <th>{{ getTabTitle() | uppercase }}</th>
@@ -110,7 +106,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of getActiveData(); let i = index">
+          <tr *ngFor="let item of getActiveData(); let i = index"
+            [class.table-active]="isItemSelected(getItemCode(item))">
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input" [checked]="isItemSelected(getItemCode(item))"
+                (change)="toggleItemSelection(getItemCode(item))">
+            </td>
             <td class="text-center">{{ ((currentPage - 1) * itemsPerPage) + i + 1 }}</td>
             <td><strong>{{ getItemCode(item) }}</strong></td>
             <td>{{ getItemName(item) }}</td>
@@ -124,13 +125,13 @@
             </td>
           </tr>
           <tr *ngIf="getActiveData().length === 0 && !isLoading">
-            <td colspan="4" class="text-center text-muted py-4">
+            <td colspan="5" class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               {{ searchTerm ? 'No matching data found' : 'No data available' }}
             </td>
           </tr>
           <tr *ngIf="isLoading">
-            <td colspan="4" class="text-center text-muted py-4">
+            <td colspan="5" class="text-center text-muted py-4">
               <div class="spinner-border spinner-border-sm me-2"></div>
               Loading data...
             </td>
@@ -145,8 +146,8 @@
         <div class="col-md-6 mb-2 mb-md-0">
           <div class="pagination-info">
             <i class="bi bi-info-circle me-2"></i>
-            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
-            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of 
+            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to
+            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
             <strong>{{ totalItems }}</strong> entries
           </div>
         </div>
@@ -169,9 +170,7 @@
               </li>
 
               <!-- Page Numbers -->
-              <li class="page-item" 
-                  *ngFor="let page of pageNumbers" 
-                  [class.active]="page === currentPage">
+              <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="page === currentPage">
                 <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
               </li>
 
@@ -208,14 +207,9 @@
       <div class="modal-body">
         <div class="mb-3">
           <label class="form-label">{{ getTabTitle() }} Code <span class="text-danger">*</span></label>
-          <input type="text" 
-                 class="form-control" 
-                 [(ngModel)]="formData.code" 
-                 [placeholder]="'Enter ' + getTabTitle() + ' Code'"
-                 [maxlength]="getCodeMaxLength()"
-                 style="text-transform: uppercase;"
-                 (input)="formData.code = formData.code.toUpperCase()"
-                 required>
+          <input type="text" class="form-control" [(ngModel)]="formData.code"
+            [placeholder]="'Enter ' + getTabTitle() + ' Code'" [maxlength]="getCodeMaxLength()"
+            style="text-transform: uppercase;" (input)="formData.code = formData.code.toUpperCase()" required>
           <small class="text-muted">
             Max {{ getCodeMaxLength() }} characters
           </small>
@@ -223,14 +217,9 @@
 
         <div class="mb-3">
           <label class="form-label">{{ getTabTitle() }} <span class="text-danger">*</span></label>
-          <input type="text" 
-                 class="form-control" 
-                 [(ngModel)]="formData.name" 
-                 [placeholder]="'Enter ' + getTabTitle()"
-                 [maxlength]="getNameMaxLength()"
-                 style="text-transform: uppercase;"
-                 (input)="formData.name = formData.name.toUpperCase()"
-                 required>
+          <input type="text" class="form-control" [(ngModel)]="formData.name" [placeholder]="'Enter ' + getTabTitle()"
+            [maxlength]="getNameMaxLength()" style="text-transform: uppercase;"
+            (input)="formData.name = formData.name.toUpperCase()" required>
           <small class="text-muted">
             Max {{ getNameMaxLength() }} characters
           </small>
@@ -266,24 +255,16 @@
       <div class="modal-body">
         <div class="mb-3">
           <label class="form-label">{{ getTabTitle() }} Code</label>
-          <input type="text" 
-                 class="form-control" 
-                 [(ngModel)]="formData.code" 
-                 readonly
-                 style="background-color: #e9ecef;">
+          <input type="text" class="form-control" [(ngModel)]="formData.code" readonly
+            style="background-color: #e9ecef;">
           <small class="text-muted">Code cannot be changed</small>
         </div>
 
         <div class="mb-3">
           <label class="form-label">{{ getTabTitle() }} <span class="text-danger">*</span></label>
-          <input type="text" 
-                 class="form-control" 
-                 [(ngModel)]="formData.name" 
-                 [placeholder]="'Enter ' + getTabTitle()"
-                 [maxlength]="getNameMaxLength()"
-                 style="text-transform: uppercase;"
-                 (input)="formData.name = formData.name.toUpperCase()"
-                 required>
+          <input type="text" class="form-control" [(ngModel)]="formData.name" [placeholder]="'Enter ' + getTabTitle()"
+            [maxlength]="getNameMaxLength()" style="text-transform: uppercase;"
+            (input)="formData.name = formData.name.toUpperCase()" required>
         </div>
 
         <div *ngIf="errorMessage" class="alert alert-danger mt-3">
@@ -343,8 +324,46 @@
   </div>
 </div>
 
+<!-- ==================== BATCH DELETE MODAL ==================== -->
+<div class="modal" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-trash"></i> Batch Delete {{ getTabTitle() }}</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeBatchDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ selectedCodes.size }}</strong> selected item(s)?</p>
+        <div class="alert alert-warning">
+          <ul class="mb-0" style="max-height: 150px; overflow-y: auto;">
+            <li *ngFor="let code of selectedCodes">{{ code }}</li>
+          </ul>
+        </div>
+        <p class="text-danger">
+          <i class="bi bi-exclamation-triangle"></i> This action cannot be undone.
+        </p>
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeBatchDeleteModal()">
+          <i class="bi bi-x-circle"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-trash"></i> Delete Selected
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-1"></span> Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Backdrop -->
-<div class="modal-backdrop fade" 
-     [class.show]="showAddModal || showEditModal || showDeleteModal"
-     *ngIf="showAddModal || showEditModal || showDeleteModal">
+<div class="modal-backdrop fade" [class.show]="showAddModal || showEditModal || showDeleteModal || showBatchDeleteModal"
+  *ngIf="showAddModal || showEditModal || showDeleteModal || showBatchDeleteModal">
 </div>

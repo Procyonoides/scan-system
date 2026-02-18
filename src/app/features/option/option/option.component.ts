@@ -12,7 +12,7 @@ import { OptionService, Model, Size, Production } from '../../../core/services/o
   styleUrl: './option.component.scss'
 })
 export class OptionComponent implements OnInit {
-  
+
   // Active Tab
   activeTab: 'model' | 'size' | 'production' = 'model';
 
@@ -40,6 +40,10 @@ export class OptionComponent implements OnInit {
   showAddModal = false;
   showEditModal = false;
   showDeleteModal = false;
+  showBatchDeleteModal = false;
+
+  // Batch Selection
+  selectedCodes: Set<string> = new Set();
 
   // Form Data
   formData: any = {
@@ -53,7 +57,7 @@ export class OptionComponent implements OnInit {
     private optionService: OptionService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Get initial tab from route data
@@ -66,7 +70,7 @@ export class OptionComponent implements OnInit {
   }
 
   // ==================== TAB SWITCHING ====================
-  
+
   switchTab(tab: 'model' | 'size' | 'production') {
     this.activeTab = tab;
     this.currentPage = 1;
@@ -76,11 +80,11 @@ export class OptionComponent implements OnInit {
   }
 
   // ==================== LOAD DATA ====================
-  
+
   loadData() {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     console.log('🔄 Loading data:', {
       tab: this.activeTab,
       page: this.currentPage,
@@ -167,11 +171,11 @@ export class OptionComponent implements OnInit {
     const maxVisible = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage < maxVisible - 1) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -187,7 +191,7 @@ export class OptionComponent implements OnInit {
   }
 
   // ==================== MODAL FUNCTIONS ====================
-  
+
   openAddModal() {
     this.formData = { code: '', name: '' };
     this.showAddModal = true;
@@ -196,7 +200,7 @@ export class OptionComponent implements OnInit {
 
   openEditModal(item: any) {
     this.selectedItem = item;
-    
+
     if (this.activeTab === 'model') {
       this.formData = { code: item.model_code, name: item.model };
     } else if (this.activeTab === 'size') {
@@ -204,7 +208,7 @@ export class OptionComponent implements OnInit {
     } else if (this.activeTab === 'production') {
       this.formData = { code: item.production_code, name: item.production };
     }
-    
+
     this.showEditModal = true;
     this.errorMessage = '';
   }
@@ -218,14 +222,54 @@ export class OptionComponent implements OnInit {
   closeModal() {
     this.showAddModal = false;
     this.showEditModal = false;
-    this.showDeleteModal = false;
-    this.selectedItem = null;
-    this.formData = { code: '', name: '' };
     this.errorMessage = '';
   }
 
+  // ==================== BATCH SELECTION ====================
+
+  get hasSelectedItems(): boolean {
+    return this.selectedCodes.size > 0;
+  }
+
+  get allItemsSelected(): boolean {
+    const list = this.getActiveData();
+    return list.length > 0 && list.every(item => this.isItemSelected(this.getItemCode(item)));
+  }
+
+  isItemSelected(code: string): boolean {
+    return this.selectedCodes.has(code);
+  }
+
+  toggleItemSelection(code: string): void {
+    if (this.selectedCodes.has(code)) {
+      this.selectedCodes.delete(code);
+    } else {
+      this.selectedCodes.add(code);
+    }
+  }
+
+  selectAllItems(): void {
+    this.getActiveData().forEach(item => {
+      this.selectedCodes.add(this.getItemCode(item));
+    });
+  }
+
+  deselectAllItems(): void {
+    this.selectedCodes.clear();
+  }
+
+  openBatchDeleteModal() {
+    if (this.selectedCodes.size === 0) return;
+    this.showBatchDeleteModal = true;
+    this.errorMessage = '';
+  }
+
+  closeBatchDeleteModal() {
+    this.showBatchDeleteModal = false;
+  }
+
   // ==================== CRUD OPERATIONS ====================
-  
+
   onAdd() {
     if (!this.formData.code || !this.formData.name) {
       this.errorMessage = 'All fields are required';
@@ -400,8 +444,42 @@ export class OptionComponent implements OnInit {
     }
   }
 
+  onBatchDelete() {
+    if (this.selectedCodes.size === 0) return;
+
+    this.isLoading = true;
+    this.errorMessage = '';
+    const codes = Array.from(this.selectedCodes);
+
+    let obs;
+    if (this.activeTab === 'model') {
+      obs = this.optionService.batchDeleteModels(codes);
+    } else if (this.activeTab === 'size') {
+      obs = this.optionService.batchDeleteSizes(codes);
+    } else if (this.activeTab === 'production') {
+      obs = this.optionService.batchDeleteProductions(codes);
+    }
+
+    if (obs) {
+      obs.subscribe({
+        next: (response) => {
+          this.successMessage = response.message || `${codes.length} items deleted successfully!`;
+          this.selectedCodes.clear();
+          this.closeBatchDeleteModal();
+          this.loadData();
+          this.isLoading = false;
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'Failed to delete selected items';
+          this.isLoading = false;
+        }
+      });
+    }
+  }
+
   // ==================== HELPER FUNCTIONS ====================
-  
+
   getActiveData(): any[] {
     if (this.activeTab === 'model') return this.models;
     if (this.activeTab === 'size') return this.sizes;

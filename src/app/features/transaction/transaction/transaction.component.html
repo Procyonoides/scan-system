@@ -9,7 +9,7 @@
       <p class="page-subtitle">Monitor and manage your warehouse transactions</p>
     </div>
   </div>
-  
+
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="loading-overlay">
     <div class="spinner-wrapper">
@@ -34,12 +34,16 @@
   <!-- Action Buttons Card -->
   <div class="card action-card">
     <div class="card-body">
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
         <button class="btn btn-primary" (click)="exportExcel()" [disabled]="isLoading">
           <i class="bi bi-file-earmark-excel"></i> Export to Excel
         </button>
         <button class="btn btn-outline-primary" (click)="loadTransactions()" [disabled]="isLoading">
           <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+        <!-- Batch Delete Button -->
+        <button *ngIf="hasSelection" class="btn btn-danger" (click)="openBatchDeleteModal()" [disabled]="isLoading">
+          <i class="bi bi-trash"></i> Delete Selected ({{ selectedNos.size }})
         </button>
       </div>
     </div>
@@ -54,10 +58,7 @@
           <label class="form-label">
             <i class="bi bi-list-ul me-1"></i> Show Entries
           </label>
-          <select 
-            class="form-select form-select-lg" 
-            [(ngModel)]="itemsPerPage" 
-            (change)="onItemsPerPageChange()">
+          <select class="form-select form-select-lg" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
             <option [value]="10">10 entries</option>
             <option [value]="25">25 entries</option>
             <option [value]="50">50 entries</option>
@@ -74,11 +75,7 @@
             <span class="input-group-text bg-white">
               <i class="bi bi-search"></i>
             </span>
-            <input 
-              type="text" 
-              class="form-control" 
-              [(ngModel)]="searchTerm"
-              (keyup.enter)="onSearch()"
+            <input type="text" class="form-control" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()"
               placeholder="Search by date...">
             <button class="btn btn-primary px-4" (click)="onSearch()" type="button">
               <i class="bi bi-search me-1"></i> Search
@@ -113,6 +110,10 @@
       <table class="table table-hover table-striped mb-0 elegant-table">
         <thead>
           <tr>
+            <th width="40" class="text-center">
+              <input type="checkbox" class="form-check-input" [checked]="allSelected"
+                (change)="allSelected ? deselectAll() : selectAll()" title="Select All">
+            </th>
             <th width="80" class="text-center">NO</th>
             <th width="180">DATE/TIME</th>
             <th width="140" class="text-center">FIRST STOCK</th>
@@ -123,7 +124,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let transaction of transactions; let i = index" class="table-row">
+          <tr *ngFor="let transaction of transactions; let i = index" class="table-row"
+            [class.table-active]="isItemSelected(transaction.no)">
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input" [checked]="isItemSelected(transaction.no)"
+                (change)="toggleSelection(transaction.no)">
+            </td>
             <td class="text-center fw-semibold text-muted">
               {{ ((currentPage - 1) * itemsPerPage) + i + 1 }}
             </td>
@@ -171,18 +177,19 @@
 
           <!-- Empty State -->
           <tr *ngIf="transactions.length === 0 && !isLoading">
-            <td [attr.colspan]="hasEditPermission() ? 7 : 6" class="text-center py-5 empty-state">
+            <td [attr.colspan]="hasEditPermission() ? 8 : 7" class="text-center py-5 empty-state">
               <div class="empty-icon">
                 <i class="bi bi-inbox"></i>
               </div>
               <h5 class="mt-3">{{ searchTerm ? 'No matching transactions found' : 'No transactions available' }}</h5>
-              <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'Transactions will appear here' }}</p>
+              <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'Transactions will appear
+                here' }}</p>
             </td>
           </tr>
 
           <!-- Loading State -->
           <tr *ngIf="isLoading">
-            <td [attr.colspan]="hasEditPermission() ? 7 : 6" class="text-center py-5">
+            <td [attr.colspan]="hasEditPermission() ? 8 : 7" class="text-center py-5">
               <div class="spinner-border spinner-border-sm text-primary me-2"></div>
               <span class="text-muted">Loading transactions...</span>
             </td>
@@ -197,8 +204,8 @@
         <div class="col-md-6 mb-2 mb-md-0">
           <div class="pagination-info">
             <i class="bi bi-info-circle me-2"></i>
-            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
-            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of 
+            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to
+            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
             <strong>{{ totalItems }}</strong> entries
           </div>
         </div>
@@ -270,26 +277,26 @@
 
         <div class="mb-3">
           <label class="form-label">First Stock <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" [(ngModel)]="transactionForm.stock_awal" 
-                 placeholder="Enter first stock" required>
+          <input type="number" class="form-control" [(ngModel)]="transactionForm.stock_awal"
+            placeholder="Enter first stock" required>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Receiving <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" [(ngModel)]="transactionForm.receiving" 
-                 placeholder="Enter receiving" required>
+          <input type="number" class="form-control" [(ngModel)]="transactionForm.receiving"
+            placeholder="Enter receiving" required>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Shipping <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" [(ngModel)]="transactionForm.shipping" 
-                 placeholder="Enter shipping" required>
+          <input type="number" class="form-control" [(ngModel)]="transactionForm.shipping" placeholder="Enter shipping"
+            required>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Warehouse Stock <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" [(ngModel)]="transactionForm.stock_akhir" 
-                 placeholder="Enter warehouse stock" required>
+          <input type="number" class="form-control" [(ngModel)]="transactionForm.stock_akhir"
+            placeholder="Enter warehouse stock" required>
         </div>
 
         <div *ngIf="errorMessage" class="alert alert-danger mt-3">
@@ -319,10 +326,10 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header bg-danger">
-        <h5 class="modal-title">
+        <h5 class="modal-title text-white">
           <i class="bi bi-trash me-2"></i> Delete Transaction
         </h5>
-        <button type="button" class="btn-close" (click)="closeModal()"></button>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
       <div class="modal-body">
         <div class="alert alert-warning">
@@ -330,7 +337,7 @@
           <strong>Warning!</strong> This action cannot be undone.
         </div>
         <p>Are you sure you want to delete transaction <strong>No. {{ selectedTransaction?.no }}</strong>?</p>
-        <div class="card">
+        <div class="card bg-light">
           <div class="card-body">
             <p class="mb-1"><strong>Date:</strong> {{ selectedTransaction?.date }}</p>
             <p class="mb-1"><strong>First Stock:</strong> {{ selectedTransaction?.stock_awal | number }}</p>
@@ -361,8 +368,60 @@
   </div>
 </div>
 
+<!-- ==================== BATCH DELETE MODAL ==================== -->
+<div class="modal" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h5 class="modal-title text-white">
+          <i class="bi bi-trash me-2"></i> Batch Delete Transactions
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-octagon-fill me-2"></i>
+          <strong>Warning!</strong> You are about to delete <strong>{{ selectedNos.size }}</strong> transactions.
+        </div>
+        <p>Are you sure you want to delete these transactions? This action will permanently remove the records from the
+          `stok` table.</p>
+
+        <div class="card bg-light mb-3">
+          <div class="card-header py-2">Selected Transaction IDs:</div>
+          <div class="card-body py-2" style="max-height: 150px; overflow-y: auto;">
+            <div class="d-flex flex-wrap gap-2">
+              <span *ngFor="let no of selectedNos" class="badge bg-secondary">#{{ no }}</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-danger small mb-0">
+          <i class="bi bi-info-circle me-1"></i> This action cannot be undone.
+        </p>
+
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="bi bi-trash me-1"></i> Delete Selected
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-1"></span> Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Backdrop -->
-<div class="modal-backdrop fade" 
-     [class.show]="showEditModal || showDeleteModal"
-     *ngIf="showEditModal || showDeleteModal">
+<div class="modal-backdrop fade" [class.show]="showEditModal || showDeleteModal || showBatchDeleteModal"
+  *ngIf="showEditModal || showDeleteModal || showBatchDeleteModal">
 </div>

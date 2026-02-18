@@ -37,11 +37,11 @@ export class TransactionService {
    */
   getAll(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Transaction>> {
     console.log('📡 Fetching transactions from:', this.apiUrl, { page, limit, search });
-    
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
-    
+
     if (search && search.trim() !== '') {
       params = params.set('search', search.trim());
     }
@@ -98,12 +98,26 @@ export class TransactionService {
   }
 
   /**
+   * Batch delete transactions (IT only)
+   */
+  batchDelete(nos: number[]): Observable<any> {
+    console.log('📤 Batch deleting transactions:', nos);
+    return this.http.post(`${this.apiUrl}/batch-delete`, { nos }).pipe(
+      tap(response => console.log('✅ Transactions batch deleted:', response)),
+      catchError(err => {
+        console.error('❌ Batch delete transactions error:', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
    * Export transactions to Excel
    */
   exportExcel(): Observable<Blob> {
     console.log('📤 Exporting transactions to Excel...');
-    return this.http.get(`${this.apiUrl}/export/excel`, { 
-      responseType: 'blob' 
+    return this.http.get(`${this.apiUrl}/export/excel`, {
+      responseType: 'blob'
     }).pipe(
       tap(() => console.log('✅ Excel export completed')),
       catchError(err => {

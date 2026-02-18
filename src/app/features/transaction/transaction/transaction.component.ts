@@ -30,7 +30,9 @@ export class TransactionComponent implements OnInit {
   // Modal states
   showEditModal = false;
   showDeleteModal = false;
+  showBatchDeleteModal = false;
   selectedTransaction: Transaction | null = null;
+  selectedNos: Set<number> = new Set();
 
   // Form data
   transactionForm: Transaction = {
@@ -45,7 +47,7 @@ export class TransactionComponent implements OnInit {
   constructor(
     private transactionService: TransactionService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadTransactions();
@@ -85,11 +87,11 @@ export class TransactionComponent implements OnInit {
     const maxVisible = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage < maxVisible - 1) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -123,8 +125,63 @@ export class TransactionComponent implements OnInit {
   closeModal() {
     this.showEditModal = false;
     this.showDeleteModal = false;
+    this.showBatchDeleteModal = false;
     this.selectedTransaction = null;
     this.errorMessage = '';
+  }
+
+  toggleSelection(no: number) {
+    if (this.selectedNos.has(no)) {
+      this.selectedNos.delete(no);
+    } else {
+      this.selectedNos.add(no);
+    }
+  }
+
+  isItemSelected(no: number): boolean {
+    return this.selectedNos.has(no);
+  }
+
+  selectAll() {
+    this.transactions.forEach(t => this.selectedNos.add(t.no));
+  }
+
+  deselectAll() {
+    this.selectedNos.clear();
+  }
+
+  get allSelected(): boolean {
+    return this.transactions.length > 0 && this.transactions.every(t => this.selectedNos.has(t.no));
+  }
+
+  get hasSelection(): boolean {
+    return this.selectedNos.size > 0;
+  }
+
+  openBatchDeleteModal() {
+    this.showBatchDeleteModal = true;
+    this.errorMessage = '';
+  }
+
+  onBatchDelete() {
+    if (this.selectedNos.size === 0) return;
+
+    this.isLoading = true;
+    const nosToDelete = Array.from(this.selectedNos);
+    this.transactionService.batchDelete(nosToDelete).subscribe({
+      next: () => {
+        this.successMessage = `Successfully deleted ${nosToDelete.length} transactions!`;
+        this.showBatchDeleteModal = false;
+        this.selectedNos.clear();
+        this.loadTransactions();
+        this.isLoading = false;
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'Failed to batch delete transactions';
+        this.isLoading = false;
+      }
+    });
   }
 
   onEdit() {

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import * as XLSX from 'xlsx';
 
 interface MonthlyReportData {
   no: number;
@@ -63,15 +62,14 @@ export class MonthlyReportComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.loadFilterOptions();
-    // Set default date range (current month)
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
+
     this.filters.tanggal1 = firstDay.toISOString().split('T')[0];
     this.filters.tanggal2 = lastDay.toISOString().split('T')[0];
   }
@@ -86,13 +84,9 @@ export class MonthlyReportComponent implements OnInit {
             sizes: response.sizes || [],
             users: response.users || []
           };
-          console.log('✅ Filter options loaded:', this.filterOptions);
         }
       },
-      error: (err) => {
-        console.error('❌ Failed to load filter options:', err);
-        this.errorMessage = 'Failed to load filter options';
-      }
+      error: (err) => console.error('❌ Failed to load filter options:', err)
     });
   }
 
@@ -105,9 +99,7 @@ export class MonthlyReportComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    let params = new HttpParams()
-      .set('tipe', this.filters.tipe);
-
+    let params = new HttpParams().set('tipe', this.filters.tipe);
     if (this.filters.model) params = params.set('model', this.filters.model);
     if (this.filters.color) params = params.set('color', this.filters.color);
     if (this.filters.size) params = params.set('size', this.filters.size);
@@ -121,7 +113,6 @@ export class MonthlyReportComponent implements OnInit {
           this.reportData = response.data;
           this.calculateGrandTotal();
           this.applyPagination();
-          console.log('✅ Monthly report loaded:', this.reportData.length, 'records');
         }
         this.isLoading = false;
       },
@@ -159,7 +150,7 @@ export class MonthlyReportComponent implements OnInit {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
+
     this.filters = {
       tipe: '',
       model: '',
@@ -174,21 +165,16 @@ export class MonthlyReportComponent implements OnInit {
     this.grandTotal = 0;
   }
 
-  calculatePagination() {
-    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
-    this.updateFilteredData();
-  }
-
   get pageNumbers(): number[] {
     const pages = [];
     const maxVisible = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage < maxVisible - 1) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -204,7 +190,7 @@ export class MonthlyReportComponent implements OnInit {
 
   onItemsPerPageChange() {
     this.currentPage = 1;
-    this.calculatePagination();
+    this.applyPagination();
   }
 
   exportSummary() {
@@ -214,56 +200,69 @@ export class MonthlyReportComponent implements OnInit {
     }
 
     this.isExporting = true;
+    this.errorMessage = '';
 
-    // Create workbook and worksheet
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([]);
-    
-    // Add header row
-    const header = [
-      'NO',
-      'PRODUCTION',
-      'BRAND',
-      'MODEL',
-      'COLOR',
-      'SIZE',
-      'DESCRIPTION',
-      'TOTAL'
-    ];
-    XLSX.utils.sheet_add_aoa(ws, [header], { origin: 0 });
+    let params = new HttpParams()
+      .set('tipe', this.filters.tipe)
+      .set('tanggal1', this.filters.tanggal1)
+      .set('tanggal2', this.filters.tanggal2);
 
-    // Add data rows
-    const data = this.reportData.map(row => [
-      row.no,
-      row.production,
-      row.brand,
-      row.model,
-      row.color,
-      row.size,
-      row.description,
-      row.total
-    ]);
-    XLSX.utils.sheet_add_aoa(ws, data, { origin: 1 });
+    this.http.get(`${environment.apiUrl}/reports/summary/export`, { params, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Summary_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
 
-    // Add grand total row
-    const totalRow = ['', '', '', '', '', '', 'GRAND TOTAL', this.grandTotal];
-    XLSX.utils.sheet_add_aoa(ws, [totalRow], { origin: this.reportData.length + 2 });
+        this.successMessage = 'Summary matrix exported successfully!';
+        setTimeout(() => this.successMessage = '', 3000);
+        this.isExporting = false;
+      },
+      error: (err) => {
+        console.error('❌ Export error:', err);
+        this.errorMessage = 'Failed to export summary report';
+        this.isExporting = false;
+      }
+    });
+  }
 
-    // Set column widths
-    const colWidths = [6, 15, 12, 12, 15, 10, 15, 12];
-    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+  exportDetail() {
+    if (!this.filters.tipe) {
+      this.errorMessage = 'Please filter data first';
+      return;
+    }
 
-    // Create workbook
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
+    this.isExporting = true;
+    this.errorMessage = '';
 
-    // Generate filename
-    const filename = `Monthly_Report_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}_to_${this.filters.tanggal2}.xlsx`;
-    
-    // Write file
-    XLSX.writeFile(wb, filename);
+    let params = new HttpParams().set('tipe', this.filters.tipe);
+    if (this.filters.model) params = params.set('model', this.filters.model);
+    if (this.filters.color) params = params.set('color', this.filters.color);
+    if (this.filters.size) params = params.set('size', this.filters.size);
+    if (this.filters.user) params = params.set('user', this.filters.user);
+    if (this.filters.tanggal1) params = params.set('tanggal1', this.filters.tanggal1);
+    if (this.filters.tanggal2) params = params.set('tanggal2', this.filters.tanggal2);
 
-    this.successMessage = 'Report exported successfully!';
-    setTimeout(() => this.successMessage = '', 3000);
-    this.isExporting = false;
+    this.http.get(`${environment.apiUrl}/reports/monthly/export`, { params, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Detail_Monthly_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        this.successMessage = 'Detail report exported successfully!';
+        setTimeout(() => this.successMessage = '', 3000);
+        this.isExporting = false;
+      },
+      error: (err) => {
+        console.error('❌ Export error:', err);
+        this.errorMessage = 'Failed to export detail report';
+        this.isExporting = false;
+      }
+    });
   }
 }

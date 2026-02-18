@@ -11,13 +11,24 @@ interface DashboardUpdate {
   type: 'RECEIVING' | 'SHIPPING';
   receiving_id?: number;
   shipping_id?: number;
+  scan_no?: number;
   barcode: string;
   model: string;
   color: string;
   size: string;
+  item: string;
   quantity: number;
   username: string;
   timestamp: string;
+  // Stats for real-time updates
+  firstStock?: number;
+  warehouseStock?: number;
+  receivingCount?: number;
+  receivingQty?: number;
+  shippingCount?: number;
+  shippingQty?: number;
+  // Warehouse items for chart warehouse update
+  warehouseItems?: any[];
 }
 
 @Component({
@@ -123,23 +134,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // Connect to Socket.IO
     this.socketService.connect();
-    this.isConnected = this.socketService.isConnected();
-
+    
     // ============ LISTEN TO REAL-TIME UPDATES ============
-    this.socketService.on<DashboardUpdate>('dashboard:update')
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (update) => {
-        console.log('⚡ Real-time update:', update);
-        
-        if (update.type === 'RECEIVING') {
-          this.handleReceivingUpdate(update);
-        } else if (update.type === 'SHIPPING') {
-          this.handleShippingUpdate(update);
-        }
-      },
-      error: (err) => console.error('❌ Socket error:', err)
-    });
+    // Setup listener AFTER a small delay to ensure Socket connection is established
+    setTimeout(() => {
+      this.isConnected = this.socketService.isConnected();
+      console.log('🔌 Socket connection status:', this.isConnected);
+      
+      this.socketService.on<DashboardUpdate>('dashboard:update')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (update) => {
+          console.log('⚡ Real-time update received:', update);
+          
+          if (update.type === 'RECEIVING') {
+            this.handleReceivingUpdate(update);
+          } else if (update.type === 'SHIPPING') {
+            this.handleShippingUpdate(update);
+          }
+        },
+        error: (err) => console.error('❌ Socket error:', err)
+      });
+    }, 500);
 
     // Initial load ONLY (no auto-refresh)
     this.loadAllDataParallel().subscribe({
@@ -239,20 +255,56 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Handle receiving update - AUTO INCREMENT
    */
   handleReceivingUpdate(update: DashboardUpdate) {
-    // Update stats
-    this.stats.receiving += update.quantity;
-    this.stats.warehouse_stock += update.quantity;
+    console.log('📥 Processing RECEIVING update:', update);
     
-    // Add to list (prepend)
+    // Update stats from server
+    if (update.firstStock !== undefined) {
+      this.stats.first_stock = update.firstStock;
+      console.log('📊 First stock updated:', this.stats.first_stock);
+    }
+    if (update.warehouseStock !== undefined) {
+      this.stats.warehouse_stock = update.warehouseStock;
+      console.log('📊 Warehouse stock updated:', this.stats.warehouse_stock);
+    }
+    if (update.receivingCount !== undefined) {
+      this.stats.receiving = update.receivingCount;
+      console.log('📊 Receiving count updated:', this.stats.receiving);
+    }
+    if (update.receivingQty !== undefined) {
+      this.stats.receiving_qty = update.receivingQty;
+      console.log('📊 Receiving qty updated:', this.stats.receiving_qty);
+    }
+    if (update.shippingCount !== undefined) {
+      this.stats.shipping = update.shippingCount;
+      console.log('📊 Shipping count updated:', this.stats.shipping);
+    }
+    if (update.shippingQty !== undefined) {
+      this.stats.shipping_qty = update.shippingQty;
+      console.log('📊 Shipping qty updated:', this.stats.shipping_qty);
+    }
+    
+    // Update warehouse items (chart warehouse) in real-time
+    if (update.warehouseItems && update.warehouseItems.length > 0) {
+      this.warehouseItems = update.warehouseItems;
+      console.log('📦 Warehouse items updated (real-time):', this.warehouseItems.length, 'items');
+      this.warehouseItems.forEach(item => {
+        console.log(`  ✅ ${item.item}: ${item.total} unit (${item.status}%)`);
+      });
+    } else {
+      console.warn('⚠️ No warehouse items in update');
+    }
+    
+    // Add to receiving list (prepend)
     const newItem = {
       date_time: this.formatDateTime(update.timestamp),
       original_barcode: update.barcode,
       model: update.model,
       color: update.color,
       size: update.size,
+      item: update.item,
       quantity: update.quantity,
       username: update.username,
-      scan_no: update.receiving_id || 0
+      scan_no: update.scan_no || 0
     };
     
     this.receivingList.unshift(newItem);
@@ -262,27 +314,63 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.receivingList = this.receivingList.slice(0, 10);
     }
     
-    console.log('✅ Receiving list updated (real-time)');
+    console.log('✅ Receiving list updated (real-time)', newItem);
   }
 
   /**
    * Handle shipping update - AUTO DECREMENT
    */
   handleShippingUpdate(update: DashboardUpdate) {
-    // Update stats
-    this.stats.shipping += update.quantity;
-    this.stats.warehouse_stock -= update.quantity;
+    console.log('📤 Processing SHIPPING update:', update);
     
-    // Add to list (prepend)
+    // Update stats from server
+    if (update.firstStock !== undefined) {
+      this.stats.first_stock = update.firstStock;
+      console.log('📊 First stock updated:', this.stats.first_stock);
+    }
+    if (update.warehouseStock !== undefined) {
+      this.stats.warehouse_stock = update.warehouseStock;
+      console.log('📊 Warehouse stock updated:', this.stats.warehouse_stock);
+    }
+    if (update.receivingCount !== undefined) {
+      this.stats.receiving = update.receivingCount;
+      console.log('📊 Receiving count updated:', this.stats.receiving);
+    }
+    if (update.receivingQty !== undefined) {
+      this.stats.receiving_qty = update.receivingQty;
+      console.log('📊 Receiving qty updated:', this.stats.receiving_qty);
+    }
+    if (update.shippingCount !== undefined) {
+      this.stats.shipping = update.shippingCount;
+      console.log('📊 Shipping count updated:', this.stats.shipping);
+    }
+    if (update.shippingQty !== undefined) {
+      this.stats.shipping_qty = update.shippingQty;
+      console.log('📊 Shipping qty updated:', this.stats.shipping_qty);
+    }
+    
+    // Update warehouse items (chart warehouse) in real-time
+    if (update.warehouseItems && update.warehouseItems.length > 0) {
+      this.warehouseItems = update.warehouseItems;
+      console.log('📦 Warehouse items updated (real-time):', this.warehouseItems.length, 'items');
+      this.warehouseItems.forEach(item => {
+        console.log(`  ✅ ${item.item}: ${item.total} unit (${item.status}%)`);
+      });
+    } else {
+      console.warn('⚠️ No warehouse items in update');
+    }
+    
+    // Add to shipping list (prepend)
     const newItem = {
       date_time: this.formatDateTime(update.timestamp),
       original_barcode: update.barcode,
       model: update.model,
       color: update.color,
       size: update.size,
+      item: update.item,
       quantity: update.quantity,
       username: update.username,
-      scan_no: update.shipping_id || 0
+      scan_no: update.scan_no || 0
     };
     
     this.shippingList.unshift(newItem);
@@ -291,8 +379,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.shippingList.length > 10) {
       this.shippingList = this.shippingList.slice(0, 10);
     }
-    
-    console.log('✅ Shipping list updated (real-time)');
+
+    console.log('✅ Shipping list updated (real-time)', newItem);
   }
 
   /**
@@ -356,6 +444,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
    */
   formatNumber(num: number): string {
     return new Intl.NumberFormat('id-ID').format(num || 0);
+  }
+
+  /**
+   * Parse string to float
+   */
+  parseFloatValue(value: any): number {
+    return parseFloat(value) || 0;
   }
 
   /**

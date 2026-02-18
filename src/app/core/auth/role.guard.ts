@@ -17,7 +17,16 @@ export const roleGuard: CanActivateFn = (route, state) => {
   if (requiredRoles && requiredRoles.length > 0) {
     if (!userPosition || !requiredRoles.includes(userPosition)) {
       console.warn(`Access denied for position: ${userPosition}. Required positions: ${requiredRoles.join(', ')}`);
-      router.navigate(['/dashboard']);
+
+      // Smart redirection based on role when access is denied
+      if (userPosition === 'SHIPPING') {
+        router.navigate(['/shipping']);
+      } else if (userPosition === 'RECEIVING') {
+        router.navigate(['/receiving']);
+      } else {
+        router.navigate(['/dashboard']);
+      }
+
       return false;
     }
   }

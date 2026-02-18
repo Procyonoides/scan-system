@@ -25,7 +25,7 @@ export class AuthService {
     'SHIPPING': ['read', 'shipping_scan', 'view_stock']
   };
 
-  constructor(private http: HttpClient, private router: Router) { 
+  constructor(private http: HttpClient, private router: Router) {
     this.loadUser();
   }
 
@@ -38,7 +38,16 @@ export class AuthService {
           this.currentUser.set(response.user);
           this.isAuthenticated.set(true);
           console.log('✅ Login successful:', response.user.username);
-          this.router.navigate(['/dashboard']);
+
+          // Role-based redirection after login
+          const position = response.user.position;
+          if (position === 'SHIPPING') {
+            this.router.navigate(['/shipping']);
+          } else if (position === 'RECEIVING') {
+            this.router.navigate(['/receiving']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         }
       }),
       catchError(error => {
@@ -89,7 +98,7 @@ export class AuthService {
   hasPermission(permission: string): boolean {
     const userPosition = this.currentUser()?.position;
     if (!userPosition) return false;
-    
+
     const positionPermissions = this.permissions[userPosition] || [];
     return positionPermissions.includes(permission);
   }

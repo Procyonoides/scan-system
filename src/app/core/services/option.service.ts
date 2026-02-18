@@ -40,14 +40,14 @@ export class OptionService {
   constructor(private http: HttpClient) { }
 
   // ==================== MODEL CRUD ====================
-  
+
   getModels(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Model>> {
     console.log('📡 Fetching models from:', `${this.apiUrl}/models`, { page, limit, search });
-    
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
-    
+
     if (search && search.trim() !== '') {
       params = params.set('search', search.trim());
     }
@@ -94,15 +94,26 @@ export class OptionService {
     );
   }
 
+  batchDeleteModels(codes: string[]): Observable<any> {
+    console.log('📤 Batch deleting models:', codes);
+    return this.http.post(`${this.apiUrl}/models/batch-delete`, { codes }).pipe(
+      tap(response => console.log('✅ Models batch deleted:', response)),
+      catchError(err => {
+        console.error('❌ Batch delete models error:', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
   // ==================== SIZE CRUD ====================
-  
+
   getSizes(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Size>> {
     console.log('📡 Fetching sizes from:', `${this.apiUrl}/sizes`, { page, limit, search });
-    
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
-    
+
     if (search && search.trim() !== '') {
       params = params.set('search', search.trim());
     }
@@ -149,15 +160,26 @@ export class OptionService {
     );
   }
 
+  batchDeleteSizes(codes: string[]): Observable<any> {
+    console.log('📤 Batch deleting sizes:', codes);
+    return this.http.post(`${this.apiUrl}/sizes/batch-delete`, { codes }).pipe(
+      tap(response => console.log('✅ Sizes batch deleted:', response)),
+      catchError(err => {
+        console.error('❌ Batch delete sizes error:', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
   // ==================== PRODUCTION CRUD ====================
-  
+
   getProductions(page: number = 1, limit: number = 10, search: string = ''): Observable<PaginationResponse<Production>> {
     console.log('📡 Fetching productions from:', `${this.apiUrl}/productions`, { page, limit, search });
-    
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
-    
+
     if (search && search.trim() !== '') {
       params = params.set('search', search.trim());
     }
@@ -199,6 +221,17 @@ export class OptionService {
       tap(response => console.log('✅ Production deleted:', response)),
       catchError(err => {
         console.error('❌ Delete production error:', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  batchDeleteProductions(codes: string[]): Observable<any> {
+    console.log('📤 Batch deleting productions:', codes);
+    return this.http.post(`${this.apiUrl}/productions/batch-delete`, { codes }).pipe(
+      tap(response => console.log('✅ Productions batch deleted:', response)),
+      catchError(err => {
+        console.error('❌ Batch delete productions error:', err);
         return throwError(() => err);
       })
     );

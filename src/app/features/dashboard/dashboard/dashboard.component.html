@@ -36,7 +36,10 @@
     <div class="col-lg-3 col-md-6 mb-3">
       <div class="stat-card bg-success">
         <div class="stat-inner">
-          <h3 class="stat-value">{{ formatNumber(stats.receiving) }}</h3>
+          <h3 class="stat-value">
+            {{ formatNumber(stats.receiving) }}
+            <span class="stat-subtitle">({{ formatNumber(stats.receiving_qty || 0) }})</span>
+          </h3>
           <p class="stat-label">Receiving</p>
         </div>
         <div class="stat-icon">
@@ -48,7 +51,10 @@
     <div class="col-lg-3 col-md-6 mb-3">
       <div class="stat-card bg-warning">
         <div class="stat-inner">
-          <h3 class="stat-value">{{ formatNumber(stats.shipping) }}</h3>
+          <h3 class="stat-value">
+            {{ formatNumber(stats.shipping) }}
+            <span class="stat-subtitle">({{ formatNumber(stats.shipping_qty || 0) }})</span>
+          </h3>
           <p class="stat-label">Shipping</p>
         </div>
         <div class="stat-icon">
@@ -184,10 +190,10 @@
                 {{ formatNumber(item.total) }}
               </span>
               <div class="progress">
-                <div class="progress-bar" [style.width.%]="item.status"></div>
+                <div class="progress-bar" [style.width.%]="parseFloatValue(item.status)"></div>
               </div>
               <span class="progress-description" style="font-size: 12px;">
-                {{ item.status }}% of Stock in Warehouse
+                {{ parseFloatValue(item.status).toFixed(2) }}% of Stock in Warehouse
               </span>
             </div>
           </div>

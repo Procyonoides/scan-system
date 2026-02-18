@@ -25,19 +25,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
       label: 'Stock Monitoring',
       icon: 'fas fa-tachometer-alt',
       route: '/dashboard',
-      roles: ['IT', 'MANAGEMENT', 'RECEIVING', 'SHIPPING']
+      roles: ['IT', 'MANAGEMENT']
     },
     {
       label: 'Scan Receiving',
       icon: 'fas fa-arrow-down',
       route: '/receiving',
-      roles: ['IT', 'RECEIVING']
+      roles: ['IT', 'MANAGEMENT', 'RECEIVING']
     },
     {
       label: 'Scan Shipping',
       icon: 'fas fa-arrow-up',
       route: '/shipping',
-      roles: ['IT', 'SHIPPING']
+      roles: ['IT', 'MANAGEMENT', 'SHIPPING']
     },
     {
       label: 'Report',
@@ -58,17 +58,30 @@ export class SidebarComponent implements OnInit, OnDestroy {
       ],
       roles: ['IT', 'MANAGEMENT']
     },
-    // {
-    //   label: 'Master Data',
-    //   icon: 'fas fa-database',
-    //   route: '/master-data',
-    //   roles: ['IT']
-    // },
     {
       label: 'Master Data',
       icon: 'fas fa-database',
-      route: '/master-data',
-      roles: ['IT']
+      roles: ['IT', 'MANAGEMENT'],
+      children: [
+        {
+          label: 'Master List',
+          icon: 'fas fa-table',
+          route: '/master-data',
+          roles: ['IT', 'MANAGEMENT'],
+        },
+        {
+          label: 'Operation Record',
+          icon: 'fas fa-history',
+          route: '/master-data/record',
+          roles: ['IT', 'MANAGEMENT']
+        },
+        {
+          label: 'Backup & Cleanup',
+          icon: 'fas fa-shield-alt',
+          route: '/master-data/backup',
+          roles: ['IT']
+        }
+      ]
     },
     {
       label: 'Transaction',
@@ -97,7 +110,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   constructor(
     public authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadSidebarState();

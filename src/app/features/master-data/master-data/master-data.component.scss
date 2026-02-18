@@ -171,6 +171,16 @@
         background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
       }
     }
+
+    &-xs {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.7rem;
+      border-radius: 4px;
+
+      i {
+        font-size: 0.7rem;
+      }
+    }
   }
 
   // DROPDOWN MENU STYLING - PENTING!

@@ -20,7 +20,12 @@ export class SocketService {
       return;
     }
 
-    this.socket = io(environment.apiUrl.replace('/api', ''), {
+    // Use explicit socketUrl if available, otherwise fallback to apiUrl
+    const socketUrl = (environment as any).socketUrl || environment.apiUrl.replace('/api', '');
+    
+    console.log('🔌 Connecting to Socket.IO at:', socketUrl);
+
+    this.socket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

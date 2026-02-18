@@ -19,21 +19,13 @@
             <label class="form-label fw-bold">
               <i class="fas fa-barcode me-2"></i> Scan Barcode
             </label>
-            <input 
-              #barcodeInput
-              type="text" 
-              class="form-control form-control-lg barcode-input" 
-              formControlName="barcode"
-              placeholder="Scan atau ketik barcode disini..."
-              [disabled]="isLoading"
+            <input #barcodeInput type="text" class="form-control form-control-lg barcode-input"
+              formControlName="barcode" placeholder="Scan atau ketik barcode disini..." [disabled]="isLoading"
               autofocus>
           </div>
-          
+
           <div class="col-lg-3 col-md-4">
-            <button 
-              type="submit" 
-              class="btn btn-scan w-100"
-              [disabled]="scanForm.invalid || isLoading">
+            <button type="submit" class="btn btn-scan w-100" [disabled]="scanForm.invalid || isLoading">
               <span *ngIf="!isLoading">
                 <i class="fas fa-search me-2"></i> Scan
               </span>
@@ -45,6 +37,34 @@
           </div>
         </div>
       </form>
+    </div>
+
+    <!-- Batch Mode Toggle -->
+    <div class="card-footer bg-light border-top">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="batchModeToggle" [(ngModel)]="batchModeEnabled">
+            <label class="form-check-label" for="batchModeToggle">
+              <i class="fas fa-layer-group me-2" [style.color]="batchModeEnabled ? '#28a745' : '#6c757d'"></i>
+              <strong>Batch Scan Mode</strong>
+              <small class="text-muted d-block mt-1">Aktifkan untuk scan berulang dengan jumlah yang ditentukan</small>
+            </label>
+          </div>
+        </div>
+
+        <!-- Quantity Input (only show when batch mode enabled) -->
+        <div class="col-md-6" *ngIf="batchModeEnabled">
+          <div class="input-group">
+            <span class="input-group-text bg-warning text-dark fw-bold">
+              <i class="fas fa-boxes me-2"></i> Jumlah
+            </span>
+            <input type="number" class="form-control form-control-lg" [(ngModel)]="batchQuantity" min="1" max="999"
+              placeholder="Masukkan jumlah scan..." autofocus>
+            <span class="input-group-text">unit</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -133,19 +153,21 @@
           </h5>
           <small class="text-muted">Showing all shipping scans for today ({{ getCurrentDate() }})</small>
         </div>
-        
+
         <!-- Action Buttons -->
         <div class="d-flex gap-2 flex-wrap">
+          <!-- Batch Delete Button (shown when items are selected) -->
+          <button *ngIf="hasSelectedScans && canManageScans()" class="btn btn-sm btn-danger"
+            (click)="openBatchDeleteModal()" title="Delete Selected Items">
+            <i class="fas fa-trash"></i> Delete Selected ({{ selectedScans.size }})
+          </button>
+
           <button class="btn btn-sm btn-outline-primary" (click)="loadTodayScans()" [disabled]="isLoading">
             <i class="fas fa-sync-alt"></i> Refresh
           </button>
 
           <!-- Move Data Button (Only for IT) -->
-          <button 
-            *ngIf="canManageScans()" 
-            class="btn btn-sm btn-warning" 
-            (click)="onMoveData()" 
-            [disabled]="isMoving"
+          <button *ngIf="canManageScans()" class="btn btn-sm btn-warning" (click)="onMoveData()" [disabled]="isMoving"
             title="Move data to history">
             <span *ngIf="!isMoving">
               <i class="fas fa-exchange-alt me-1"></i> Move Data
@@ -156,10 +178,7 @@
           </button>
 
           <!-- Print Detail Button -->
-          <button 
-            class="btn btn-sm btn-success" 
-            (click)="onPrintDetail()" 
-            [disabled]="isPrintingDetail"
+          <button class="btn btn-sm btn-success" (click)="onPrintDetail()" [disabled]="isPrintingDetail"
             title="Download detail report">
             <span *ngIf="!isPrintingDetail">
               <i class="fas fa-file-excel me-1"></i> Print Detail
@@ -170,10 +189,7 @@
           </button>
 
           <!-- Print Summary Button -->
-          <button 
-            class="btn btn-sm btn-info" 
-            (click)="onPrintSummary()" 
-            [disabled]="isPrintingSummary"
+          <button class="btn btn-sm btn-info" (click)="onPrintSummary()" [disabled]="isPrintingSummary"
             title="Download summary report">
             <span *ngIf="!isPrintingSummary">
               <i class="fas fa-chart-pie me-1"></i> Print Summary
@@ -182,15 +198,47 @@
               <span class="spinner-border spinner-border-sm me-1"></span> Printing...
             </span>
           </button>
+
+
         </div>
       </div>
     </div>
 
     <div class="card-body p-0">
+      <!-- Search Bar -->
+      <div class="px-3 py-3 border-bottom bg-light">
+        <div class="row align-items-center">
+          <div class="col-md-6 mb-2 mb-md-0">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">
+                <i class="fas fa-search"></i>
+              </span>
+              <input type="text" class="form-control" [(ngModel)]="searchTerm" (input)="filterScans()"
+                placeholder="Search by barcode, model, color, or size...">
+              <button class="btn btn-outline-secondary" type="button" (click)="clearSearch()" [disabled]="!searchTerm">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <small class="text-muted">
+              Showing <strong>{{ filteredList.length }}</strong> of <strong>{{ shippingList.length }}</strong> scans
+              <span *ngIf="searchTerm">({{ shippingList.length - filteredList.length }} hidden)</span>
+            </small>
+          </div>
+        </div>
+      </div>
+
       <div class="table-responsive">
         <table class="table table-hover table-striped mb-0">
           <thead class="table-warning sticky-top">
             <tr>
+              <th class="text-center" *ngIf="canManageScans()" style="width: 40px;">
+                <div class="form-check d-flex justify-content-center">
+                  <input class="form-check-input" type="checkbox" [checked]="allScansSelected"
+                    (change)="allScansSelected ? deselectAllScans() : selectAllScans()" title="Select/Deselect All">
+                </div>
+              </th>
               <th class="text-center">DATE/TIME</th>
               <th class="text-center">ORIGINAL BARCODE</th>
               <th class="text-center">MODEL</th>
@@ -199,11 +247,17 @@
               <th class="text-center">QUANTITY</th>
               <th class="text-center">USERNAME</th>
               <th class="text-center">SCAN NO</th>
+              <th class="text-center">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of shippingList; let i = index; trackBy: trackByScanNo" 
-                [class.latest-scan]="i === 0">
+            <tr *ngFor="let item of filteredList; let i = index; trackBy: trackByScanNo" [class.latest-scan]="i === 0">
+              <td class="text-center" *ngIf="canManageScans()">
+                <div class="form-check d-flex justify-content-center">
+                  <input class="form-check-input" type="checkbox" [checked]="isScanSelected(getScanId(item))"
+                    (change)="toggleScanSelection(getScanId(item))">
+                </div>
+              </td>
               <td class="text-center">
                 <small>{{ formatDate(item.date_time) }}</small>
               </td>
@@ -224,19 +278,30 @@
               <td class="text-center">
                 <span class="scan-no-badge">{{ item.scan_no }}</span>
               </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-primary me-2" (click)="openEditModal(item)" title="Edit"
+                  [disabled]="isLoading">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="openDeleteModal(item)" title="Delete"
+                  [disabled]="isLoading">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
             </tr>
 
-            <tr *ngIf="shippingList.length === 0 && !isLoading">
-              <td colspan="8" class="text-center text-muted py-5">
+            <tr *ngIf="filteredList.length === 0 && !isLoading">
+              <td [attr.colspan]="canManageScans() ? 10 : 9" class="text-center text-muted py-5">
                 <div class="empty-state">
                   <i class="fas fa-inbox fs-1 mb-3"></i>
-                  <p class="mb-0">No scans today. Start scanning to see data.</p>
+                  <p class="mb-0">{{ searchTerm ? 'No scans found matching your search.' : 'No scans today. Start
+                    scanning to see data.' }}</p>
                 </div>
               </td>
             </tr>
 
             <tr *ngIf="isLoading">
-              <td colspan="8" class="text-center py-5">
+              <td [attr.colspan]="canManageScans() ? 10 : 9" class="text-center py-5">
                 <div class="spinner-border text-warning me-2"></div>
                 <span class="text-muted">Loading...</span>
               </td>
@@ -252,7 +317,8 @@
         <!-- Items Per Page -->
         <div class="d-flex align-items-center gap-2">
           <label class="mb-0 text-muted small">Show:</label>
-          <select class="form-select form-select-sm" style="width: auto;" (change)="changeItemsPerPage($event)" [value]="itemsPerPage">
+          <select class="form-select form-select-sm" style="width: auto;" (change)="changeItemsPerPage($event)"
+            [value]="itemsPerPage">
             <option [value]="10">10</option>
             <option [value]="25">25</option>
             <option [value]="50">50</option>
@@ -318,3 +384,210 @@
     </div>
   </div>
 </div>
+
+<!-- EDIT MODAL -->
+<div class="modal fade" [class.show]="showEditModal" [style.display]="showEditModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title">
+          <i class="fas fa-edit me-2"></i> Edit Shipping Scan
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form *ngIf="selectedScan">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Barcode</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.original_barcode" name="barcode">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Model</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.model" name="model">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Brand</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.brand" name="brand">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Color</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.color" name="color">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Size</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.size" name="size">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Quantity</label>
+                <input type="number" class="form-control" [(ngModel)]="selectedScan.quantity" name="quantity">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Unit</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.unit" name="unit">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Production</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.production" name="production">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Model Code</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.model_code" name="model_code">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Item</label>
+                <input type="text" class="form-control" [(ngModel)]="selectedScan.item" name="item">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" [(ngModel)]="selectedScan.description" name="description"
+              rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+          <i class="fas fa-times me-2"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-warning" (click)="onSaveEdit()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="fas fa-save me-2"></i> Save Changes
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Saving...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-trash me-2"></i> Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning!</strong> This action cannot be undone. The stock will be reversed.
+        </div>
+        <div *ngIf="scanToDelete">
+          <p><strong>Barcode:</strong> {{ scanToDelete.original_barcode }}</p>
+          <p><strong>Model:</strong> {{ scanToDelete.model }}</p>
+          <p><strong>Color:</strong> {{ scanToDelete.color }}</p>
+          <p><strong>Size:</strong> {{ scanToDelete.size }}</p>
+          <p><strong>Quantity:</strong> {{ scanToDelete.quantity }}</p>
+          <p class="mb-0"><strong>Date/Time:</strong> {{ formatDate(scanToDelete.date_time) }}</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">
+          <i class="fas fa-times me-2"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onConfirmDelete()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="fas fa-trash me-2"></i> Delete
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH DELETE MODAL -->
+<div class="modal fade" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-trash me-2"></i> Batch Delete Shipping Scans
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ selectedScans.size }}</strong> shipping scan(s)?</p>
+
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Selected scans:</strong>
+          <div class="mt-2" style="max-height: 200px; overflow-y: auto;">
+            <ul class="mb-0">
+              <li *ngFor="let scanId of selectedScans">{{ scanId }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning!</strong> This action cannot be undone. The stock will be reversed for all selected scans.
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">
+          <i class="fas fa-times me-2"></i> Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
+          <span *ngIf="!isLoading">
+            <i class="fas fa-trash me-2"></i> Delete All
+          </span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2"></span> Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Backdrop -->
+<div class="modal-backdrop fade" [class.show]="showEditModal || showDeleteModal || showBatchDeleteModal"
+  [style.display]="(showEditModal || showDeleteModal || showBatchDeleteModal) ? 'block' : 'none'"></div>

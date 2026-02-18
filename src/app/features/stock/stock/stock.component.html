@@ -103,14 +103,14 @@
           <tr>
             <th width="60" class="text-center">#</th>
             <th>MODEL</th>
-            <th>COLOR</th>
+            <th width="100">COLOR</th>
             <th width="80" class="text-center">SIZE</th>
-            <th>BRAND</th>
-            <th>ITEM</th>
-            <th>PRODUCTION</th>
+            <th width="100">BRAND</th>
+            <th width="100">ITEM</th>
+            <th width="120">PRODUCTION</th>
             <th width="140" class="text-center">STATUS</th>
             <th width="100" class="text-center">PERCENT</th>
-            <th width="120" class="text-center">TOTAL STOCK</th>
+            <th width="120" class="text-center">STOCK</th>
           </tr>
         </thead>
         <tbody>
@@ -127,9 +127,7 @@
             </td>
             <td>{{ item.brand || '-' }}</td>
             <td>
-              <span class="item-badge" [ngClass]="'item-' + (item.item || 'default').toLowerCase()">
-                {{ item.item || '-' }}
-              </span>
+              <span class="item-badge">{{ item.item || '-' }}</span>
             </td>
             <td><small class="text-muted">{{ item.production || '-' }}</small></td>
             <td class="text-center">
@@ -153,8 +151,7 @@
               </div>
             </td>
             <td class="text-center">
-              <span class="stock-badge" [ngClass]="getStockClass(item.stock_akhir)">
-                <i class="bi bi-box-seam me-1"></i>
+              <span class="badge" [ngClass]="item.stock_akhir > 0 ? 'bg-success' : 'bg-danger'">
                 {{ item.stock_akhir | number }}
               </span>
             </td>

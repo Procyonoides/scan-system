@@ -1,6 +1,6 @@
 <div class="container-fluid">
   <h3 class="mb-4"><i class="bi bi-database"></i> Master Data</h3>
-  
+
   <!-- Loading Overlay -->
   <div *ngIf="isLoading" class="loading-overlay">
     <div class="spinner-border text-primary"></div>
@@ -23,6 +23,12 @@
       <div class="header">
         <!-- Left: Add, Option, Operation (Berdekatan) -->
         <div class="button-group-left">
+          <!-- Batch Delete Button (shown when items are selected) -->
+          <button *ngIf="hasSelectedBarcodes" class="btn btn-danger btn-sm me-2" (click)="openBatchDeleteModal()"
+            title="Delete Selected Items">
+            <i class="bi bi-trash"></i> Delete Selected ({{ selectedBarcodes.size }})
+          </button>
+
           <!-- Add Group -->
           <div class="btn-group">
             <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -30,7 +36,8 @@
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="javascript:void(0)" (click)="openAddModal()">Add Barcode</a></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openAddByExcelModal()">Add Barcode By Excel</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openAddByExcelModal()">Add Barcode By
+                  Excel</a></li>
             </ul>
           </div>
 
@@ -52,11 +59,13 @@
               <i class="bi bi-tools"></i> Operation
             </button>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openStockOpnameModal()">Stock Opname By Excel</a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openStockOpnameModal()">Stock Opname By
+                  Excel</a></li>
               <li class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openRecordModal()">Record</a></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openBackupModal()">Backup</a></li>
-              <li><a class="dropdown-item" href="javascript:void(0)" (click)="openDuplicateModal()">Duplicate</a></li>
+              <li><a class="dropdown-item" routerLink="/master-data/record"><i class="bi bi-clock-history me-2"></i>
+                  Record</a></li>
+              <li><a class="dropdown-item" routerLink="/master-data/backup"><i class="bi bi-shield-lock me-2"></i>
+                  Backup & Cleanup</a></li>
             </ul>
           </div>
         </div>
@@ -82,9 +91,7 @@
           <div class="entries-control">
             <label>
               Show
-              <select class="form-select form-select-sm" 
-                      [(ngModel)]="itemsPerPage" 
-                      (change)="onItemsPerPageChange()">
+              <select class="form-select form-select-sm" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
                 <option [value]="10">10</option>
                 <option [value]="25">25</option>
                 <option [value]="50">50</option>
@@ -98,11 +105,8 @@
           <div class="search-control">
             <label>
               Search:
-              <input type="text" 
-                     class="form-control form-control-sm" 
-                     [(ngModel)]="searchTerm" 
-                     (keyup.enter)="onSearch()" 
-                     placeholder="Search...">
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()" placeholder="Search...">
             </label>
           </div>
         </div>
@@ -115,6 +119,7 @@
     <div class="table-responsive">
       <table class="table table-striped table-hover table-sm mb-0">
         <colgroup>
+          <col style="width: 40px;"> <!-- Checkbox column -->
           <col style="width: auto;">
           <col style="width: auto;">
           <col style="width: auto;">
@@ -133,6 +138,13 @@
         </colgroup>
         <thead class="table-primary">
           <tr>
+            <th>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [checked]="allBarcodesSelected"
+                  (change)="allBarcodesSelected ? deselectAllBarcodes() : selectAllBarcodes()"
+                  title="Select/Deselect All">
+              </div>
+            </th>
             <th>ORIGINAL BARCODE</th>
             <th>BRAND</th>
             <th>COLOR</th>
@@ -152,6 +164,12 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of paginatedData">
+            <td>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" [checked]="isBarcodeSelected(item.original_barcode)"
+                  (change)="toggleBarcodeSelection(item.original_barcode)">
+              </div>
+            </td>
             <td>{{ item.original_barcode }}</td>
             <td>{{ item.brand }}</td>
             <td>{{ item.color }}</td>
@@ -169,27 +187,23 @@
             <td>
               <!-- ICON ONLY BUTTONS dengan Tooltip -->
               <div class="action-buttons">
-                <button class="btn btn-info btn-sm" 
-                        (click)="openEditModal(item.original_barcode)"
-                        title="Edit">
+                <button class="btn btn-info btn-sm" (click)="openEditModal(item.original_barcode)" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-danger btn-sm" 
-                        (click)="openDeleteModal(item.original_barcode)"
-                        title="Delete">
+                <button class="btn btn-danger btn-sm" (click)="openDeleteModal(item.original_barcode)" title="Delete">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
             </td>
           </tr>
           <tr *ngIf="paginatedData.length === 0 && !isLoading">
-            <td colspan="15" class="text-center text-muted py-4">
+            <td colspan="16" class="text-center text-muted py-4">
               <i class="bi bi-inbox fs-1 d-block mb-2"></i>
               {{ searchTerm ? 'No matching data found' : 'No data available' }}
             </td>
           </tr>
           <tr *ngIf="isLoading">
-            <td colspan="15" class="text-center text-muted py-4">
+            <td colspan="16" class="text-center text-muted py-4">
               <div class="spinner-border spinner-border-sm me-2"></div>
               Loading data...
             </td>
@@ -204,8 +218,8 @@
         <div class="col-md-6 mb-2 mb-md-0">
           <div class="pagination-info">
             <i class="bi bi-info-circle me-2"></i>
-            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
-            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of 
+            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to
+            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
             <strong>{{ totalItems }}</strong> entries
           </div>
         </div>
@@ -228,9 +242,7 @@
               </li>
 
               <!-- Page Numbers -->
-              <li class="page-item" 
-                  *ngFor="let page of pageNumbers" 
-                  [class.active]="page === currentPage">
+              <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="page === currentPage">
                 <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
               </li>
 
@@ -270,8 +282,8 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label class="form-label">Original Barcode <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" formControlName="original_barcode" 
-                       placeholder="Original Barcode" maxlength="15" style="text-transform: uppercase;">
+                <input type="text" class="form-control" formControlName="original_barcode"
+                  placeholder="Original Barcode" maxlength="15" style="text-transform: uppercase;">
               </div>
 
               <div class="mb-3">
@@ -289,8 +301,8 @@
 
               <div class="mb-3">
                 <label class="form-label">Color <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" formControlName="color" 
-                       placeholder="Color" maxlength="255" style="text-transform: uppercase;">
+                <input type="text" class="form-control" formControlName="color" placeholder="Color" maxlength="255"
+                  style="text-transform: uppercase;">
               </div>
 
               <div class="mb-3">
@@ -303,8 +315,8 @@
 
               <div class="mb-3">
                 <label class="form-label">Four Digit</label>
-                <input type="text" class="form-control" formControlName="four_digit" 
-                       placeholder="Four Digit" maxlength="4" readonly>
+                <input type="text" class="form-control" formControlName="four_digit" placeholder="Four Digit"
+                  maxlength="4" readonly>
               </div>
 
               <div class="mb-3">
@@ -320,8 +332,7 @@
             <div class="col-md-6">
               <div class="mb-3">
                 <label class="form-label">Quantity <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" formControlName="quantity" 
-                       placeholder="Quantity" min="0">
+                <input type="number" class="form-control" formControlName="quantity" placeholder="Quantity" min="0">
               </div>
 
               <div class="mb-3">
@@ -342,8 +353,8 @@
 
               <div class="mb-3">
                 <label class="form-label">Model Code</label>
-                <input type="text" class="form-control" formControlName="model_code" 
-                       placeholder="Model Code" maxlength="3" readonly>
+                <input type="text" class="form-control" formControlName="model_code" placeholder="Model Code"
+                  maxlength="3" readonly>
               </div>
 
               <div class="mb-3">
@@ -361,8 +372,7 @@
 
               <div class="mb-3">
                 <label class="form-label">Stock</label>
-                <input type="number" class="form-control" formControlName="stock" 
-                       value="0" readonly>
+                <input type="number" class="form-control" formControlName="stock" value="0" readonly>
               </div>
             </div>
           </div>
@@ -419,8 +429,8 @@
 
               <div class="mb-3">
                 <label class="form-label">Color <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" formControlName="color" 
-                       maxlength="255" style="text-transform: uppercase;">
+                <input type="text" class="form-control" formControlName="color" maxlength="255"
+                  style="text-transform: uppercase;">
               </div>
 
               <div class="mb-3">
@@ -548,6 +558,47 @@
   </div>
 </div>
 
+<!-- ==================== BATCH DELETE MODAL ==================== -->
+<div class="modal" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Batch Delete Barcodes</h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ selectedBarcodes.size }}</strong> barcode(s)?</p>
+
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Selected barcodes:</strong>
+          <div class="mt-2" style="max-height: 200px; overflow-y: auto;">
+            <ul class="mb-0">
+              <li *ngFor="let barcode of selectedBarcodes">{{ barcode }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> This action cannot be undone.</p>
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <i class="bi bi-x-circle"></i> Close
+        </button>
+        <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
+          <span *ngIf="!isLoading"><i class="bi bi-trash"></i> Delete All</span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-1"></span> Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== IMPORT BARCODE EXCEL MODAL ==================== -->
 <div class="modal" [class.show]="showImportModal" [style.display]="showImportModal ? 'block' : 'none'">
   <div class="modal-dialog">
@@ -573,13 +624,8 @@
             <i class="bi bi-upload me-2"></i> Select File
           </label>
           <div class="file-upload-area">
-            <input 
-              type="file" 
-              #fileInput 
-              (change)="onFileSelected($event)" 
-              accept=".xlsx,.xls,.csv"
-              class="form-control"
-              id="barcodeFileInput">
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx,.xls,.csv"
+              class="form-control" id="barcodeFileInput">
           </div>
           <small class="text-muted d-block mt-2">
             Supported formats: .xlsx, .xls, .csv
@@ -637,8 +683,18 @@
         <div class="mb-3">
           <p class="text-muted mb-3">
             <i class="bi bi-info-circle me-2"></i>
-            Upload an Excel file containing stock opname data. The file should include barcode information and quantities.
+            Upload an Excel file containing stock opname data. The file should include barcode information and
+            quantities.
           </p>
+          <div class="card bg-light border-0 p-3 mb-3">
+            <h6 class="card-subtitle mb-2">📋 Expected Excel Format:</h6>
+            <ul class="small mb-0" style="margin-left: 15px;">
+              <li><strong>Column A (original_barcode):</strong> Barcode of product already in database</li>
+              <li><strong>Column N (stock):</strong> New stock quantity to update</li>
+              <li><strong>Row 1:</strong> Headers (will be skipped during import)</li>
+              <li><strong>Row 2+:</strong> Your data</li>
+            </ul>
+          </div>
         </div>
 
         <!-- File Upload Area -->
@@ -647,13 +703,8 @@
             <i class="bi bi-upload me-2"></i> Select File
           </label>
           <div class="file-upload-area">
-            <input 
-              type="file" 
-              #fileInput 
-              (change)="onFileSelected($event)" 
-              accept=".xlsx,.xls,.csv"
-              class="form-control"
-              id="stockOpnameFileInput">
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx,.xls,.csv"
+              class="form-control" id="stockOpnameFileInput">
           </div>
           <small class="text-muted d-block mt-2">
             Supported formats: .xlsx, .xls, .csv
@@ -670,7 +721,13 @@
         <!-- Error Message -->
         <div *ngIf="errorMessage" class="alert alert-danger">
           <i class="bi bi-exclamation-triangle me-2"></i>
-          {{ errorMessage }}
+          <div style="white-space: pre-wrap;">{{ errorMessage }}</div>
+        </div>
+
+        <!-- Success Message -->
+        <div *ngIf="successMessage" class="alert alert-success">
+          <i class="bi bi-check-circle me-2"></i>
+          {{ successMessage }}
         </div>
       </div>
       <div class="modal-footer">
@@ -680,7 +737,8 @@
         <button type="button" class="btn btn-secondary" (click)="closeModal()">
           <i class="bi bi-x-circle"></i> Close
         </button>
-        <button type="button" class="btn btn-success" (click)="onImportStockOpname()" [disabled]="isLoading || !selectedFile">
+        <button type="button" class="btn btn-success" (click)="onImportStockOpname()"
+          [disabled]="isLoading || !selectedFile">
           <span *ngIf="!isLoading">
             <i class="bi bi-cloud-upload"></i> Import
           </span>
@@ -726,13 +784,15 @@
             <span class="spinner-border spinner-border-sm me-2"></span> Processing...
           </span>
         </button>
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
       </div>
     </div>
   </div>
 </div>
 
+
 <!-- Modal Backdrop -->
-<div class="modal-backdrop fade" 
-     [class.show]="showAddModal || showEditModal || showDeleteModal || showImportModal || showStockOpnameModal"
-     *ngIf="showAddModal || showEditModal || showDeleteModal || showImportModal || showStockOpnameModal">
+<div class="modal-backdrop fade"
+  [class.show]="showAddModal || showEditModal || showDeleteModal || showBatchDeleteModal || showImportModal || showStockOpnameModal || showResetStockConfirm"
+  *ngIf="showAddModal || showEditModal || showDeleteModal || showBatchDeleteModal || showImportModal || showStockOpnameModal || showResetStockConfirm">
 </div>

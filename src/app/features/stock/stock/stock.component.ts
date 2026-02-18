@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StockService } from '../../../core/services/stock.service';
+import { SocketService } from '../../../core/services/socket.service';
+import { Subject } from 'rxjs';
+import { takeUntil, throttleTime } from 'rxjs/operators';
 
 interface Stock {
   no: number;
@@ -17,6 +20,17 @@ interface Stock {
   status_production: string; // RUN or STOP
 }
 
+interface WarehouseUpdate {
+  type: 'RECEIVING' | 'SHIPPING';
+  barcode?: string;
+  item?: string;
+  quantity?: number;
+  username?: string;
+  warehouseItems?: any[];
+  warehouse_items?: any[];
+  warehouseStock?: number;
+}
+
 @Component({
   selector: 'app-stock',
   standalone: true,
@@ -24,7 +38,7 @@ interface Stock {
   templateUrl: './stock.component.html',
   styleUrl: './stock.component.scss'
 })
-export class StockComponent implements OnInit {
+export class StockComponent implements OnInit, OnDestroy {
   stockList: Stock[] = [];
   filteredStocks: Stock[] = [];
   isLoading = false;
@@ -41,13 +55,135 @@ export class StockComponent implements OnInit {
   totalItems = 0;
   Math = Math;
 
-  constructor(private stockService: StockService) {}
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private stockService: StockService,
+    private socketService: SocketService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    console.log('🚀 Stock Component initialized');
+    console.log('🚀🚀🚀 STOCK COMPONENT INIT 🚀🚀🚀');
+    
+    // Load initial stock data
     this.loadStock();
+    
+    // Setup Socket.IO listener for real-time warehouse updates
+    console.log('📌 Setting up real-time listener...');
+    
+    // Ensure socket is connected
+    if (!this.socketService.isConnected()) {
+      console.log('📌 Socket NOT connected, connecting...');
+      this.socketService.connect();
+      // Wait a bit for connection to establish
+      setTimeout(() => {
+        this.setupRealtimeUpdates();
+      }, 500);
+    } else {
+      console.log('✅ Socket already connected');
+      this.setupRealtimeUpdates();
+    }
   }
 
+  ngOnDestroy() {
+    console.log('🛑 Stock component destroyed');
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Setup real-time updates listener
+   * Listen to dashboard:update from receiving/shipping scans
+   */
+  private setupRealtimeUpdates() {
+    console.log('%c>>> SETUP REAL-TIME UPDATES <<<', 'color: red; font-size: 14px; font-weight: bold');
+    console.log('Socket connected?', this.socketService.isConnected());
+    
+    // Listen to all dashboard updates
+    // Throttle to maximum 1 update per 1 second to avoid excessive API calls
+    const subscription = this.socketService.on<WarehouseUpdate>('dashboard:update')
+      .pipe(
+        throttleTime(1000), // Max 1 reload per second
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (update) => {
+          console.log('%c⚡⚡⚡ EVENT RECEIVED ⚡⚡⚡', 'color: orange; font-size: 14px; font-weight: bold');
+          console.log('Update received:', {
+            type: update.type,
+            item: update.item,
+            quantity: update.quantity,
+            timestamp: new Date().toLocaleTimeString()
+          });
+          
+          // Reload stock data immediately
+          console.log('🔄 NOW CALLING RELOADED STOCK DATA...');
+          this.reloadStockData();
+        },
+        error: (err) => {
+          console.error('%c❌ SOCKET ERROR', 'color: red; font-size: 14px', err);
+        },
+        complete: () => {
+          console.log('Socket subscription completed');
+        }
+      });
+    
+    console.log('%c>>> LISTENER SETUP COMPLETE <<<', 'color: green; font-size: 14px; font-weight: bold');
+  }
+
+  /**
+   * Reload stock data without changing pagination or filters
+   * Called when real-time update is received
+   */
+  private reloadStockData() {
+    console.log('%c>>> RELOAD STOCK DATA CALLED <<<', 'color: blue; font-size: 12px; font-weight: bold');
+    console.log('Calling API:', {
+      endpoint: '/api/dashboard/warehouse-stats',
+      page: this.currentPage,
+      limit: this.itemsPerPage
+    });
+    
+    this.stockService.getAll(
+      this.currentPage, 
+      this.itemsPerPage, 
+      this.searchTerm, 
+      this.statusFilter
+    ).subscribe({
+      next: (response: any) => {
+        console.log('%c✅ API RESPONSE RECEIVED', 'color: green; font-size: 12px; font-weight: bold');
+        console.log('Response data:', response);
+        
+        if (response.data) {
+          console.log('Using response.data, items count:', response.data.length);
+          this.stockList = response.data;
+          this.filteredStocks = response.data;
+          
+          if (response.pagination) {
+            this.totalItems = response.pagination.total;
+            this.totalPages = response.pagination.totalPages;
+          }
+        } else {
+          console.log('Using response directly, items count:', response.length);
+          this.stockList = response;
+          this.filteredStocks = response;
+          this.totalItems = response.length;
+          this.totalPages = Math.ceil(response.length / this.itemsPerPage);
+        }
+        
+        console.log('%c>>> CALLING CHANGE DETECTION <<<', 'color: purple; font-size: 12px; font-weight: bold');
+        // Trigger change detection immediately
+        this.cdr.detectChanges();
+        
+        console.log('%c🎉 UI UPDATED IN REAL-TIME! 🎉', 'color: green; font-size: 14px; font-weight: bold');
+      },
+      error: (err) => {
+        console.error('%c❌ API ERROR', 'color: red; font-size: 12px', err);
+        // Silently fail - don't show error to user for real-time reloads
+      }
+    });
+  }
+  
   loadStock() {
     this.isLoading = true;
     this.errorMessage = '';
@@ -136,7 +272,8 @@ export class StockComponent implements OnInit {
 
   /**
    * Get badge class for production status
-   * RUN = success (hijau), STOP = danger (merah)
+   * RUN = success (production aktif), STOP = danger (produksi berhenti)
+   * Logic: RUN jika ada receiving dalam 1 bulan terakhir, STOP jika tidak ada
    */
   getProductionStatusBadgeClass(status: string): string {
     if (status === 'RUN') return 'status-run';
@@ -146,21 +283,14 @@ export class StockComponent implements OnInit {
 
   /**
    * Get percentage color class
+   * Menunjukkan persentase stok relatif terhadap max stock di warehouse
+   * Formula: (stock_akhir * 100) / MAX(stock)
    */
   getPercentageClass(percentage: number): string {
     if (percentage >= 75) return 'bg-success';
     if (percentage >= 50) return 'bg-info';
     if (percentage >= 25) return 'bg-warning';
     return 'bg-danger';
-  }
-
-  /**
-   * Get stock badge class based on quantity
-   */
-  getStockClass(stock: number): string {
-    if (stock >= 100) return 'stock-high';
-    if (stock > 0) return 'stock-medium';
-    return 'stock-low';
   }
 
   get pageNumbers(): number[] {

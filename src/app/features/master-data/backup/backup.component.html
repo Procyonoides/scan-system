@@ -1,0 +1,142 @@
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">
+            <i class="bi bi-shield-lock-fill text-primary me-2"></i> System Maintenance
+        </h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a routerLink="/master-data">Master Data</a></li>
+                <li class="breadcrumb-item active">Backup & Cleanup</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Feedback -->
+    <div *ngIf="successMessage"
+        class="alert alert-success fade show shadow-sm border-0 border-start border-success border-4 p-4 d-flex align-items-center"
+        role="alert">
+        <i class="bi bi-check-circle-fill me-3 fs-4"></i> <span class="fs-5">{{ successMessage }}</span>
+    </div>
+
+    <div *ngIf="errorMessage"
+        class="alert alert-danger fade show shadow-sm border-0 border-start border-danger border-4 p-4 d-flex align-items-center"
+        role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i> <span class="fs-5">{{ errorMessage }}</span>
+    </div>
+
+    <div class="row g-5">
+        <!-- Archiving Tool -->
+        <div class="col-lg-6 p-3">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4 border-0 d-flex flex-column">
+                    <h5 class="card-title mb-1 text-white"><i class="bi bi-archive-fill me-2"></i> Data Archiving</h5>
+                    <p class="mb-0 small opacity-75 text-white">Move older records to backup tables to keep the system
+                        fast.</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4 py-3">
+                        <div class="maintenance-icon bg-light-primary rounded-circle mx-auto mb-3">
+                            <i class="bi bi-hdd-network text-primary fs-1"></i>
+                        </div>
+                        <p class="text-muted small px-3">
+                            Records older than <strong>January 1st, {{ currentYear }}</strong> will be moved from active
+                            production tables to the <strong>Backup_hskpro</strong> database.
+                        </p>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">Select Table Category</label>
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="backupType" id="bakRec" value="receiving"
+                                    [(ngModel)]="backupType">
+                                <label class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center"
+                                    for="bakRec">
+                                    <i class="bi bi-box-arrow-in-right fs-4 mb-1"></i>
+                                    <span>Receiving</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="backupType" id="bakShip" value="shipping"
+                                    [(ngModel)]="backupType">
+                                <label class="btn btn-outline-primary w-100 py-3 d-flex flex-column align-items-center"
+                                    for="bakShip">
+                                    <i class="bi bi-truck fs-4 mb-1"></i>
+                                    <span>Shipping</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning border-0 bg-light-warning small p-3">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Data remains queryable in the "Operation Record" page but is removed from active daily stock
+                        calculations.
+                    </div>
+                </div>
+                <div class="card-footer bg-light p-4 border-0">
+                    <button class="btn btn-primary w-100 py-2 fw-bold" (click)="onBackup()" [disabled]="isLoading">
+                        <span *ngIf="!isLoading"><i class="bi bi-box-arrow-up me-2"></i> Start Archiving Process</span>
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        <span *ngIf="isLoading">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deduplication Tool -->
+        <div class="col-lg-6 p-3">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4 border-0 d-flex flex-column">
+                    <h5 class="card-title mb-1 text-white"><i class="bi bi-magic me-2"></i> Record Deduplication</h5>
+                    <p class="mb-0 small opacity-75 text-white">Clean redundant scanning entries caused by network
+                        issues or double
+                        scans.</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4 py-3">
+                        <div class="maintenance-icon bg-light rounded-circle mx-auto mb-3">
+                            <i class="bi bi-layers-half text-secondary fs-1"></i>
+                        </div>
+                        <p class="text-muted small px-3">
+                            This tool identifies records with identical barcode, time, and user, keeping only one unique
+                            entry.
+                        </p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Cleanup Type</label>
+                            <select class="form-select form-select-lg border-2" [(ngModel)]="duplicateFilter.type">
+                                <option value="receiving">Receiving Transactions</option>
+                                <option value="shipping">Shipping Transactions</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Start Date</label>
+                            <input type="date" class="form-control border-2" [(ngModel)]="duplicateFilter.startDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase text-muted">End Date</label>
+                            <input type="date" class="form-control border-2" [(ngModel)]="duplicateFilter.endDate">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger border-0 small p-3">
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                        <strong>CAUTION:</strong> This operation deletes data permanently. Ensure you have selected the
+                        correct date range.
+                    </div>
+                </div>
+                <div class="card-footer bg-light p-4 border-0">
+                    <button class="btn btn-dark w-100 py-2 fw-bold" (click)="onDuplicate()" [disabled]="isLoading">
+                        <span *ngIf="!isLoading"><i class="bi bi-stars me-2"></i> Run Cleanup Tool</span>
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        <span *ngIf="isLoading">Optimizing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+@import '../../../../styles.scss';
+
+.container-fluid {
+    padding: 2rem;
+    background-color: #f8fafc;
+    min-height: calc(100vh - 64px);
+}
+
+.breadcrumb-item {
+    font-size: 0.85rem;
+
+    a {
+        color: var(--bs-primary);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.card {
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.maintenance-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-light-primary {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.bg-light-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #856404;
+}
+
+.bg-light-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #721c24;
+}
+
+.btn-check:checked+.btn-outline-primary {
+    background: var(--bs-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+.form-select-lg {
+    font-size: 1rem;
+}
+
+.alert {
+    border-radius: 10px;
+}

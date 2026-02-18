@@ -6,7 +6,9 @@ import { Observable } from 'rxjs';
 export interface WarehouseStats {
   first_stock: number;
   receiving: number;
+  receiving_qty?: number;
   shipping: number;
+  shipping_qty?: number;
   warehouse_stock: number;
 }
 

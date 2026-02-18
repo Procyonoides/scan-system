@@ -42,7 +42,7 @@ interface FilterOptions {
 export class MasterDataComponent implements OnInit {
   masterDataList: MasterDataItem[] = [];
   filteredData: MasterDataItem[] = [];
-  
+
   filterOptions: FilterOptions = {
     models: [],
     sizes: [],
@@ -64,14 +64,14 @@ export class MasterDataComponent implements OnInit {
   showAddModal = false;
   showEditModal = false;
   showDeleteModal = false;
+  showBatchDeleteModal = false;
   showImportModal = false;
   showStockOpnameModal = false;
-  showRecordModal = false;
-  showBackupModal = false;
-  showDuplicateModal = false;
   showResetStockConfirm = false;
-  
+
+
   selectedBarcode: string = '';
+  selectedBarcodes: Set<string> = new Set();
   isLoading = false;
   successMessage = '';
   errorMessage = '';
@@ -85,7 +85,7 @@ export class MasterDataComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private fb: FormBuilder
-  ) {}
+  ) { }
 
   ngOnInit() {
     console.log('🚀 Master Data Component initialized');
@@ -138,35 +138,35 @@ export class MasterDataComponent implements OnInit {
     });
 
     this.http.get<any>(`${environment.apiUrl}/master-data/barcodes`, {
-      params: { 
-        page: this.currentPage.toString(), 
+      params: {
+        page: this.currentPage.toString(),
         limit: this.itemsPerPage.toString(),
         search: this.searchTerm
       }
     }).subscribe({
       next: (response) => {
         console.log('✅ Master data received:', response);
-        
+
         if (response.success && response.data) {
           this.masterDataList = response.data;
           this.filteredData = response.data;
-          
+
           if (response.pagination) {
             this.totalItems = response.pagination.total;
             this.totalPages = response.pagination.totalPages;
             this.currentPage = response.pagination.page;
           }
-          
+
           console.log(`📦 Loaded ${this.masterDataList.length} items (Total: ${this.totalItems})`);
         }
-        
+
         this.isLoading = false;
       },
       error: (err) => {
         console.error('❌ Failed to load master data:', err);
         this.errorMessage = err.error?.error || err.error?.message || 'Failed to load data';
         this.isLoading = false;
-        
+
         this.masterDataList = [];
         this.filteredData = [];
         this.totalItems = 0;
@@ -177,7 +177,7 @@ export class MasterDataComponent implements OnInit {
 
   loadFilterOptions() {
     console.log('📡 Loading filter options from database...');
-    
+
     this.http.get<any>(`${environment.apiUrl}/master-data/filter-options`)
       .subscribe({
         next: (response) => {
@@ -186,18 +186,18 @@ export class MasterDataComponent implements OnInit {
             this.filterOptions.models = response.models || [];
             this.filterOptions.sizes = response.sizes || [];
             this.filterOptions.productions = response.productions || [];
-            
+
             // Build size map dari database
             if (response.sizeMap) {
               this.sizeMap = response.sizeMap;
               console.log('✅ Size map loaded from database:', Object.keys(this.sizeMap).length, 'entries');
             }
-            
+
             // Brands, units, items tetap dari static array
             this.filterOptions.brands = response.brands || ['ADIDAS', 'NEW BALANCE', 'REEBOK', 'ASICS', 'SPECS', 'OTHER BRAND'];
             this.filterOptions.units = response.units || ['PRS', 'PCS'];
             this.filterOptions.items = response.items || ['IP', 'PHYLON', 'BLOKER', 'PAINT', 'RUBBER', 'GOODSOLE'];
-            
+
             console.log('✅ Filter options loaded:', {
               models: this.filterOptions.models.length,
               sizes: this.filterOptions.sizes.length,
@@ -221,7 +221,7 @@ export class MasterDataComponent implements OnInit {
 
   fetchModelCode(model: string) {
     console.log('📡 Fetching model_code for:', model);
-    
+
     this.http.get<any>(`${environment.apiUrl}/master-data/model-code/${model}`)
       .subscribe({
         next: (response) => {
@@ -253,11 +253,11 @@ export class MasterDataComponent implements OnInit {
     const maxVisible = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let endPage = Math.min(this.totalPages, startPage + maxVisible - 1);
-    
+
     if (endPage - startPage < maxVisible - 1) {
       startPage = Math.max(1, endPage - maxVisible + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
@@ -284,7 +284,7 @@ export class MasterDataComponent implements OnInit {
     this.showAddModal = true;
     this.barcodeForm.reset({ quantity: 0, stock: 0 });
     this.errorMessage = '';
-    
+
     // Reload filter options untuk memastikan data terbaru
     this.loadFilterOptions();
     console.log('📝 Opening Add Modal with options:', this.filterOptions);
@@ -299,10 +299,10 @@ export class MasterDataComponent implements OnInit {
   openEditModal(barcode: string) {
     this.selectedBarcode = barcode;
     this.isLoading = true;
-    
+
     // Reload filter options untuk edit modal
     this.loadFilterOptions();
-    
+
     this.http.get<any>(`${environment.apiUrl}/master-data/barcode/${barcode}`)
       .subscribe({
         next: (response) => {
@@ -331,24 +331,7 @@ export class MasterDataComponent implements OnInit {
     this.selectedFile = null;
     this.errorMessage = '';
   }
-  
-  openRecordModal() {
-    this.showRecordModal = true;
-    this.errorMessage = '';
-    console.log('📝 Opening record modal');
-  }
 
-  openBackupModal() {
-    this.showBackupModal = true;
-    this.errorMessage = '';
-    console.log('📝 Opening backup modal');
-  }
-
-  openDuplicateModal() {
-    this.showDuplicateModal = true;
-    this.errorMessage = '';
-    console.log('📝 Opening duplicate modal');
-  }
 
   // ==================== CRUD OPERATIONS ====================
 
@@ -360,7 +343,7 @@ export class MasterDataComponent implements OnInit {
 
     this.isLoading = true;
     console.log('📤 Adding barcode:', this.barcodeForm.value);
-    
+
     this.http.post(`${environment.apiUrl}/master-data/barcode`, this.barcodeForm.value)
       .subscribe({
         next: (response: any) => {
@@ -389,7 +372,7 @@ export class MasterDataComponent implements OnInit {
 
     this.isLoading = true;
     console.log('📤 Updating barcode:', this.selectedBarcode);
-    
+
     this.http.put(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`, this.barcodeForm.value)
       .subscribe({
         next: (response: any) => {
@@ -413,7 +396,7 @@ export class MasterDataComponent implements OnInit {
   onDelete() {
     this.isLoading = true;
     console.log('🗑️ Deleting barcode:', this.selectedBarcode);
-    
+
     this.http.delete(`${environment.apiUrl}/master-data/barcode/${this.selectedBarcode}`)
       .subscribe({
         next: (response: any) => {
@@ -434,15 +417,97 @@ export class MasterDataComponent implements OnInit {
       });
   }
 
+  // ==================== BATCH DELETE ====================
+
+  toggleBarcodeSelection(barcode: string) {
+    if (this.selectedBarcodes.has(barcode)) {
+      this.selectedBarcodes.delete(barcode);
+    } else {
+      this.selectedBarcodes.add(barcode);
+    }
+    console.log('📋 Selected barcodes:', this.selectedBarcodes.size);
+  }
+
+  isBarcodeSelected(barcode: string): boolean {
+    return this.selectedBarcodes.has(barcode);
+  }
+
+  selectAllBarcodes() {
+    this.selectedBarcodes.clear();
+    this.filteredData.forEach(item => {
+      this.selectedBarcodes.add(item.original_barcode);
+    });
+    console.log('✅ Selected all barcodes:', this.selectedBarcodes.size);
+  }
+
+  deselectAllBarcodes() {
+    this.selectedBarcodes.clear();
+    console.log('❌ Deselected all barcodes');
+  }
+
+  get hasSelectedBarcodes(): boolean {
+    return this.selectedBarcodes.size > 0;
+  }
+
+  get allBarcodesSelected(): boolean {
+    return this.filteredData.length > 0 &&
+      this.filteredData.every(item => this.selectedBarcodes.has(item.original_barcode));
+  }
+
+  openBatchDeleteModal() {
+    if (this.selectedBarcodes.size === 0) {
+      this.errorMessage = 'Please select at least one barcode to delete';
+      setTimeout(() => this.errorMessage = '', 3000);
+      return;
+    }
+    this.showBatchDeleteModal = true;
+    this.errorMessage = '';
+  }
+
+  onBatchDelete() {
+    this.isLoading = true;
+    const barcodesToDelete = Array.from(this.selectedBarcodes);
+    console.log(`🗑️ Batch deleting ${barcodesToDelete.length} barcodes`);
+
+    this.http.post(`${environment.apiUrl}/master-data/batch-delete`, { barcodes: barcodesToDelete })
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            const message = `Successfully deleted ${response.successCount} barcode(s)`;
+            if (response.errorCount > 0) {
+              this.successMessage = `${message}. ${response.errorCount} error(s) occurred.`;
+              if (response.errors) {
+                this.errorMessage = response.errors.slice(0, 3).join('\n');
+              }
+            } else {
+              this.successMessage = message;
+            }
+            this.showBatchDeleteModal = false;
+            this.selectedBarcodes.clear();
+            this.loadMasterData();
+            setTimeout(() => {
+              this.successMessage = '';
+              this.errorMessage = '';
+            }, 5000);
+            console.log('✅ Batch delete completed:', response);
+          }
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.errorMessage = err.error?.error || 'Failed to batch delete barcodes';
+          this.isLoading = false;
+          console.error('❌ Batch delete failed:', err);
+        }
+      });
+  }
+
   closeModal() {
     this.showAddModal = false;
     this.showEditModal = false;
     this.showDeleteModal = false;
+    this.showBatchDeleteModal = false;
     this.showImportModal = false;
     this.showStockOpnameModal = false;
-    this.showRecordModal = false;
-    this.showBackupModal = false;
-    this.showDuplicateModal = false;
     this.showResetStockConfirm = false;
     this.selectedBarcode = '';
     this.selectedFile = null;
@@ -494,7 +559,7 @@ export class MasterDataComponent implements OnInit {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'text/csv'
       ];
-      
+
       if (allowedTypes.includes(file.type)) {
         this.selectedFile = file;
         this.errorMessage = '';
@@ -544,14 +609,26 @@ export class MasterDataComponent implements OnInit {
     this.http.post(`${environment.apiUrl}/master-data/import-stock-opname`, formData)
       .subscribe({
         next: (response: any) => {
-          this.successMessage = response.message || 'Stock opname import successful!';
-          this.closeModal();
+          if (response.errorCount && response.errorCount > 0) {
+            // Show partial success with errors
+            this.successMessage = `✅ Import completed: ${response.successCount} updated. ⚠️ ${response.errorCount} errors.`;
+            if (response.errors && response.errors.length > 0) {
+              const errorDetails = response.errors.slice(0, 5).join('\n');
+              this.errorMessage = `Some rows failed:\n${errorDetails}${response.errors.length > 5 ? '\n... and more' : ''}`;
+            }
+          } else {
+            this.successMessage = response.message || `✅ All ${response.successCount} barcodes updated successfully!`;
+            this.closeModal();
+          }
           this.loadMasterData();
           this.isLoading = false;
-          setTimeout(() => this.successMessage = '', 3000);
+          setTimeout(() => this.successMessage = '', 5000);
         },
         error: (err) => {
-          this.errorMessage = err.error?.error || 'Import failed';
+          this.errorMessage = err.error?.error || err.error?.message || 'Import failed';
+          if (err.error?.errors) {
+            this.errorMessage += '\n\nDetails:\n' + err.error.errors.join('\n');
+          }
           this.isLoading = false;
         }
       });
@@ -561,14 +638,14 @@ export class MasterDataComponent implements OnInit {
 
   downloadFormatExcel() {
     console.log('📥 Downloading format Excel...');
-    
+
     const headers = [
-      'ORIGINAL_BARCODE', 'BRAND', 'COLOR', 'SIZE', 'FOUR_DIGIT', 'UNIT', 
+      'ORIGINAL_BARCODE', 'BRAND', 'COLOR', 'SIZE', 'FOUR_DIGIT', 'UNIT',
       'QUANTITY', 'PRODUCTION', 'MODEL', 'MODEL_CODE', 'ITEM', 'STOCK'
     ];
-    
+
     const sampleRow = [
-      'SAMPLE123', 'ADIDAS', 'BLACK', '10', '0036', 'PRS', 
+      'SAMPLE123', 'ADIDAS', 'BLACK', '10', '0036', 'PRS',
       '100', 'PT HSK REMBANG', 'BOOST', 'BST', 'IP', '0'
     ];
 
@@ -582,7 +659,7 @@ export class MasterDataComponent implements OnInit {
     a.download = 'Format_Import_Master_Data.csv';
     a.click();
     window.URL.revokeObjectURL(url);
-    
+
     this.successMessage = 'Format Excel downloaded successfully!';
     setTimeout(() => this.successMessage = '', 3000);
   }

@@ -7,7 +7,7 @@
 // ==================== PAGE HEADER ====================
 .page-header {
   margin-bottom: 30px;
-  
+
   .header-content {
     background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);
     padding: 30px;
@@ -106,9 +106,19 @@
 }
 
 @keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 // ==================== SCAN CARD ====================
@@ -250,6 +260,7 @@
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -257,14 +268,31 @@
 }
 
 @keyframes successPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 @keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px);
+  }
+
+  75% {
+    transform: translateX(10px);
+  }
 }
 
 // ==================== RESULT CARDS ====================
@@ -337,39 +365,63 @@
   }
 
   &.result-model {
-    &::before { background: #ff9800; }
+    &::before {
+      background: #ff9800;
+    }
+
     .result-icon {
       background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
       color: white;
     }
-    .result-label { color: #ff9800; }
+
+    .result-label {
+      color: #ff9800;
+    }
   }
 
   &.result-color {
-    &::before { background: #ff6f00; }
+    &::before {
+      background: #ff6f00;
+    }
+
     .result-icon {
       background: linear-gradient(135deg, #ff6f00 0%, #ff8f00 100%);
       color: white;
     }
-    .result-label { color: #ff6f00; }
+
+    .result-label {
+      color: #ff6f00;
+    }
   }
 
   &.result-size {
-    &::before { background: #f57c00; }
+    &::before {
+      background: #f57c00;
+    }
+
     .result-icon {
       background: linear-gradient(135deg, #f57c00 0%, #fb8c00 100%);
       color: white;
     }
-    .result-label { color: #f57c00; }
+
+    .result-label {
+      color: #f57c00;
+    }
   }
 
   &.result-quantity {
-    &::before { background: #ef6c00; }
+    &::before {
+      background: #ef6c00;
+    }
+
     .result-icon {
       background: linear-gradient(135deg, #ef6c00 0%, #f57c00 100%);
       color: white;
     }
-    .result-label { color: #ef6c00; }
+
+    .result-label {
+      color: #ef6c00;
+    }
   }
 }
 
@@ -537,6 +589,10 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: inline-block;
+
+  .text-warning {
+    color: #f57c00 !important;
+  }
 }
 
 // ==================== STICKY HEADER ====================
@@ -585,6 +641,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -613,14 +670,31 @@ tbody tr {
 
 // Keep only essential animations
 @keyframes successPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 @keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-10px); }
-  75% { transform: translateX(10px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10px);
+  }
+
+  75% {
+    transform: translateX(10px);
+  }
 }
 
 // ==================== RESPONSIVE ====================
@@ -779,7 +853,7 @@ tbody tr {
       flex-direction: column;
       align-items: flex-start !important;
 
-      > div {
+      >div {
         width: 100%;
         justify-content: center;
       }

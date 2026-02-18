@@ -114,11 +114,17 @@
               <button type="button" class="btn btn-secondary" (click)="clearFilters()">
                 <i class="fas fa-times me-2"></i> Clear
               </button>
-              <button 
-                type="button" 
-                class="btn btn-success ms-auto" 
-                (click)="exportDetail()" 
-                [disabled]="isExporting || !filters.tipe || reportData.length === 0">
+              <button type="button" class="btn btn-info" (click)="exportSummary()"
+                [disabled]="isExporting || isExportingSummary || !filters.tipe || reportData.length === 0">
+                <span *ngIf="!isExportingSummary">
+                  <i class="fas fa-th me-2"></i> Export Summary
+                </span>
+                <span *ngIf="isExportingSummary">
+                  <span class="spinner-border spinner-border-sm me-2"></span> Exporting...
+                </span>
+              </button>
+              <button type="button" class="btn btn-success ms-auto" (click)="exportDetail()"
+                [disabled]="isExporting || isExportingSummary || !filters.tipe || reportData.length === 0">
                 <span *ngIf="!isExporting">
                   <i class="fas fa-file-excel me-2"></i> Export Detail
                 </span>
@@ -138,10 +144,9 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-6">
-          <label>Show 
-            <select class="form-select form-select-sm d-inline-block w-auto mx-2" 
-                    [(ngModel)]="itemsPerPage" 
-                    (change)="onItemsPerPageChange()">
+          <label>Show
+            <select class="form-select form-select-sm d-inline-block w-auto mx-2" [(ngModel)]="itemsPerPage"
+              (change)="onItemsPerPageChange()">
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
@@ -200,7 +205,8 @@
           <tr *ngIf="filteredData.length === 0 && !isLoading">
             <td colspan="10" class="text-center text-muted py-4">
               <i class="fas fa-inbox fs-1 mb-2"></i>
-              <p class="mb-0">{{ filters.tipe ? 'No data available. Try adjusting filters.' : 'Please select transaction type and click Filter.' }}</p>
+              <p class="mb-0">{{ filters.tipe ? 'No data available. Try adjusting filters.' : 'Please select transaction
+                type and click Filter.' }}</p>
             </td>
           </tr>
 
@@ -220,8 +226,8 @@
       <div class="row align-items-center">
         <div class="col-md-6">
           <small class="text-muted">
-            Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to 
-            {{ Math.min(currentPage * itemsPerPage, totalItems) }} of 
+            Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
             {{ totalItems }} entries
           </small>
         </div>
@@ -234,8 +240,7 @@
               <li class="page-item" [class.disabled]="currentPage === 1">
                 <a class="page-link" (click)="goToPage(currentPage - 1)">Previous</a>
               </li>
-              <li class="page-item" *ngFor="let page of pageNumbers" 
-                  [class.active]="page === currentPage">
+              <li class="page-item" *ngFor="let page of pageNumbers" [class.active]="page === currentPage">
                 <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
               </li>
               <li class="page-item" [class.disabled]="currentPage === totalPages">

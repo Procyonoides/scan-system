@@ -1,0 +1,84 @@
+@import '../../../../styles.scss';
+
+.container-fluid {
+    padding: 2rem;
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.table {
+    th {
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.5rem;
+    }
+
+    td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+.breadcrumb-item {
+    font-size: 0.9rem;
+
+    a {
+        color: var(--bs-primary);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+}
+
+.btn-group-sm>.btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.sticky-top {
+    z-index: 1020;
+}
+
+.modal {
+    &.show {
+        display: block;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+    }
+}
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+}
+
+// Filter button alignment
+.filter-btn {
+    padding: 0.375rem 0.75rem; // Match Bootstrap form-control padding
+    font-size: 1rem;
+    line-height: 1.5;
+    min-height: 38px; // Ensure minimum height matches form-control
+}
