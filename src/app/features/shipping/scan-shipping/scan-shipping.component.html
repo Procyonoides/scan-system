@@ -14,13 +14,14 @@
   <div class="card scan-card">
     <div class="card-body">
       <form [formGroup]="scanForm" (ngSubmit)="onScan()">
+        <fieldset [disabled]="isLoading" class="border-0 p-0 m-0">
         <div class="row align-items-end">
           <div class="col-lg-9 col-md-8 mb-3 mb-md-0">
             <label class="form-label fw-bold">
               <i class="fas fa-barcode me-2"></i> Scan Barcode
             </label>
             <input #barcodeInput type="text" class="form-control form-control-lg barcode-input"
-              formControlName="barcode" placeholder="Scan atau ketik barcode disini..." [disabled]="isLoading"
+              formControlName="barcode" placeholder="Scan atau ketik barcode disini..."
               autofocus>
           </div>
 
@@ -36,6 +37,7 @@
             </button>
           </div>
         </div>
+        </fieldset>
       </form>
     </div>
 
@@ -121,7 +123,7 @@
     <div class="col-lg-3 col-md-6 mb-3">
       <div class="result-card result-size">
         <div class="result-icon">
-          <i class="fas fa-rulers"></i>
+          <i class="fas fa-ruler"></i>
         </div>
         <div class="result-content">
           <span class="result-label">SIZE</span>
@@ -150,7 +152,7 @@
         <div>
           <h5 class="card-title mb-1">
             <i class="fas fa-calendar-day me-2"></i> Today's Scans
-          </h5>
+          </h5><hr>
           <small class="text-muted">Showing all shipping scans for today ({{ getCurrentDate() }})</small>
         </div>
 
