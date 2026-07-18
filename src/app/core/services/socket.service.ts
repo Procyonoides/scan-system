@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable, fromEvent } from 'rxjs';
+import { Observable, fromEvent, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -8,6 +8,11 @@ import { environment } from '../../../environments/environment';
 })
 export class SocketService {
   private socket: Socket | null = null;
+
+  // Reactive connection status - components can subscribe to this
+  // instead of only checking isConnected() once at load time.
+  private connectionStatus$ = new BehaviorSubject<boolean>(false);
+  public status$: Observable<boolean> = this.connectionStatus$.asObservable();
 
   constructor() {}
 
@@ -29,19 +34,31 @@ export class SocketService {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionDelayMax: 10000,
+      // Keep retrying indefinitely instead of giving up after 5 tries -
+      // this dashboard has no polling fallback, so it must not stop
+      // trying to reconnect on its own.
+      reconnectionAttempts: Infinity
     });
 
     this.socket.on('connect', () => {
       console.log('✅ Socket.IO connected:', this.socket?.id);
+      this.connectionStatus$.next(true);
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('❌ Socket.IO disconnected:', reason);
+      this.connectionStatus$.next(false);
     });
 
     this.socket.on('connect_error', (error) => {
       console.error('🔴 Socket.IO connection error:', error);
+      this.connectionStatus$.next(false);
+    });
+
+    this.socket.on('reconnect', (attempt) => {
+      console.log(`✅ Socket.IO reconnected after ${attempt} attempt(s)`);
+      this.connectionStatus$.next(true);
     });
   }
 
@@ -52,6 +69,7 @@ export class SocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
+      this.connectionStatus$.next(false);
       console.log('🔌 Socket.IO disconnected manually');
     }
   }

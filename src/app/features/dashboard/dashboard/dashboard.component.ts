@@ -134,13 +134,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // Connect to Socket.IO
     this.socketService.connect();
+
+    // Keep isConnected in sync with the socket's actual state at all times,
+    // instead of only checking it once right after connect().
+    this.socketService.status$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => {
+        this.isConnected = status;
+        console.log('🔌 Socket connection status changed:', status);
+      });
     
     // ============ LISTEN TO REAL-TIME UPDATES ============
     // Setup listener AFTER a small delay to ensure Socket connection is established
     setTimeout(() => {
-      this.isConnected = this.socketService.isConnected();
-      console.log('🔌 Socket connection status:', this.isConnected);
-      
       this.socketService.on<DashboardUpdate>('dashboard:update')
       .pipe(takeUntil(this.destroy$))
       .subscribe({

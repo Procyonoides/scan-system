@@ -1,10 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ReceivingService } from '../../../core/services/receiving.service';
+import { SocketService } from '../../../core/services/socket.service';
 
 interface ReceivingRecord {
   original_barcode: string;
@@ -47,8 +50,10 @@ interface ScanResponse {
   templateUrl: './scan-receiving.component.html',
   styleUrl: './scan-receiving.component.scss'
 })
-export class ScanReceivingComponent implements OnInit, AfterViewInit {
+export class ScanReceivingComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('barcodeInput') barcodeInput!: ElementRef<HTMLInputElement>;
+
+  private destroy$ = new Subject<void>();
 
   scanForm = this.fb.group({
     barcode: ['', [Validators.required, Validators.minLength(1)]]
@@ -102,7 +107,8 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private authService: AuthService,
-    private receivingService: ReceivingService
+    private receivingService: ReceivingService,
+    private socketService: SocketService
   ) { }
 
   ngOnInit() {
@@ -112,6 +118,25 @@ export class ScanReceivingComponent implements OnInit, AfterViewInit {
 
     // ✅ LOAD TODAY'S SCANS instead of user history
     this.loadTodayScans();
+
+    // ✅ Listen for live updates so scans from OTHER users show up
+    // without needing a manual refresh.
+    this.socketService.connect();
+    this.socketService.on<{ type: string }>('dashboard:update')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (update) => {
+          if (update.type === 'RECEIVING' || update.type === 'RECEIVING_BATCH') {
+            this.loadTodayScans();
+          }
+        },
+        error: (err) => console.error('❌ Socket error:', err)
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit() {

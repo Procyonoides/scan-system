@@ -9,6 +9,10 @@
   <!-- Manual Refresh Button (Optional) -->
   <div class="row mb-3">
     <div class="col-12 text-end">
+      <span class="badge me-2" [class.bg-success]="isConnected" [class.bg-danger]="!isConnected">
+        <i class="fas fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
+        {{ isConnected ? 'Live' : 'Terputus - klik Refresh Data' }}
+      </span>
       <button class="btn btn-outline-primary btn-sm" (click)="refreshData()" [disabled]="isLoading">
         <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
         {{ isLoading ? 'Refreshing...' : 'Refresh Data' }}
