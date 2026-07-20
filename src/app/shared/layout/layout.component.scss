@@ -80,6 +80,20 @@ html[data-sidebar-collapse='true'] app-sidebar {
   }
 }
 
+// ============ ACT-AS BANNER ============
+.act-as-banner {
+  background: #ffc107;
+  color: #212529;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  border-bottom: 2px solid #e0a800;
+  flex-shrink: 0;
+}
+
 // ============ MAIN CONTENT ============
 .layout-content {
   flex: 1;

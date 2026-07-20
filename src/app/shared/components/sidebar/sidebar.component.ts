@@ -100,6 +100,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       icon: 'fas fa-users',
       route: '/user',
       roles: ['IT']
+    },
+    {
+      label: 'Log Act-as',
+      icon: 'fas fa-user-secret',
+      route: '/act-as-log',
+      roles: ['IT']
     }
   ];
 

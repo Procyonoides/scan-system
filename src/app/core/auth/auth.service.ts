@@ -65,10 +65,89 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('act_as_original_token');
+    localStorage.removeItem('act_as_original_user');
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
     console.log('✅ Logged out');
     this.router.navigate(['/auth/login']);
+  }
+
+  /**
+   * IT-only: temporarily take on another user's session (Act-as), without
+   * knowing or resetting their password. The IT user's own token/user is
+   * stashed so exitActAs() can restore it. Every state-changing request
+   * made while acting-as is logged server-side for audit purposes.
+   */
+  actAs(userId: number) {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/act-as/${userId}`, {}).pipe(
+      tap(response => {
+        if (response.success && response.token && response.user) {
+          // Stash the real IT session so we can restore it later
+          const currentToken = localStorage.getItem('token');
+          const currentUser = localStorage.getItem('user');
+          if (currentToken && currentUser) {
+            localStorage.setItem('act_as_original_token', currentToken);
+            localStorage.setItem('act_as_original_user', currentUser);
+          }
+
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          this.currentUser.set(response.user);
+          console.log('🎭 Now acting as:', response.user.username);
+
+          const position = response.user.position;
+          if (position === 'SHIPPING') {
+            this.router.navigate(['/shipping']);
+          } else if (position === 'RECEIVING') {
+            this.router.navigate(['/receiving']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
+        }
+      }),
+      catchError(error => {
+        console.error('Act-as failed:', error);
+        const errorMessage = error.error?.error || error.error?.message || 'Act-as failed';
+        return throwError(() => ({ success: false, error: errorMessage, status: error.status }));
+      })
+    );
+  }
+
+  /**
+   * Exit an Act-as session and restore the IT user's own session.
+   */
+  exitActAs() {
+    return this.http.post(`${this.apiUrl}/auth/exit-act-as`, {}).pipe(
+      tap(() => this.restoreOriginalSession()),
+      catchError(() => {
+        // Even if the server call fails, still restore locally so IT
+        // isn't stuck acting as someone else.
+        this.restoreOriginalSession();
+        return throwError(() => ({ success: false }));
+      })
+    );
+  }
+
+  private restoreOriginalSession() {
+    const originalToken = localStorage.getItem('act_as_original_token');
+    const originalUser = localStorage.getItem('act_as_original_user');
+    if (originalToken && originalUser) {
+      localStorage.setItem('token', originalToken);
+      localStorage.setItem('user', originalUser);
+      localStorage.removeItem('act_as_original_token');
+      localStorage.removeItem('act_as_original_user');
+      this.currentUser.set(JSON.parse(originalUser));
+      console.log('✅ Restored original IT session');
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  /**
+   * Is the current session an Act-as session?
+   */
+  isActingAs(): boolean {
+    return !!this.currentUser()?.actingAs;
   }
 
   private loadUser() {

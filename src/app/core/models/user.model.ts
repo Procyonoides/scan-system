@@ -4,6 +4,8 @@ export interface User {
   position: string;
   description?: string;
   permissions?: string[];
+  actingAs?: boolean;
+  realUsername?: string;
 }
 
 export interface LoginRequest {

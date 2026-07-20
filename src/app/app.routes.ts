@@ -76,6 +76,12 @@ export const routes: Routes = [
                 loadChildren: () => import('./features/option/option.routes').then(m => m.OPTION_ROUTES)
             },
             {
+                path: 'act-as-log',
+                canActivate: [roleGuard],
+                data: { roles: ['IT'] },
+                loadChildren: () => import('./features/act-as-log/act-as-log.routes').then(m => m.ACT_AS_LOG_ROUTES)
+            },
+            {
                 path: '',
                 redirectTo: 'dashboard',
                 pathMatch: 'full'

@@ -74,7 +74,7 @@
             <th>PASSWORD</th>
             <th>POSITION</th>
             <th>DESCRIPTION</th>
-            <th width="180">ACTIONS</th>
+            <th width="200">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
@@ -101,8 +101,12 @@
               <button class="btn btn-info btn-sm me-1" (click)="openEditModal(user)">
                 <i class="bi bi-pencil"></i> Edit
               </button>
-              <button class="btn btn-danger btn-sm" (click)="openDeleteModal(user)">
+              <button class="btn btn-danger btn-sm me-1" (click)="openDeleteModal(user)">
                 <i class="bi bi-trash"></i> Delete
+              </button>
+              <button *ngIf="user.position !== 'IT'" class="btn btn-warning btn-sm"
+                      (click)="onActAs(user)" title="Bertindak sementara sebagai user ini">
+                <i class="bi bi-person-badge"></i> Act as
               </button>
             </td>
           </tr>

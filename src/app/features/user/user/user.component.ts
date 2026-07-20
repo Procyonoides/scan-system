@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core/auth/auth.service';
 
 interface User {
   id_user: number;
@@ -63,7 +64,7 @@ export class UserComponent implements OnInit {
     'SHIPPING': ['DELIVERY', 'PRESS', 'CU', 'SAMPLE', 'PAINT', 'GRINDING', 'REJECT', 'STOCKFIT']
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadUsers();
@@ -186,6 +187,19 @@ export class UserComponent implements OnInit {
     this.selectedUser = user;
     this.showDeleteModal = true;
     this.errorMessage = '';
+  }
+
+  onActAs(user: User) {
+    const confirmed = confirm(
+      `Bertindak sebagai "${user.username}"?\n\nSemua aksi yang kamu lakukan akan tercatat atas nama akun ini dan dicatat di log audit sebagai dilakukan oleh IT.`
+    );
+    if (!confirmed) return;
+
+    this.authService.actAs(user.id_user).subscribe({
+      error: (err) => {
+        alert(err.error || 'Gagal bertindak sebagai user ini');
+      }
+    });
   }
 
   closeModal() {
