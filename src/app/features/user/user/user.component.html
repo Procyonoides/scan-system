@@ -74,7 +74,7 @@
             <th>PASSWORD</th>
             <th>POSITION</th>
             <th>DESCRIPTION</th>
-            <th width="200">ACTIONS</th>
+            <th width="260" class="text-nowrap">ACTIONS</th>
           </tr>
         </thead>
         <tbody>
@@ -89,6 +89,11 @@
                         [title]="isPasswordVisible(user.id_user) ? 'Hide password' : 'Show password'">
                   <i class="bi" [ngClass]="isPasswordVisible(user.id_user) ? 'bi-eye-slash' : 'bi-eye'"></i>
                 </button>
+                <button class="btn btn-sm btn-outline-secondary" 
+                        (click)="openResetPasswordModal(user)"
+                        title="Reset Password">
+                  <i class="bi bi-arrow-repeat"></i> Reset
+                </button>
               </div>
             </td>
             <td>
@@ -97,16 +102,16 @@
               </span>
             </td>
             <td>{{ user.description || '-' }}</td>
-            <td>
-              <button class="btn btn-info btn-sm me-1" (click)="openEditModal(user)">
-                <i class="bi bi-pencil"></i> Edit
+            <td class="text-nowrap">
+              <button class="btn btn-info btn-sm me-1" (click)="openEditModal(user)" title="Edit">
+                <i class="bi bi-pencil"></i>
               </button>
-              <button class="btn btn-danger btn-sm me-1" (click)="openDeleteModal(user)">
-                <i class="bi bi-trash"></i> Delete
+              <button class="btn btn-danger btn-sm me-1" (click)="openDeleteModal(user)" title="Delete">
+                <i class="bi bi-trash"></i>
               </button>
               <button *ngIf="user.position !== 'IT'" class="btn btn-warning btn-sm"
-                      (click)="onActAs(user)" title="Bertindak sementara sebagai user ini">
-                <i class="bi bi-person-badge"></i> Act as
+                      (click)="onActAs(user)" title="Act as - bertindak sementara sebagai user ini">
+                <i class="bi bi-person-badge"></i>
               </button>
             </td>
           </tr>
@@ -365,8 +370,44 @@
   </div>
 </div>
 
+<!-- Reset Password Modal -->
+<div class="modal" [class.show]="showResetPasswordModal" [style.display]="showResetPasswordModal ? 'block' : 'none'">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="btn-close" (click)="closeResetPasswordModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="!resetSuccessPassword">
+          <p>Set password baru untuk <strong>{{ userToReset?.username }}</strong>:</p>
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" [(ngModel)]="newPasswordValue" placeholder="Password baru">
+            <button class="btn btn-outline-secondary" type="button" (click)="newPasswordValue = generateRandomPassword()">
+              <i class="bi bi-shuffle"></i> Acak
+            </button>
+          </div>
+          <div *ngIf="errorMessage" class="alert alert-danger py-2">{{ errorMessage }}</div>
+        </div>
+        <div *ngIf="resetSuccessPassword" class="alert alert-success">
+          <i class="bi bi-check-circle"></i> Password berhasil direset.<br>
+          Catat/kasih tau password ini ke user (tidak akan bisa dilihat lagi setelah modal ini ditutup):
+          <div class="fs-5 fw-bold mt-2">{{ resetSuccessPassword }}</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button *ngIf="!resetSuccessPassword" type="button" class="btn btn-secondary" (click)="closeResetPasswordModal()">Cancel</button>
+        <button *ngIf="!resetSuccessPassword" type="button" class="btn btn-warning" (click)="confirmResetPassword()">
+          <i class="bi bi-arrow-repeat"></i> Reset Password
+        </button>
+        <button *ngIf="resetSuccessPassword" type="button" class="btn btn-primary" (click)="closeResetPasswordModal()">Selesai</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Backdrop -->
 <div class="modal-backdrop fade" 
-     [class.show]="showAddModal || showEditModal || showDeleteModal"
-     *ngIf="showAddModal || showEditModal || showDeleteModal">
+     [class.show]="showAddModal || showEditModal || showDeleteModal || showResetPasswordModal"
+     *ngIf="showAddModal || showEditModal || showDeleteModal || showResetPasswordModal">
 </div>

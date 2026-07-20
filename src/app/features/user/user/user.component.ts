@@ -29,14 +29,14 @@ export class UserComponent implements OnInit {
   successMessage = '';
   searchTerm = '';
 
-  // Password visibility tracking
-  passwordVisibility: { [key: number]: boolean } = {};
-
   // Pagination
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 1;
   Math = Math;
+
+  // Password visibility tracking (view-only - DB still stores plain text)
+  passwordVisibility: { [key: number]: boolean } = {};
 
   // Available page size options
   pageSizeOptions = [10, 25, 50, 100];
@@ -347,5 +347,58 @@ export class UserComponent implements OnInit {
       return user.password || '***';
     }
     return '•'.repeat(8);
+  }
+
+  // ============ RESET PASSWORD ============
+  showResetPasswordModal = false;
+  userToReset: User | null = null;
+  newPasswordValue = '';
+  resetSuccessPassword = ''; // shown once right after a successful reset
+
+  openResetPasswordModal(user: User) {
+    this.userToReset = user;
+    this.newPasswordValue = this.generateRandomPassword();
+    this.resetSuccessPassword = '';
+    this.errorMessage = '';
+    this.showResetPasswordModal = true;
+  }
+
+  generateRandomPassword(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  confirmResetPassword() {
+    if (!this.userToReset) return;
+    if (!this.newPasswordValue || this.newPasswordValue.length < 3) {
+      this.errorMessage = 'Password minimal 3 karakter';
+      return;
+    }
+
+    this.http.put(`${environment.apiUrl}/users/${this.userToReset.id_user}/password`, {
+      new_password: this.newPasswordValue,
+      confirm_password: this.newPasswordValue
+    }).subscribe({
+      next: () => {
+        this.resetSuccessPassword = this.newPasswordValue;
+        this.errorMessage = '';
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.error || 'Gagal reset password';
+      }
+    });
+  }
+
+  closeResetPasswordModal() {
+    this.showResetPasswordModal = false;
+    this.userToReset = null;
+    this.newPasswordValue = '';
+    this.resetSuccessPassword = '';
+    this.errorMessage = '';
   }
 }
