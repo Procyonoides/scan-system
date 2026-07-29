@@ -21,6 +21,7 @@ $shadow-elegant: 0 20px 60px rgba(0, 0, 0, 0.3);
 
 .sidebar-main {
   width: $sidebar-width;
+  flex-shrink: 0;
   background: linear-gradient(180deg, $sidebar-bg-start 0%, $sidebar-bg-end 100%);
   color: $sidebar-text;
   box-shadow: $shadow-elegant;
