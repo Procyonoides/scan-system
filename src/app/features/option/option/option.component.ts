@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { OptionService, Model, Size, Production } from '../../../core/services/option.service';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-option',
@@ -11,7 +13,8 @@ import { OptionService, Model, Size, Production } from '../../../core/services/o
   templateUrl: './option.component.html',
   styleUrl: './option.component.scss'
 })
-export class OptionComponent implements OnInit {
+export class OptionComponent implements OnInit, OnDestroy {
+  private searchSubject = new Subject<string>();
 
   // Active Tab
   activeTab: 'model' | 'size' | 'production' = 'model';
@@ -53,6 +56,7 @@ export class OptionComponent implements OnInit {
 
   selectedItem: any = null;
 
+
   constructor(
     private optionService: OptionService,
     private route: ActivatedRoute,
@@ -67,6 +71,20 @@ export class OptionComponent implements OnInit {
         this.loadData();
       }
     });
+
+    // ✅ Live search: tunggu user berhenti ngetik 400ms baru query,
+    // berlaku buat semua tab (model/size/production) karena satu komponen ini dipakai bertiga
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadData();
+    });
+  }
+
+  ngOnDestroy() {
+    this.searchSubject.complete();
   }
 
   // ==================== TAB SWITCHING ====================
@@ -154,7 +172,12 @@ export class OptionComponent implements OnInit {
 
   // ==================== SEARCH & PAGINATION ====================
 
+  onSearchInput() {
+    this.searchSubject.next(this.searchTerm);
+  }
+
   onSearch() {
+    // Dipanggil kalau user tekan Enter -> langsung cari, gak nunggu debounce
     console.log('🔍 Searching:', this.searchTerm);
     this.currentPage = 1;
     this.loadData();

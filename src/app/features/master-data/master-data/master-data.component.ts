@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 interface MasterDataItem {
   original_barcode: string;
@@ -39,7 +41,7 @@ interface FilterOptions {
   templateUrl: './master-data.component.html',
   styleUrl: './master-data.component.scss'
 })
-export class MasterDataComponent implements OnInit {
+export class MasterDataComponent implements OnInit, OnDestroy {
   masterDataList: MasterDataItem[] = [];
   filteredData: MasterDataItem[] = [];
 
@@ -82,6 +84,10 @@ export class MasterDataComponent implements OnInit {
   // Size to Four Digit Mapping - Will be loaded from database
   sizeMap: { [key: string]: string } = {};
 
+  // ✅ Live search: ketik langsung nembak API tanpa perlu tekan Enter,
+  // tapi di-debounce 400ms supaya gak nembak request tiap 1 huruf diketik
+  private searchSubject = new Subject<string>();
+
   constructor(
     private http: HttpClient,
     private fb: FormBuilder
@@ -92,6 +98,21 @@ export class MasterDataComponent implements OnInit {
     this.initForm();
     this.loadMasterData();
     this.loadFilterOptions();
+
+    // ✅ Live search: tunggu user berhenti ngetik 400ms, baru query.
+    // distinctUntilChanged supaya gak query ulang kalau teksnya sama
+    // (misal ketik lalu hapus balik ke kata yang sama).
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadMasterData();
+    });
+  }
+
+  ngOnDestroy() {
+    this.searchSubject.complete();
   }
 
   initForm() {
@@ -238,7 +259,12 @@ export class MasterDataComponent implements OnInit {
       });
   }
 
+  onSearchInput() {
+    this.searchSubject.next(this.searchTerm);
+  }
+
   onSearch() {
+    // Dipanggil kalau user tekan Enter -> langsung cari, gak perlu nunggu debounce
     console.log('🔍 Searching:', this.searchTerm);
     this.currentPage = 1;
     this.loadMasterData();
@@ -640,8 +666,8 @@ export class MasterDataComponent implements OnInit {
     console.log('📥 Downloading format Excel...');
 
     const headers = [
-      'ORIGINAL_BARCODE', 'BRAND', 'COLOR', 'SIZE', 'FOUR_DIGIT', 'UNIT',
-      'QUANTITY', 'PRODUCTION', 'MODEL', 'MODEL_CODE', 'ITEM', 'STOCK'
+      'original_barcode', 'brand', 'color', 'size', 'four_digit', 'unit',
+      'quantity', 'production', 'model', 'model_code', 'item', 'stock'
     ];
 
     const sampleRow = [

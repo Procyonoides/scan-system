@@ -106,7 +106,7 @@
             <label>
               Search:
               <input type="text" class="form-control form-control-sm" [(ngModel)]="searchTerm"
-                (keyup.enter)="onSearch()" placeholder="Search...">
+                (input)="onSearchInput()" (keyup.enter)="onSearch()" placeholder="Search...">
             </label>
           </div>
         </div>
