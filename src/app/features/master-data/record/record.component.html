@@ -167,7 +167,7 @@
             </div>
             <div class="modal-body">
                 <div *ngIf="selectedRecord" class="alert alert-info border-0 py-2 small mb-3">
-                    <strong>Target:</strong> {{ selectedRecord.original_barcode }} | {{ selectedRecord.date_time }}
+                    <strong>Target:</strong> {{ selectedRecord.original_barcode }} | Scan #{{ selectedRecord.scan_no }} | {{ selectedRecord.date_time }}
                 </div>
 
                 <form [formGroup]="recordForm">

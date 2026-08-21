@@ -138,7 +138,8 @@ export class RecordComponent implements OnInit {
     }
 
     onDeleteRecord(record: any) {
-        if (!confirm('Are you sure you want to delete this record?')) return;
+        const confirmMsg = `Delete this record?\n\nBarcode: ${record.original_barcode}\nScan #${record.scan_no}\nQuantity: ${record.quantity}\nDate/Time: ${record.date_time}`;
+        if (!confirm(confirmMsg)) return;
 
         this.isLoading = true;
         const params = {
