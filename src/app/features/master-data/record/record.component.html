@@ -15,48 +15,53 @@
     </div>
 
     <!-- Success/Error Messages -->
-    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i> {{ successMessage }}
-        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show d-flex align-items-center shadow-sm">
+        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+        <div class="fw-medium">{{ successMessage }}</div>
+        <button type="button" class="btn-close ms-auto" (click)="successMessage = ''"></button>
     </div>
 
-    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-        <i class="bi bi-exclamation-triangle me-2"></i> {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show d-flex align-items-center shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+        <div class="fw-medium">{{ errorMessage }}</div>
+        <button type="button" class="btn-close ms-auto" (click)="errorMessage = ''"></button>
     </div>
 
     <!-- Filter Card -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light py-2">
+    <div class="card shadow-sm mb-4 filter-card">
+        <div class="card-header filter-card-header py-2 d-flex justify-content-between align-items-center">
             <span class="fw-bold"><i class="bi bi-funnel"></i> Filter Records</span>
+            <button class="btn btn-sm reset-btn" (click)="clearFilters()">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset
+            </button>
         </div>
         <div class="card-body py-3">
-            <div class="row gx-5 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Transaction Type</label>
+            <div class="row gx-3 gy-2 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1 fw-semibold">Transaction Type</label>
                     <select class="form-select" [(ngModel)]="recordFilter.type">
                         <option value="receiving">Receiving</option>
                         <option value="shipping">Shipping</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Start Date</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1 fw-semibold">Start Date</label>
                     <input type="date" class="form-control" [(ngModel)]="recordFilter.startDate">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">End Date</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1 fw-semibold">End Date</label>
                     <input type="date" class="form-control" [(ngModel)]="recordFilter.endDate">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Username</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1 fw-semibold">Username</label>
                     <input type="text" class="form-control" [(ngModel)]="recordFilter.username"
                         placeholder="Search user...">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small mb-1">Scan No</label>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1 fw-semibold">Scan No</label>
                     <input type="text" class="form-control" [(ngModel)]="recordFilter.scanNo" placeholder="Scan no...">
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <button class="btn btn-primary w-100 filter-btn" (click)="loadRecords()">
                         <i class="bi bi-search me-1"></i> Apply Filter
                     </button>
@@ -66,10 +71,10 @@
     </div>
 
     <!-- Data Card -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+    <div class="card shadow-sm records-card">
+        <div class="card-header bg-white py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center">
-                <label class="me-2 small fw-bold">Show</label>
+                <label class="me-2 small fw-bold mb-0">Show</label>
                 <select class="form-select form-select-sm" style="width: 80px;" [(ngModel)]="itemsPerPage"
                     (change)="onItemsPerPageChange()">
                     <option [value]="10">10</option>
@@ -77,11 +82,7 @@
                     <option [value]="50">50</option>
                     <option [value]="100">100</option>
                 </select>
-                <label class="ms-2 small fw-bold">entries</label>
-            </div>
-            <div class="small text-muted" *ngIf="totalItems > 0">
-                Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage,
-                totalItems) }} of {{ totalItems }} entries
+                <label class="ms-2 small fw-bold mb-0">entries</label>
             </div>
         </div>
         <div class="card-body p-0">
@@ -104,14 +105,14 @@
                     <tbody>
                         <tr *ngFor="let r of records">
                             <td class="ps-3 small text-nowrap">{{ r.date_time }}</td>
-                            <td class="small">{{ r.original_barcode }}</td>
+                            <td class="small font-monospace">{{ r.original_barcode }}</td>
                             <td class="small">{{ r.model }}</td>
                             <td class="small">{{ r.color }}</td>
                             <td class="small">{{ r.size }}</td>
                             <td><span class="badge bg-light text-dark border fw-bold">{{ r.quantity }}</span></td>
                             <td class="small text-primary text-nowrap"><i class="bi bi-person-fill"></i> {{ r.username
                                 }}</td>
-                            <td><span class="badge bg-secondary">{{ r.scan_no }}</span></td>
+                            <td><span class="badge bg-secondary">#{{ r.scan_no }}</span></td>
                             <td class="small text-muted">{{ r.description || '-' }}</td>
                             <td class="text-center pe-3">
                                 <div class="btn-group btn-group-sm">
@@ -125,7 +126,7 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr *ngIf="records.length === 0">
+                        <tr *ngIf="records.length === 0 && !isLoading">
                             <td colspan="10" class="text-center py-5 text-muted">
                                 <i class="bi bi-search-heart d-block fs-1 mb-2"></i>
                                 No records found for the selected criteria.
@@ -136,22 +137,57 @@
             </div>
         </div>
         <!-- Pagination Footer -->
-        <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center" *ngIf="totalPages > 0">
-            <div class="small fw-bold text-muted">Page {{ currentPage }} of {{ totalPages }}</div>
+        <div class="card-footer records-footer py-3 d-flex flex-wrap justify-content-between align-items-center gap-2" *ngIf="totalPages > 0">
+            <div class="small fw-bold records-info">
+                Showing <strong>{{ (currentPage - 1) * itemsPerPage + 1 }}</strong> to
+                <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
+                <strong>{{ totalItems.toLocaleString() }}</strong> entries
+            </div>
+
             <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
+                <ul class="pagination pagination-sm mb-0 flex-wrap">
                     <li class="page-item" [class.disabled]="currentPage === 1">
-                        <a class="page-link" href="javascript:void(0)"
-                            (click)="onPageChange(currentPage - 1)">Previous</a>
+                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(1)" title="First page">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
                     </li>
-                    <li class="page-item active" aria-current="page">
-                        <span class="page-link">{{ currentPage }}</span>
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    <ng-container *ngFor="let p of pageNumbers">
+                        <li class="page-item" *ngIf="p === '...'; else pageNum">
+                            <span class="page-link border-0">…</span>
+                        </li>
+                        <ng-template #pageNum>
+                            <li class="page-item" [class.active]="p === currentPage">
+                                <a class="page-link" href="javascript:void(0)" (click)="onPageChange($any(p))">{{ p }}</a>
+                            </li>
+                        </ng-template>
+                    </ng-container>
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
                     </li>
                     <li class="page-item" [class.disabled]="currentPage === totalPages">
-                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">Next</a>
+                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(totalPages)" title="Last page">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
                     </li>
                 </ul>
             </nav>
+
+            <div class="small fw-bold records-page-count">Page {{ currentPage }} of {{ totalPages.toLocaleString() }}</div>
+
+            <div class="d-flex align-items-center gap-2 goto-controls" *ngIf="totalPages > 10">
+                <span class="small goto-label">Go to</span>
+                <input type="number" class="form-control form-control-sm goto-input"
+                    [(ngModel)]="goToPageInput" [min]="1" [max]="totalPages"
+                    (keyup.enter)="goToPage()" placeholder="Page #">
+                <button class="btn btn-sm goto-btn" (click)="goToPage()">Go</button>
+            </div>
         </div>
     </div>
 </div>
@@ -175,17 +211,29 @@
                         <label class="form-label fw-bold">Quantity</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                            <input type="number" class="form-control" formControlName="quantity">
+                            <input type="number" class="form-control"
+                                [class.is-invalid]="recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched"
+                                formControlName="quantity">
+                        </div>
+                        <div class="invalid-feedback d-block"
+                            *ngIf="recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched">
+                            Quantity is required and must be at least 1.
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Username</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control" formControlName="username">
+                            <input type="text" class="form-control"
+                                [class.is-invalid]="recordForm.get('username')?.invalid && recordForm.get('username')?.touched"
+                                formControlName="username">
+                        </div>
+                        <div class="invalid-feedback d-block"
+                            *ngIf="recordForm.get('username')?.invalid && recordForm.get('username')?.touched">
+                            Username is required.
                         </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label fw-bold">Description</label>
                         <textarea class="form-control" formControlName="description" rows="3"></textarea>
                     </div>
@@ -193,7 +241,8 @@
             </div>
             <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary" (click)="showRecordEditModal = false">Cancel</button>
-                <button type="button" class="btn btn-primary" (click)="onUpdateRecord()" [disabled]="isLoading">
+                <button type="button" class="btn btn-primary" (click)="onUpdateRecord()"
+                    [disabled]="isLoading || recordForm.invalid">
                     <span *ngIf="!isLoading"><i class="bi bi-save me-1"></i> Save Changes</span>
                     <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
                 </button>

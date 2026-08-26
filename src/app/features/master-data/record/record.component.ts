@@ -31,6 +31,7 @@ export class RecordComponent implements OnInit {
     itemsPerPage = 50;
     totalItems = 0;
     totalPages = 0;
+    goToPageInput: number | null = null;
     Math = Math;
 
     selectedRecord: any = null;
@@ -53,6 +54,50 @@ export class RecordComponent implements OnInit {
             username: ['', Validators.required],
             description: ['']
         });
+    }
+
+    /** Nomor halaman yang ditampilin di pagination, dengan "…" kalau totalPages banyak
+     * (misal 823 halaman - gak masuk akal nampilin semuanya, cukup sekitar halaman aktif). */
+    get pageNumbers(): (number | string)[] {
+        const total = this.totalPages;
+        const current = this.currentPage;
+        const delta = 2; // berapa halaman di kiri-kanan current yang ditampilin penuh
+        const pages: (number | string)[] = [];
+
+        if (total <= 7) {
+            for (let i = 1; i <= total; i++) pages.push(i);
+            return pages;
+        }
+
+        pages.push(1);
+        if (current - delta > 2) pages.push('...');
+
+        const start = Math.max(2, current - delta);
+        const end = Math.min(total - 1, current + delta);
+        for (let i = start; i <= end; i++) pages.push(i);
+
+        if (current + delta < total - 1) pages.push('...');
+        pages.push(total);
+
+        return pages;
+    }
+
+    goToPage() {
+        if (this.goToPageInput && this.goToPageInput >= 1 && this.goToPageInput <= this.totalPages) {
+            this.onPageChange(this.goToPageInput);
+            this.goToPageInput = null;
+        }
+    }
+
+    clearFilters() {
+        this.recordFilter = {
+            type: 'receiving',
+            startDate: new Date().toISOString().slice(0, 10),
+            endDate: new Date().toISOString().slice(0, 10),
+            username: '',
+            scanNo: ''
+        };
+        this.loadRecords();
     }
 
     loadRecords(page: number = 1) {
@@ -101,6 +146,8 @@ export class RecordComponent implements OnInit {
             username: record.username,
             description: record.description
         });
+        this.recordForm.markAsPristine();
+        this.recordForm.markAsUntouched();
         this.showRecordEditModal = true;
     }
 

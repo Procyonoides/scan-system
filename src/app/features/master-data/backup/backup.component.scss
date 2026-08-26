@@ -24,6 +24,88 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
 }
 
+.maintenance-card {
+    .maintenance-body {
+        padding: 2rem !important;
+    }
+
+    .maintenance-form-section {
+        margin-top: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.6rem;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 46px;
+    }
+
+    .category-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin: 0.75rem 0 0 !important;
+
+        > [class*='col-'] {
+            width: auto;
+            padding: 0;
+        }
+
+        .btn {
+            min-height: 86px;
+            justify-content: center;
+            border: 1px solid var(--bs-primary);
+            border-radius: 8px !important;
+        }
+    }
+
+    .duplicate-form {
+        margin: 1.25rem 0 1.5rem;
+
+        .cleanup-field {
+            width: 100%;
+        }
+    }
+
+    .date-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 1rem;
+        row-gap: 1rem;
+        margin-top: 1.25rem;
+
+        .form-label {
+            margin: 0 0 0.6rem;
+            padding: 0;
+        }
+    }
+
+    .alert {
+        margin-top: 1.5rem;
+        line-height: 1.55;
+    }
+
+    .maintenance-footer {
+        padding: 1.5rem 2rem 2rem !important;
+
+        .btn {
+            min-height: 44px;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .maintenance-card {
+        .category-options,
+        .date-fields {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
 .maintenance-icon {
     width: 80px;
     height: 80px;

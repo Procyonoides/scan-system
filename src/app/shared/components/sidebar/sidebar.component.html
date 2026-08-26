@@ -49,6 +49,7 @@
           <a href="javascript:void(0)"
              class="nav-link"
              (click)="toggleMenu(item.label, $event)"
+             [title]="isCollapsed() ? item.label : ''"
              [ngClass]="{ 'expanded': isMenuExpanded(item.label) }">
             <i [class]="item.icon + ' nav-icon'"></i>
             <span class="nav-text">{{ item.label }}</span>
