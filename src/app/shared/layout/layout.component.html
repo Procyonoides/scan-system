@@ -1,10 +1,15 @@
 <div class="layout-container">
   <app-navbar></app-navbar>
   
-  <div class="layout-body">
-    <app-sidebar></app-sidebar>
-    
-    <main class="layout-content">
+  <mat-sidenav-container class="layout-body" [hasBackdrop]="isMobile()">
+    <mat-sidenav class="app-sidenav"
+                 [mode]="isMobile() ? 'over' : 'side'"
+                 [opened]="isMobile() ? !sidebarState.collapsed() : true"
+                 [class.sidebar-collapsed]="!isMobile() && sidebarState.collapsed()">
+      <app-sidebar></app-sidebar>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="layout-content">
       <div *ngIf="authService.isActingAs()" class="act-as-banner">
         <i class="fas fa-user-secret me-2"></i>
         Kamu sedang bertindak sebagai <strong class="m-1">{{ authService.currentUser()?.username }}</strong>
@@ -17,6 +22,6 @@
         <router-outlet></router-outlet>
       </div>
       <app-footer></app-footer>
-    </main>
-  </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </div>

@@ -1,8 +1,11 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
 import { filter } from 'rxjs/operators';
+import { SidebarStateService } from '../../services/sidebar-state.service';
 
 interface MenuItem {
   label: string;
@@ -15,43 +18,43 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatListModule, MatIconModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent implements OnInit, OnDestroy {
+export class SidebarComponent implements OnInit {
   menuItems: MenuItem[] = [
     {
       label: 'Stock Monitoring',
-      icon: 'fas fa-tachometer-alt',
+      icon: 'dashboard',
       route: '/dashboard',
       roles: ['IT', 'MANAGEMENT']
     },
     {
       label: 'Scan Receiving',
-      icon: 'fas fa-arrow-down',
+      icon: 'south',
       route: '/receiving',
       roles: ['IT', 'MANAGEMENT', 'RECEIVING']
     },
     {
       label: 'Scan Shipping',
-      icon: 'fas fa-arrow-up',
+      icon: 'north',
       route: '/shipping',
       roles: ['IT', 'MANAGEMENT', 'SHIPPING']
     },
     {
       label: 'Report',
-      icon: 'fas fa-file-text',
+      icon: 'description',
       children: [
         {
           label: 'Daily Report',
-          icon: 'fas fa-calendar-day',
+          icon: 'today',
           route: '/daily-report',
           roles: ['IT', 'MANAGEMENT']
         },
         {
           label: 'Monthly Report',
-          icon: 'fas fa-calendar-alt',
+          icon: 'calendar_month',
           route: '/monthly-report',
           roles: ['IT', 'MANAGEMENT']
         }
@@ -60,48 +63,45 @@ export class SidebarComponent implements OnInit, OnDestroy {
     },
     {
       label: 'Master Data',
-      icon: 'fas fa-database',
+      icon: 'storage',
       route: '/master-data',
       roles: ['IT', 'MANAGEMENT'],
     },
     {
       label: 'Transaction',
-      icon: 'fas fa-exchange-alt',
+      icon: 'swap_horiz',
       route: '/transaction',
       roles: ['IT', 'MANAGEMENT']
     },
     {
       label: 'Stock',
-      icon: 'fas fa-boxes',
+      icon: 'inventory_2',
       route: '/stock',
       roles: ['IT', 'MANAGEMENT']
     },
     {
       label: 'User Management',
-      icon: 'fas fa-users',
+      icon: 'group',
       route: '/user',
       roles: ['IT']
     },
     {
       label: 'Log Act-as',
-      icon: 'fas fa-user-secret',
+      icon: 'manage_accounts',
       route: '/act-as-log',
       roles: ['IT']
     }
   ];
 
-  sidebarCollapsed = signal(false);
   expandedMenus: { [key: string]: boolean } = {};
-  private mutationObserver: MutationObserver | null = null;
 
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    public sidebarState: SidebarStateService
   ) { }
 
   ngOnInit() {
-    this.loadSidebarState();
-    this.observeAttributeChanges();
     this.checkActiveRoute();
 
     this.router.events.pipe(
@@ -111,44 +111,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
-  }
-
-  private loadSidebarState() {
-    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
-    const htmlAttr = document.documentElement.getAttribute('data-sidebar-collapse') === 'true';
-    const state = saved || htmlAttr;
-    this.sidebarCollapsed.set(state);
-  }
-
-  private observeAttributeChanges() {
-    const root = document.documentElement;
-    this.mutationObserver = new MutationObserver(() => {
-      const isCollapsed = root.getAttribute('data-sidebar-collapse') === 'true';
-      this.sidebarCollapsed.set(isCollapsed);
-    });
-    this.mutationObserver.observe(root, {
-      attributes: true,
-      attributeFilter: ['data-sidebar-collapse']
-    });
-  }
-
-  toggleSidebar() {
-    const newState = !this.sidebarCollapsed();
-    this.sidebarCollapsed.set(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
-
-    const root = document.documentElement;
-    if (newState) {
-      root.setAttribute('data-sidebar-collapse', 'true');
-    } else {
-      root.removeAttribute('data-sidebar-collapse');
-    }
-  }
-
   hasPermission(roles?: string[]): boolean {
     if (!roles || roles.length === 0) return true;
     const userRole = this.authService.currentUser()?.position;
@@ -156,7 +118,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   isCollapsed(): boolean {
-    return this.sidebarCollapsed();
+    return this.sidebarState.collapsed();
   }
 
   toggleMenu(label: string, event?: MouseEvent) {
@@ -164,11 +126,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
       event.preventDefault();
       event.stopPropagation();
     }
-    // Auto expand sidebar jika collapsed dan klik parent menu
+    // Keep the mini sidebar closed and show the submenu as a flyout.
     if (this.isCollapsed() && this.menuItems.find(m => m.label === label && m.children)) {
-      this.toggleSidebar();
+      this.expandedMenus[label] = true;
+      return;
     }
     this.expandedMenus[label] = !this.expandedMenus[label];
+  }
+
+  onMenuEnter(item: MenuItem) {
+    if (this.isCollapsed() && item.children && this.hasPermission(item.roles)) {
+      this.expandedMenus[item.label] = true;
+    }
+  }
+
+  onMenuLeave(item: MenuItem) {
+    if (this.isCollapsed() && item.children) {
+      delete this.expandedMenus[item.label];
+    }
   }
 
   isMenuExpanded(label: string): boolean {

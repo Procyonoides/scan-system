@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, HostListener, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Subscription, interval } from 'rxjs';
+import { SidebarStateService } from '../../services/sidebar-state.service';
 
 @Component({
   selector: 'app-navbar',
@@ -15,16 +16,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentTime = '';
   currentDate = '';
   showDropdown = false;
-  sidebarCollapsed = signal(false);
-
   private timeSubscription: Subscription | null = null;
   
-  constructor(public authService: AuthService, private router: Router) {}
+  constructor(
+    public authService: AuthService,
+    private router: Router,
+    private sidebarState: SidebarStateService
+  ) {}
 
   ngOnInit() {
     this.updateTime();
     this.timeSubscription = interval(1000).subscribe(() => this.updateTime());
-    this.loadSidebarState();
   }
 
   ngOnDestroy() {
@@ -42,28 +44,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (dropdown && !dropdown.contains(target) && !userBtn?.contains(target)) {
       this.showDropdown = false;
     }
-  }
-
-  private loadSidebarState() {
-    const saved = localStorage.getItem('sidebarCollapsed') === 'true';
-    this.sidebarCollapsed.set(saved);
-    this.applySidebarState(saved);
-  }
-
-  private applySidebarState(collapsed: boolean) {
-    const root = document.documentElement;
-    
-    // Remove attribute dulu
-    root.removeAttribute('data-sidebar-collapse');
-    
-    // Tungah sebentar untuk reset
-    setTimeout(() => {
-      if (collapsed) {
-        root.setAttribute('data-sidebar-collapse', 'true');
-      }
-      console.log(`✅ Navbar: Sidebar ${collapsed ? 'COLLAPSED' : 'EXPANDED'}`);
-      console.log(`📌 Attribute: ${root.getAttribute('data-sidebar-collapse')}`);
-    }, 50);
   }
 
   private updateTime() {
@@ -86,12 +66,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar() {
-    const newState = !this.sidebarCollapsed();
-    console.log(`🔄 Toggle button clicked - Current: ${this.sidebarCollapsed()}, New: ${newState}`);
-    
-    this.sidebarCollapsed.set(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
-    this.applySidebarState(newState);
+    this.sidebarState.toggle();
   }
 
   toggleDropdown() {
