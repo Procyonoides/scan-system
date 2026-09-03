@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../components/navbar/navbar.component';
@@ -13,7 +12,7 @@ import { SidebarStateService } from '../services/sidebar-state.service';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatSidenavModule, NavbarComponent, SidebarComponent, FooterComponent],
+  imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })

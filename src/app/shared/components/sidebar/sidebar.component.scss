@@ -25,6 +25,14 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.sidebar-shell.collapsed .sidebar-user {
+  justify-content: center;
+  margin: 0.75rem 0;
+  padding: 0.5rem 0;
+  border-color: transparent;
+  background: transparent;
+}
+
 .user-avatar {
   display: grid;
   flex: 0 0 40px;
@@ -75,55 +83,83 @@
 }
 
 .sidebar-nav {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
   padding: 0.25rem 0.75rem;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
-.sidebar-nav a,
-.sidebar-nav button {
+.sidebar-shell.collapsed .sidebar-nav {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   width: 100%;
   min-height: 44px;
   margin: 0.2rem 0;
+  padding: 0 0.75rem;
   color: #e1e8f2;
+  border: 0;
   border-radius: 7px;
+  background: transparent;
   font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.sidebar-nav [matListItemTitle],
-.sidebar-nav .mat-mdc-list-item-title,
-.sidebar-nav .mdc-list-item__primary-text {
-  color: #e7edf7 !important;
-}
-
-.sidebar-nav a:hover,
-.sidebar-nav button:hover {
+.nav-item:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.09);
 }
 
-.sidebar-nav a.active {
+.nav-item.active {
   color: #fff;
   background: #5146d8;
 }
 
-.sidebar-nav mat-icon[matListItemIcon] {
-  color: #e7edf7 !important;
+.nav-icon {
+  flex: 0 0 auto;
+  color: #e7edf7;
   font-family: 'Material Icons';
   font-size: 1.35rem;
 }
 
-.sidebar-nav a.active mat-icon[matListItemIcon],
-.sidebar-nav a:hover mat-icon[matListItemIcon],
-.sidebar-nav button:hover mat-icon[matListItemIcon] {
+.nav-item:hover .nav-icon,
+.nav-item.active .nav-icon {
   color: #fff;
 }
 
-.submenu-trigger {
-  border: 0;
-  cursor: pointer;
-  text-align: left;
+.nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-shell.collapsed .nav-item {
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  margin: 0.3rem auto;
+  padding: 0;
+}
+
+.sidebar-shell.collapsed .submenu-list .nav-item {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0 0.6rem;
+  margin: 0.15rem 0;
+}
+
+.submenu-wrapper {
+  position: relative;
 }
 
 .submenu-chevron {
@@ -141,9 +177,22 @@
   border-left: 1px solid rgba(165, 180, 252, 0.35);
 }
 
-.submenu-list a {
+.submenu-list .nav-item {
   min-height: 38px;
   font-size: 0.84rem;
+}
+
+.sidebar-shell.collapsed .submenu-list {
+  position: fixed;
+  z-index: 1100;
+  width: 210px;
+  margin: 0;
+  padding: 0.45rem;
+  border: 1px solid rgba(165, 180, 252, 0.3);
+  border-left: 3px solid #818cf8;
+  border-radius: 0 8px 8px 0;
+  background: #293761;
+  box-shadow: 5px 8px 18px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar-help {
@@ -155,58 +204,6 @@
   color: #9eabc0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 0.75rem;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-label {
-  display: none;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-user {
-  justify-content: center;
-  margin: 0.75rem 0;
-  padding: 0.5rem 0;
-  border-color: transparent;
-  background: transparent;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-nav {
-  padding-right: 0.5rem;
-  padding-left: 0.5rem;
-  overflow: visible;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-nav a,
-:host-context(html[data-sidebar-collapse='true']) .sidebar-nav button {
-  justify-content: center;
-  width: 44px;
-  min-height: 44px;
-  margin: 0.3rem auto;
-  padding: 0;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-nav mat-icon[matListItemIcon] {
-  margin: 0;
-  color: #fff !important;
-  font-size: 1.35rem;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .sidebar-nav .mat-mdc-list-item {
-  justify-content: center;
-}
-
-:host-context(html[data-sidebar-collapse='true']) .submenu-list {
-  position: absolute;
-  top: 0;
-  left: 48px;
-  z-index: 1100;
-  width: 210px;
-  margin: 0;
-  padding: 0.45rem;
-  border: 1px solid rgba(165, 180, 252, 0.3);
-  border-left: 3px solid #818cf8;
-  border-radius: 0 8px 8px 0;
-  background: #293761;
-  box-shadow: 5px 8px 18px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {

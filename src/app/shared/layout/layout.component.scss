@@ -4,9 +4,9 @@ $navbar-height: 64px;
 
 .layout-container {
   display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100vh;
-  flex-direction: column;
   overflow: hidden;
   background: #f5f7fb;
 }
@@ -22,16 +22,21 @@ app-navbar {
 }
 
 .layout-body {
-  display: block;
+  position: relative;
+  display: flex;
   width: 100%;
   height: calc(100vh - #{$navbar-height});
   margin-top: $navbar-height;
+  overflow: hidden;
 }
 
 .app-sidenav {
+  flex: 0 0 $sidebar-width;
   width: $sidebar-width;
+  overflow: hidden;
   border-right: 1px solid #dfe4ec;
   box-shadow: 2px 0 8px rgba(15, 52, 96, 0.08);
+  transition: flex-basis 160ms ease, width 160ms ease;
 }
 
 .app-sidenav app-sidebar {
@@ -41,14 +46,14 @@ app-navbar {
 }
 
 .app-sidenav.sidebar-collapsed {
+  flex-basis: $sidebar-collapsed-width;
   width: $sidebar-collapsed-width;
 }
 
 .layout-content {
   display: flex;
-  width: auto;
   min-width: 0;
-  height: 100%;
+  flex: 1;
   flex-direction: column;
   overflow: hidden;
   background: #f5f7fb;
@@ -82,8 +87,31 @@ app-footer {
 
 @media (max-width: 768px) {
   .app-sidenav {
+    position: fixed;
+    top: $navbar-height;
+    bottom: 0;
+    left: 0;
+    z-index: 1050;
     width: min(280px, 86vw);
     max-width: 86vw;
+    flex-basis: auto;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .app-sidenav.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay-backdrop {
+    position: fixed;
+    top: $navbar-height;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1040;
+    background: rgba(0, 0, 0, 0.4);
   }
 
   .content-area {

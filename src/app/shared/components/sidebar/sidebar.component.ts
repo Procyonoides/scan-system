@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
 import { filter } from 'rxjs/operators';
@@ -18,7 +17,7 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatListModule, MatIconModule],
+  imports: [CommonModule, RouterModule, MatIconModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
@@ -94,6 +93,8 @@ export class SidebarComponent implements OnInit {
   ];
 
   expandedMenus: { [key: string]: boolean } = {};
+  openFlyout: string | null = null;
+  flyoutPosition: { top: number; left: number } = { top: 0, left: 0 };
 
   constructor(
     public authService: AuthService,
@@ -121,33 +122,45 @@ export class SidebarComponent implements OnInit {
     return this.sidebarState.collapsed();
   }
 
+  isParentActive(item: MenuItem): boolean {
+    if (!item.children) return false;
+    return item.children.some(child => child.route && this.router.url === child.route);
+  }
+
   toggleMenu(label: string, event?: MouseEvent) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
-    // Keep the mini sidebar closed and show the submenu as a flyout.
-    if (this.isCollapsed() && this.menuItems.find(m => m.label === label && m.children)) {
-      this.expandedMenus[label] = true;
+    if (this.isCollapsed()) {
+      const wrapper = (event?.currentTarget as HTMLElement)?.closest('.submenu-wrapper') as HTMLElement | null;
+      if (wrapper) {
+        const rect = wrapper.getBoundingClientRect();
+        this.flyoutPosition = { top: rect.top, left: rect.right + 4 };
+      }
+      this.openFlyout = this.openFlyout === label ? null : label;
       return;
     }
     this.expandedMenus[label] = !this.expandedMenus[label];
   }
 
-  onMenuEnter(item: MenuItem) {
+  onMenuEnter(item: MenuItem, event: MouseEvent) {
     if (this.isCollapsed() && item.children && this.hasPermission(item.roles)) {
-      this.expandedMenus[item.label] = true;
+      const wrapper = event.currentTarget as HTMLElement;
+      const rect = wrapper.getBoundingClientRect();
+      this.flyoutPosition = { top: rect.top, left: rect.right + 4 };
+      this.openFlyout = item.label;
     }
   }
 
   onMenuLeave(item: MenuItem) {
-    if (this.isCollapsed() && item.children) {
-      delete this.expandedMenus[item.label];
+    if (this.isCollapsed() && this.openFlyout === item.label) {
+      this.openFlyout = null;
     }
   }
 
   isMenuExpanded(label: string): boolean {
-    return !!this.expandedMenus[label];
+    return this.isCollapsed() ? this.openFlyout === label : !!this.expandedMenus[label];
   }
 
   private checkActiveRoute() {
