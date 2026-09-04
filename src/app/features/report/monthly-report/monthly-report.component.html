@@ -115,20 +115,20 @@
                 <i class="fas fa-times me-2"></i> Clear
               </button>
               <button type="button" class="btn btn-info ms-auto" (click)="exportSummary()"
-                [disabled]="isExporting || !filters.tipe || reportData.length === 0">
-                <span *ngIf="!isExporting">
+                [disabled]="isExportingSummary || !filters.tipe || reportData.length === 0">
+                <span *ngIf="!isExportingSummary">
                   <i class="fas fa-th me-2"></i> Export Summary
                 </span>
-                <span *ngIf="isExporting">
+                <span *ngIf="isExportingSummary">
                   <span class="spinner-border spinner-border-sm me-2"></span> Exporting...
                 </span>
               </button>
               <button type="button" class="btn btn-success" (click)="exportDetail()"
-                [disabled]="isExporting || !filters.tipe || reportData.length === 0">
-                <span *ngIf="!isExporting">
+                [disabled]="isExportingDetail || !filters.tipe || reportData.length === 0">
+                <span *ngIf="!isExportingDetail">
                   <i class="fas fa-file-excel me-2"></i> Export Detail
                 </span>
-                <span *ngIf="isExporting">
+                <span *ngIf="isExportingDetail">
                   <span class="spinner-border spinner-border-sm me-2"></span> Exporting...
                 </span>
               </button>

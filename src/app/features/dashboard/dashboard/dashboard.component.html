@@ -83,7 +83,7 @@
   <!-- Main Content Row -->
   <div class="row mb-4">
     <!-- Daily Chart -->
-    <div class="col-lg-5 col-md-12 mb-3">
+    <div class="col-lg-6 col-md-12 mb-3">
       <div class="card">
         <div class="card-header">
           <i class="fas fa-chart-line"></i>
@@ -113,7 +113,7 @@
     </div>
 
     <!-- Shift Scan Table -->
-    <div class="col-lg-4 col-md-12 mb-3">
+    <div class="col-lg-6 col-md-12 mb-3">
       <div class="card">
         <div class="card-header">
           <i class="fas fa-chart-bar"></i>
@@ -168,9 +168,11 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Warehouse Items -->
-    <div class="col-lg-3 col-md-12 mb-3">
+  <!-- Warehouse Chart Row (moved below, spans full width so all items show horizontally) -->
+  <div class="row mb-4">
+    <div class="col-12 mb-3">
       <div class="card">
         <div class="card-header">
           <i class="fas fa-boxes"></i>
@@ -181,29 +183,31 @@
             </button>
           </div>
         </div>
-        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-          <div *ngFor="let item of warehouseItems" 
-               class="info-box mb-3" 
-               [ngClass]="'bg-' + getItemColor(item.item)">
-            <span class="info-box-icon"><i class="fas fa-box"></i></span>
-            <div class="info-box-content">
-              <span class="info-box-text" style="font-size: 14px; font-weight: 600;">
-                {{ item.item }}
-              </span>
-              <span class="info-box-number" style="font-size: 18px;">
-                {{ formatNumber(item.total) }}
-              </span>
-              <div class="progress">
-                <div class="progress-bar" [style.width.%]="parseFloatValue(item.status)"></div>
+        <div class="card-body">
+          <div class="row">
+            <div *ngFor="let item of warehouseItems" class="col-lg-3 col-md-4 col-sm-6 mb-3">
+              <div class="info-box" [ngClass]="'bg-' + getItemColor(item.item)">
+                <span class="info-box-icon"><i class="fas fa-box"></i></span>
+                <div class="info-box-content">
+                  <span class="info-box-text" style="font-size: 14px; font-weight: 600;">
+                    {{ item.item }}
+                  </span>
+                  <span class="info-box-number" style="font-size: 18px;">
+                    {{ formatNumber(item.total) }}
+                  </span>
+                  <div class="progress">
+                    <div class="progress-bar" [style.width.%]="parseFloatValue(item.status)"></div>
+                  </div>
+                  <span class="progress-description" style="font-size: 12px;">
+                    {{ parseFloatValue(item.status).toFixed(2) }}% of Stock in Warehouse
+                  </span>
+                </div>
               </div>
-              <span class="progress-description" style="font-size: 12px;">
-                {{ parseFloatValue(item.status).toFixed(2) }}% of Stock in Warehouse
-              </span>
             </div>
-          </div>
-          <div *ngIf="warehouseItems.length === 0" class="text-center text-muted py-3">
-            <i class="fas fa-inbox fs-4 d-block mb-2"></i>
-            No warehouse items
+            <div *ngIf="warehouseItems.length === 0" class="col-12 text-center text-muted py-3">
+              <i class="fas fa-inbox fs-4 d-block mb-2"></i>
+              No warehouse items
+            </div>
           </div>
         </div>
       </div>

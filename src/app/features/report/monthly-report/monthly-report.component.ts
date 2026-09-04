@@ -58,7 +58,8 @@ export class MonthlyReportComponent implements OnInit {
   };
 
   isLoading = false;
-  isExporting = false;
+  isExportingSummary = false;
+  isExportingDetail = false;
   errorMessage = '';
   successMessage = '';
 
@@ -199,13 +200,14 @@ export class MonthlyReportComponent implements OnInit {
       return;
     }
 
-    this.isExporting = true;
+    this.isExportingSummary = true;
     this.errorMessage = '';
 
     let params = new HttpParams()
       .set('tipe', this.filters.tipe)
       .set('tanggal1', this.filters.tanggal1)
-      .set('tanggal2', this.filters.tanggal2);
+      .set('tanggal2', this.filters.tanggal2)
+      .set('periode', 'monthly');
 
     this.http.get(`${environment.apiUrl}/reports/summary/export`, { params, responseType: 'blob' }).subscribe({
       next: (blob) => {
@@ -218,12 +220,12 @@ export class MonthlyReportComponent implements OnInit {
 
         this.successMessage = 'Summary matrix exported successfully!';
         setTimeout(() => this.successMessage = '', 3000);
-        this.isExporting = false;
+        this.isExportingSummary = false;
       },
       error: (err) => {
         console.error('❌ Export error:', err);
         this.errorMessage = 'Failed to export summary report';
-        this.isExporting = false;
+        this.isExportingSummary = false;
       }
     });
   }
@@ -234,7 +236,7 @@ export class MonthlyReportComponent implements OnInit {
       return;
     }
 
-    this.isExporting = true;
+    this.isExportingDetail = true;
     this.errorMessage = '';
 
     let params = new HttpParams().set('tipe', this.filters.tipe);
@@ -256,12 +258,12 @@ export class MonthlyReportComponent implements OnInit {
 
         this.successMessage = 'Detail report exported successfully!';
         setTimeout(() => this.successMessage = '', 3000);
-        this.isExporting = false;
+        this.isExportingDetail = false;
       },
       error: (err) => {
         console.error('❌ Export error:', err);
         this.errorMessage = 'Failed to export detail report';
-        this.isExporting = false;
+        this.isExportingDetail = false;
       }
     });
   }

@@ -37,7 +37,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 100px;
+  min-height: 140px;
 
   &:hover {
     transform: translateY(-5px);
@@ -423,7 +423,7 @@
   }
 
   .stat-card {
-    min-height: 80px;
+    min-height: 110px;
     padding: 15px;
 
     .stat-inner .stat-value {

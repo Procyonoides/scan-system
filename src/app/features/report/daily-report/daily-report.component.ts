@@ -232,7 +232,8 @@ export class DailyReportComponent implements OnInit {
     let params = new HttpParams()
       .set('tipe', this.filters.tipe)
       .set('tanggal1', this.filters.tanggal1)
-      .set('tanggal2', this.filters.tanggal2);
+      .set('tanggal2', this.filters.tanggal2)
+      .set('periode', 'daily');
 
     this.http.get(`${environment.apiUrl}/reports/summary/export`, { params, responseType: 'blob' }).subscribe({
       next: (blob) => {

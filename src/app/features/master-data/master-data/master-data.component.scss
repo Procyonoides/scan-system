@@ -80,6 +80,20 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+
+    .btn {
+      border-radius: 6px;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      i {
+        font-size: 0.85rem;
+      }
+    }
   }
 }
 
@@ -844,4 +858,3 @@
     }
   }
 }
-
