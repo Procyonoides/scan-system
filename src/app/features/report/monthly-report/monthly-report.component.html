@@ -96,10 +96,17 @@
             <label class="form-label fw-semibold">
               <i class="fas fa-calendar me-1"></i> Date Range
             </label>
-            <div class="d-flex gap-2">
-              <input type="date" class="form-control" [(ngModel)]="filters.tanggal1" name="tanggal1">
-              <span class="align-self-center">to</span>
-              <input type="date" class="form-control" [(ngModel)]="filters.tanggal2" name="tanggal2">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+              <input type="text" class="form-control" name="daterange"
+                ngxDaterangepickerMd
+                [(ngModel)]="selectedDateRange"
+                (datesUpdated)="onDateRangeSelected($event)"
+                [locale]="{ format: 'DD MMMM YYYY', separator: ' - ' }"
+                [autoApply]="true"
+                [linkedCalendars]="true"
+                [showCancel]="true"
+                readonly>
             </div>
           </div>
         </div>

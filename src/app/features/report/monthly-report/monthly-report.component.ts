@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import dayjs, { Dayjs } from 'dayjs';
+import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterangepicker-material';
 
 interface MonthlyReportData {
   no: number;
@@ -25,7 +27,11 @@ interface FilterOptions {
 @Component({
   selector: 'app-monthly-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
+  providers: [
+    { provide: LOCALE_CONFIG, useValue: {} },
+    { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
+  ],
   templateUrl: './monthly-report.component.html',
   styleUrl: './monthly-report.component.scss'
 })
@@ -40,6 +46,11 @@ export class MonthlyReportComponent implements OnInit {
     user: '',
     tanggal1: '',
     tanggal2: ''
+  };
+
+  selectedDateRange: { startDate: Dayjs; endDate: Dayjs } = {
+    startDate: dayjs(),
+    endDate: dayjs()
   };
 
   reportData: MonthlyReportData[] = [];
@@ -73,6 +84,13 @@ export class MonthlyReportComponent implements OnInit {
 
     this.filters.tanggal1 = firstDay.toISOString().split('T')[0];
     this.filters.tanggal2 = lastDay.toISOString().split('T')[0];
+    this.selectedDateRange = { startDate: dayjs(firstDay), endDate: dayjs(lastDay) };
+  }
+
+  onDateRangeSelected(range: { startDate: Dayjs; endDate: Dayjs }) {
+    this.selectedDateRange = range;
+    this.filters.tanggal1 = range.startDate.format('YYYY-MM-DD');
+    this.filters.tanggal2 = range.endDate.format('YYYY-MM-DD');
   }
 
   loadFilterOptions() {
@@ -161,6 +179,7 @@ export class MonthlyReportComponent implements OnInit {
       tanggal1: firstDay.toISOString().split('T')[0],
       tanggal2: lastDay.toISOString().split('T')[0]
     };
+    this.selectedDateRange = { startDate: dayjs(firstDay), endDate: dayjs(lastDay) };
     this.reportData = [];
     this.filteredData = [];
     this.grandTotal = 0;

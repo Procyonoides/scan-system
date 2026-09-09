@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import dayjs, { Dayjs } from 'dayjs';
+import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterangepicker-material';
 
 interface DailyReportData {
   date_time: string;
@@ -27,7 +29,11 @@ interface FilterOptions {
 @Component({
   selector: 'app-daily-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
+  providers: [
+    { provide: LOCALE_CONFIG, useValue: {} },
+    { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
+  ],
   templateUrl: './daily-report.component.html',
   styleUrl: './daily-report.component.scss'
 })
@@ -42,6 +48,11 @@ export class DailyReportComponent implements OnInit {
     user: '',
     tanggal1: '',
     tanggal2: ''
+  };
+
+  selectedDateRange: { startDate: Dayjs; endDate: Dayjs } = {
+    startDate: dayjs(),
+    endDate: dayjs()
   };
 
   reportData: DailyReportData[] = [];
@@ -61,6 +72,7 @@ export class DailyReportComponent implements OnInit {
   isLoading = false;
   isExporting = false;
   isExportingSummary = false;
+  isExportingHourly = false;
   errorMessage = '';
   successMessage = '';
 
@@ -71,6 +83,12 @@ export class DailyReportComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     this.filters.tanggal1 = today;
     this.filters.tanggal2 = today;
+  }
+
+  onDateRangeSelected(range: { startDate: Dayjs; endDate: Dayjs }) {
+    this.selectedDateRange = range;
+    this.filters.tanggal1 = range.startDate.format('YYYY-MM-DD');
+    this.filters.tanggal2 = range.endDate.format('YYYY-MM-DD');
   }
 
   loadFilterOptions() {
@@ -150,6 +168,7 @@ export class DailyReportComponent implements OnInit {
       tanggal1: '',
       tanggal2: ''
     };
+    this.selectedDateRange = { startDate: dayjs(), endDate: dayjs() };
     this.reportData = [];
     this.filteredData = [];
   }
@@ -252,6 +271,41 @@ export class DailyReportComponent implements OnInit {
         console.error('❌ Summary export error:', err);
         this.errorMessage = 'Failed to export summary report';
         this.isExportingSummary = false;
+      }
+    });
+  }
+
+  exportHourly() {
+    if (!this.filters.tipe) {
+      this.errorMessage = 'Please filter data first';
+      return;
+    }
+
+    this.isExportingHourly = true;
+    this.errorMessage = '';
+
+    let params = new HttpParams()
+      .set('tipe', this.filters.tipe)
+      .set('tanggal1', this.filters.tanggal1)
+      .set('tanggal2', this.filters.tanggal2);
+
+    this.http.get(`${environment.apiUrl}/reports/hourly/export`, { params, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Hourly_${this.filters.tipe.toUpperCase()}_${this.filters.tanggal1}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        this.successMessage = 'Hourly report exported successfully!';
+        setTimeout(() => this.successMessage = '', 3000);
+        this.isExportingHourly = false;
+      },
+      error: (err) => {
+        console.error('❌ Hourly export error:', err);
+        this.errorMessage = 'Failed to export hourly report';
+        this.isExportingHourly = false;
       }
     });
   }
