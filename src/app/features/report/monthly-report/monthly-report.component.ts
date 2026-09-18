@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs/esm';
+import utc from 'dayjs/esm/plugin/utc';
+dayjs.extend(utc);
 import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterangepicker-material';
 
 interface MonthlyReportData {

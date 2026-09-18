@@ -517,12 +517,15 @@ export class ScanShippingComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         console.error('❌ Print detail error:', err);
-        this.errorMessage = 'Failed to download detail report';
         this.isPrintingDetail = false;
-
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
+        this.parseBlobError(err, (message) => {
+          if (err.status === 404) {
+            this.errorMessage = 'Belum ada data scan hari ini. Lakukan scan terlebih dahulu sebelum mencetak detail.';
+          } else {
+            this.errorMessage = message || 'Gagal mengunduh laporan detail';
+          }
+          setTimeout(() => { this.errorMessage = ''; }, 5000);
+        });
       }
     });
   }
@@ -550,14 +553,39 @@ export class ScanShippingComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (err) => {
         console.error('❌ Print summary error:', err);
-        this.errorMessage = 'Failed to download summary report';
         this.isPrintingSummary = false;
-
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 5000);
+        this.parseBlobError(err, (message) => {
+          if (err.status === 404) {
+            this.errorMessage = 'Belum ada data scan hari ini. Lakukan scan terlebih dahulu sebelum mencetak summary.';
+          } else {
+            this.errorMessage = message || 'Gagal mengunduh laporan summary';
+          }
+          setTimeout(() => { this.errorMessage = ''; }, 5000);
+        });
       }
     });
+  }
+
+  /**
+   * The print-detail/print-summary requests use responseType: 'blob' (since
+   * a successful response is an .xlsx file), so when the backend instead
+   * sends back a JSON error (e.g. 404 "No data"), Angular hands it to us as
+   * a Blob rather than a parsed object. Read it out so we can show the
+   * actual backend message when useful.
+   */
+  private parseBlobError(err: any, callback: (message: string) => void) {
+    if (err?.error instanceof Blob) {
+      err.error.text().then((text: string) => {
+        try {
+          const parsed = JSON.parse(text);
+          callback(parsed?.error || parsed?.message || '');
+        } catch {
+          callback('');
+        }
+      }).catch(() => callback(''));
+    } else {
+      callback(err?.error?.error || err?.error?.message || '');
+    }
   }
 
   /**

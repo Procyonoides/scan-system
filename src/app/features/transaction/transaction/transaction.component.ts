@@ -257,7 +257,7 @@ export class TransactionComponent implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Transaction_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.download = `Transaction_${new Date().toISOString().slice(0, 10)}.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
