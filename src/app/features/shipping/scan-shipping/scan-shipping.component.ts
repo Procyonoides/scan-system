@@ -126,7 +126,7 @@ export class ScanShippingComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (update) => {
-          if (update.type === 'SHIPPING' || update.type === 'SHIPPING_BATCH') {
+          if (['SHIPPING', 'SHIPPING_BATCH', 'SHIPPING_EDIT', 'SHIPPING_DELETE'].includes(update.type)) {
             this.loadTodayScans();
           }
         },

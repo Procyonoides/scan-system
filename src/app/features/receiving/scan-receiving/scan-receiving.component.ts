@@ -126,7 +126,7 @@ export class ScanReceivingComponent implements OnInit, OnDestroy, AfterViewInit 
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (update) => {
-          if (update.type === 'RECEIVING' || update.type === 'RECEIVING_BATCH') {
+          if (['RECEIVING', 'RECEIVING_BATCH', 'RECEIVING_EDIT', 'RECEIVING_DELETE'].includes(update.type)) {
             this.loadTodayScans();
           }
         },

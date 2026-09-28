@@ -153,9 +153,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (update) => {
           console.log('⚡ Real-time update received:', update);
           
-          if (update.type === 'RECEIVING') {
+          if (['RECEIVING', 'RECEIVING_BATCH', 'RECEIVING_EDIT', 'RECEIVING_DELETE'].includes(update.type)) {
             this.handleReceivingUpdate(update);
-          } else if (update.type === 'SHIPPING') {
+          } else if (['SHIPPING', 'SHIPPING_BATCH', 'SHIPPING_EDIT', 'SHIPPING_DELETE'].includes(update.type)) {
             this.handleShippingUpdate(update);
           }
         },
@@ -300,27 +300,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
       console.warn('⚠️ No warehouse items in update');
     }
     
-    // Add to receiving list (prepend)
-    const newItem = {
-      date_time: this.formatDateTime(update.timestamp),
-      original_barcode: update.barcode,
-      model: update.model,
-      color: update.color,
-      size: update.size,
-      item: update.item,
-      quantity: update.quantity,
-      username: update.username,
-      scan_no: update.scan_no || 0
-    };
-    
-    this.receivingList.unshift(newItem);
-    
-    // Keep only last 10 items
-    if (this.receivingList.length > 10) {
-      this.receivingList = this.receivingList.slice(0, 10);
+    // Add to receiving list (prepend) - only for actual new scans; edit/delete
+    // events don't carry per-scan detail fields (barcode/model/etc), just
+    // the recalculated stats handled above.
+    if (update.barcode !== undefined) {
+      const newItem = {
+        date_time: this.formatDateTime(update.timestamp),
+        original_barcode: update.barcode,
+        model: update.model,
+        color: update.color,
+        size: update.size,
+        item: update.item,
+        quantity: update.quantity,
+        username: update.username,
+        scan_no: update.scan_no || 0
+      };
+
+      this.receivingList.unshift(newItem);
+
+      // Keep only last 10 items
+      if (this.receivingList.length > 10) {
+        this.receivingList = this.receivingList.slice(0, 10);
+      }
+
+      console.log('✅ Receiving list updated (real-time)', newItem);
+    } else {
+      // Edit/delete event - no single new row to prepend, so re-fetch the
+      // list from the server instead of leaving the deleted/edited row
+      // stuck on screen until the next manual refresh.
+      this.dashboardService.getReceivingList().subscribe({
+        next: (list) => {
+          this.receivingList = list;
+          console.log('🔄 Receiving list re-fetched after edit/delete');
+        },
+        error: (err) => console.error('❌ Failed to refresh receiving list:', err)
+      });
     }
-    
-    console.log('✅ Receiving list updated (real-time)', newItem);
   }
 
   /**
@@ -366,27 +381,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
       console.warn('⚠️ No warehouse items in update');
     }
     
-    // Add to shipping list (prepend)
-    const newItem = {
-      date_time: this.formatDateTime(update.timestamp),
-      original_barcode: update.barcode,
-      model: update.model,
-      color: update.color,
-      size: update.size,
-      item: update.item,
-      quantity: update.quantity,
-      username: update.username,
-      scan_no: update.scan_no || 0
-    };
-    
-    this.shippingList.unshift(newItem);
-    
-    // Keep only last 10 items
-    if (this.shippingList.length > 10) {
-      this.shippingList = this.shippingList.slice(0, 10);
-    }
+    // Add to shipping list (prepend) - only for actual new scans; edit/delete
+    // events don't carry per-scan detail fields (barcode/model/etc), just
+    // the recalculated stats handled above.
+    if (update.barcode !== undefined) {
+      const newItem = {
+        date_time: this.formatDateTime(update.timestamp),
+        original_barcode: update.barcode,
+        model: update.model,
+        color: update.color,
+        size: update.size,
+        item: update.item,
+        quantity: update.quantity,
+        username: update.username,
+        scan_no: update.scan_no || 0
+      };
 
-    console.log('✅ Shipping list updated (real-time)', newItem);
+      this.shippingList.unshift(newItem);
+
+      // Keep only last 10 items
+      if (this.shippingList.length > 10) {
+        this.shippingList = this.shippingList.slice(0, 10);
+      }
+
+      console.log('✅ Shipping list updated (real-time)', newItem);
+    } else {
+      // Edit/delete event - re-fetch the list from the server instead of
+      // leaving the deleted/edited row stuck on screen.
+      this.dashboardService.getShippingList().subscribe({
+        next: (list) => {
+          this.shippingList = list;
+          console.log('🔄 Shipping list re-fetched after edit/delete');
+        },
+        error: (err) => console.error('❌ Failed to refresh shipping list:', err)
+      });
+    }
   }
 
   /**
