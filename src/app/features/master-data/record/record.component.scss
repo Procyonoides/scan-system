@@ -1,6 +1,6 @@
 
 .container-fluid {
-    padding: 2rem;
+    padding: 1.25rem 2rem 1.5rem;
 }
 
 .card {
@@ -9,10 +9,29 @@
     border: none;
 }
 
+.filter-card {
+    overflow: visible; // biar popup date-range calendar bisa render keluar kartu
+}
+
+// Override global .input-group yang didesain untuk ikon di kanan;
+// di sini ikon (calendar, search) ada di KIRI, jadi border-nya dibalik.
+.filter-card .input-group,
+.records-card .input-group {
+    .input-group-text {
+        border-left: 1px solid var(--border-color);
+        border-right: none;
+    }
+
+    .form-control {
+        border-left: none;
+        border-right: 1px solid var(--border-color);
+    }
+}
+
 .filter-card-header {
     background: linear-gradient(135deg, #0f3460 0%, #16213e 100%) !important;
     color: #fff;
-    min-height: 52px;
+    min-height: 42px;
     gap: 1rem;
 }
 
@@ -40,7 +59,7 @@
 .records-card .card-header {
     background: #16213e !important;
     color: #fff;
-    min-height: 52px;
+    min-height: 38px;
 }
 
 .records-card .card-header label {
@@ -211,10 +230,6 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 48px;
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-    line-height: 1.5;
 }
 
 @media (max-width: 768px) {
@@ -248,5 +263,17 @@
 
     .records-page-count {
         order: 3;
+    }
+}
+
+// Override global .form-control/.form-select yang mengunci padding besar,
+// supaya class -sm bawaan Bootstrap bisa berfungsi di halaman ini.
+.filter-card-header,
+.filter-card .card-body,
+.records-card .card-header {
+    .form-control-sm,
+    .form-select-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
     }
 }

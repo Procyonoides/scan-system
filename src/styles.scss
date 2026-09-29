@@ -365,3 +365,26 @@ body {
     }
   }
 }
+
+/* Fix ngx-daterangepicker-material: angka tanggal jadi invisible
+   karena warnanya ikut mewarisi (inherit) warna teks tema gelap */
+.md-drppicker {
+    color: #333 !important;
+    z-index: 1050 !important;
+
+    td.off,
+    td.off.in-range,
+    td.off.start-date,
+    td.off.end-date {
+        color: #999 !important;
+    }
+
+    td.active,
+    td.active:hover {
+        color: #fff !important;
+    }
+
+    td.disabled {
+        color: #999 !important;
+    }
+}
