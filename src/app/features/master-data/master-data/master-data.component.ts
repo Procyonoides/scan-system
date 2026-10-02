@@ -665,33 +665,51 @@ export class MasterDataComponent implements OnInit, OnDestroy {
   downloadFormatExcel() {
     console.log('📥 Downloading format Excel...');
 
-    const headers = [
-      'original_barcode', 'brand', 'color', 'size', 'four_digit', 'unit',
-      'quantity', 'production', 'model', 'model_code', 'item', 'stock'
-    ];
+    this.http.get(`${environment.apiUrl}/master-data/format-excel`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Format_Import_Master_Data.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
 
-    const sampleRow = [
-      'SAMPLE123', 'ADIDAS', 'BLACK', '10', '0036', 'PRS',
-      '100', 'PT HSK REMBANG', 'BOOST', 'BST', 'IP', '0'
-    ];
-
-    let csvContent = headers.join(',') + '\n';
-    csvContent += sampleRow.join(',') + '\n';
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Format_Import_Master_Data.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    this.successMessage = 'Format Excel downloaded successfully!';
-    setTimeout(() => this.successMessage = '', 3000);
+          this.successMessage = 'Format Excel downloaded successfully!';
+          setTimeout(() => this.successMessage = '', 3000);
+        },
+        error: (err) => {
+          console.error('❌ Failed to download format Excel:', err);
+          this.errorMessage = 'Failed to download format Excel';
+          setTimeout(() => this.errorMessage = '', 3000);
+        }
+      });
   }
 
-  printMasterData() {
-    console.log('🖨️ Printing master data...');
-    window.print();
-  }
+  exportMasterData() {
+    console.log('📥 Exporting master data to Excel...');
+    this.isLoading = true;
+
+    this.http.get(`${environment.apiUrl}/master-data/export`, { responseType: 'blob' })
+        .subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Master_Data.xlsx';
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+                this.successMessage = 'Master data exported successfully!';
+                this.isLoading = false;
+                setTimeout(() => this.successMessage = '', 3000);
+            },
+            error: (err) => {
+                console.error('❌ Failed to export master data:', err);
+                this.errorMessage = 'Failed to export master data';
+                this.isLoading = false;
+                setTimeout(() => this.errorMessage = '', 3000);
+            }
+        });
+    }
 }
