@@ -29,15 +29,14 @@ interface FilterOptions {
 }
 
 @Component({
-  selector: 'app-daily-report',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
-  providers: [
-    { provide: LOCALE_CONFIG, useValue: {} },
-    { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
-  ],
-  templateUrl: './daily-report.component.html',
-  styleUrl: './daily-report.component.scss'
+    selector: 'app-daily-report',
+    imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
+    providers: [
+        { provide: LOCALE_CONFIG, useValue: {} },
+        { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
+    ],
+    templateUrl: './daily-report.component.html',
+    styleUrl: './daily-report.component.scss'
 })
 export class DailyReportComponent implements OnInit {
   Math = Math;

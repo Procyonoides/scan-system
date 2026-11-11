@@ -6,11 +6,10 @@ import { AuthService } from '../../../core/auth/auth.service';
 
 
 @Component({
-  selector: 'app-transaction',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './transaction.component.html',
-  styleUrl: './transaction.component.scss'
+    selector: 'app-transaction',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './transaction.component.html',
+    styleUrl: './transaction.component.scss'
 })
 export class TransactionComponent implements OnInit {
 

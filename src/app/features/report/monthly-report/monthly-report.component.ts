@@ -27,15 +27,14 @@ interface FilterOptions {
 }
 
 @Component({
-  selector: 'app-monthly-report',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
-  providers: [
-    { provide: LOCALE_CONFIG, useValue: {} },
-    { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
-  ],
-  templateUrl: './monthly-report.component.html',
-  styleUrl: './monthly-report.component.scss'
+    selector: 'app-monthly-report',
+    imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
+    providers: [
+        { provide: LOCALE_CONFIG, useValue: {} },
+        { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
+    ],
+    templateUrl: './monthly-report.component.html',
+    styleUrl: './monthly-report.component.scss'
 })
 export class MonthlyReportComponent implements OnInit {
   Math = Math;

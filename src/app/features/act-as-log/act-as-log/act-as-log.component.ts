@@ -16,11 +16,10 @@ interface ActAsLogEntry {
 }
 
 @Component({
-  selector: 'app-act-as-log',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './act-as-log.component.html',
-  styleUrl: './act-as-log.component.scss'
+    selector: 'app-act-as-log',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './act-as-log.component.html',
+    styleUrl: './act-as-log.component.scss'
 })
 export class ActAsLogComponent implements OnInit {
 

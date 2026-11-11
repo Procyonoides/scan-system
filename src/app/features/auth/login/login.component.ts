@@ -5,11 +5,10 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss'
 })
 export class LoginComponent {
   loginForm = this.fb.group({

@@ -7,7 +7,6 @@ import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-backup',
-    standalone: true,
     imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './backup.component.html',
     styleUrl: './backup.component.scss'

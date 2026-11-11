@@ -32,11 +32,10 @@ interface WarehouseUpdate {
 }
 
 @Component({
-  selector: 'app-stock',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './stock.component.html',
-  styleUrl: './stock.component.scss'
+    selector: 'app-stock',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './stock.component.html',
+    styleUrl: './stock.component.scss'
 })
 export class StockComponent implements OnInit, OnDestroy {
   stockList: Stock[] = [];

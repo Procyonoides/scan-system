@@ -12,7 +12,6 @@ import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterang
 
 @Component({
     selector: 'app-record',
-    standalone: true,
     imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, NgxDaterangepickerMd],
     providers: [
         { provide: LOCALE_CONFIG, useValue: {} },

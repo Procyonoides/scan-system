@@ -6,11 +6,10 @@ import { Subscription, interval } from 'rxjs';
 import { SidebarStateService } from '../../services/sidebar-state.service';
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.scss'
+    selector: 'app-navbar',
+    imports: [CommonModule],
+    templateUrl: './navbar.component.html',
+    styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   currentTime = '';

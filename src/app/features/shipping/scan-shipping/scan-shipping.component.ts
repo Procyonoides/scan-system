@@ -44,11 +44,10 @@ interface ScanResponse {
 }
 
 @Component({
-  selector: 'app-scan-shipping',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
-  templateUrl: './scan-shipping.component.html',
-  styleUrl: './scan-shipping.component.scss'
+    selector: 'app-scan-shipping',
+    imports: [CommonModule, ReactiveFormsModule, FormsModule],
+    templateUrl: './scan-shipping.component.html',
+    styleUrl: './scan-shipping.component.scss'
 })
 export class ScanShippingComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('barcodeInput') barcodeInput!: ElementRef<HTMLInputElement>;

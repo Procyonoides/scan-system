@@ -7,11 +7,10 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-option',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './option.component.html',
-  styleUrl: './option.component.scss'
+    selector: 'app-option',
+    imports: [CommonModule, FormsModule, RouterModule],
+    templateUrl: './option.component.html',
+    styleUrl: './option.component.scss'
 })
 export class OptionComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();

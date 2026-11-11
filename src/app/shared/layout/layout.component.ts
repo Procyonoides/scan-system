@@ -10,11 +10,10 @@ import { AuthService } from '../../core/auth/auth.service';
 import { SidebarStateService } from '../services/sidebar-state.service';
 
 @Component({
-  selector: 'app-layout',
-  standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
-  templateUrl: './layout.component.html',
-  styleUrl: './layout.component.scss'
+    selector: 'app-layout',
+    imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
+    templateUrl: './layout.component.html',
+    styleUrl: './layout.component.scss'
 })
 export class LayoutComponent implements OnInit, OnDestroy {
   isMobile = signal(false);

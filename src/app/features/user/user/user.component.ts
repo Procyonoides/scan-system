@@ -14,11 +14,10 @@ interface User {
 }
 
 @Component({
-  selector: 'app-user',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './user.component.html',
-  styleUrl: './user.component.scss'
+    selector: 'app-user',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './user.component.html',
+    styleUrl: './user.component.scss'
 })
 export class UserComponent implements OnInit {
 

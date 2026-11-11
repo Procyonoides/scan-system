@@ -35,11 +35,10 @@ interface FilterOptions {
 }
 
 @Component({
-  selector: 'app-master-data',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
-  templateUrl: './master-data.component.html',
-  styleUrl: './master-data.component.scss'
+    selector: 'app-master-data',
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
+    templateUrl: './master-data.component.html',
+    styleUrl: './master-data.component.scss'
 })
 export class MasterDataComponent implements OnInit, OnDestroy {
   masterDataList: MasterDataItem[] = [];
