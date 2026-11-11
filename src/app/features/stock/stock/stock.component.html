@@ -9,21 +9,25 @@
       <p class="page-subtitle">Monitor and manage your warehouse inventory</p>
     </div>
   </div>
-  
+
   <!-- Loading Overlay -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="spinner-wrapper">
-      <div class="spinner-border text-primary"></div>
-      <p class="loading-text">Loading stock data...</p>
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner-wrapper">
+        <div class="spinner-border text-primary"></div>
+        <p class="loading-text">Loading stock data...</p>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Error Message -->
-  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    {{ errorMessage }}
-    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
-  </div>
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
 
   <!-- Filter & Search Card -->
   <div class="card filter-card">
@@ -34,9 +38,9 @@
           <label class="form-label fw-semibold">
             <i class="bi bi-list-ul me-1"></i> Show Entries
           </label>
-          <select 
-            class="form-select form-select-lg" 
-            [(ngModel)]="itemsPerPage" 
+          <select
+            class="form-select form-select-lg"
+            [(ngModel)]="itemsPerPage"
             (change)="onItemsPerPageChange()">
             <option [value]="10">10 entries</option>
             <option [value]="25">25 entries</option>
@@ -54,186 +58,191 @@
             <span class="input-group-text bg-white">
               <i class="bi bi-search"></i>
             </span>
-            <input 
-              type="text" 
-              class="form-control" 
+            <input
+              type="text"
+              class="form-control"
               [(ngModel)]="searchTerm"
               (keyup.enter)="onSearch()"
               placeholder="Search by model, color, brand, production...">
-            <button class="btn btn-primary px-4" (click)="onSearch()" type="button">
-              <i class="bi bi-search me-1"></i> Search
+              <button class="btn btn-primary px-4" (click)="onSearch()" type="button">
+                <i class="bi bi-search me-1"></i> Search
+              </button>
+            </div>
+          </div>
+
+          <!-- Clear Filter -->
+          <div class="col-md-3">
+            <button class="btn btn-outline-secondary btn-lg w-100" (click)="clearFilters()" type="button">
+              <i class="bi bi-x-circle me-1"></i> Clear Filters
             </button>
           </div>
         </div>
-
-        <!-- Clear Filter -->
-        <div class="col-md-3">
-          <button class="btn btn-outline-secondary btn-lg w-100" (click)="clearFilters()" type="button">
-            <i class="bi bi-x-circle me-1"></i> Clear Filters
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stock Table Card -->
-  <div class="card table-card">
-    <div class="card-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="card-title mb-0">
-            <i class="bi bi-table me-2"></i> Stock Data
-          </h5><br>
-          <small class="text-muted">Total: {{ totalItems }} items</small>
-        </div>
-        <div class="header-actions">
-          <button class="btn btn-success btn-sm" title="Export to Excel">
-            <i class="bi bi-file-earmark-excel"></i> Export
-          </button>
-          <button class="btn btn-primary btn-sm" title="Refresh Data" (click)="loadStock()">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-          </button>
-        </div>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-hover table-striped mb-0 elegant-table">
-        <thead>
-          <tr>
-            <th width="60" class="text-center">#</th>
-            <th>MODEL</th>
-            <th width="100">COLOR</th>
-            <th width="80" class="text-center">SIZE</th>
-            <th width="100">BRAND</th>
-            <th width="100">ITEM</th>
-            <th width="120">PRODUCTION</th>
-            <th width="140" class="text-center">STATUS</th>
-            <th width="100" class="text-center">PERCENT</th>
-            <th width="120" class="text-center">STOCK</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of filteredStocks; let i = index" class="table-row">
-            <td class="text-center fw-semibold text-muted">
-              {{ ((currentPage - 1) * itemsPerPage) + i + 1 }}
-            </td>
-            <td class="fw-semibold text-primary">{{ item.model || '-' }}</td>
-            <td>
-              <span class="color-badge">{{ item.color || '-' }}</span>
-            </td>
-            <td class="text-center">
-              <span class="size-badge">{{ item.size || '-' }}</span>
-            </td>
-            <td>{{ item.brand || '-' }}</td>
-            <td>
-              <span class="item-badge">{{ item.item || '-' }}</span>
-            </td>
-            <td><small class="text-muted">{{ item.production || '-' }}</small></td>
-            <td class="text-center">
-              <span 
-                class="status-badge" 
-                [ngClass]="getProductionStatusBadgeClass(item.status_production)">
-                <i class="bi" [ngClass]="item.status_production === 'RUN' ? 'bi-play-fill' : 'bi-pause-fill'"></i>
-                {{ item.status_production || 'N/A' }}
-              </span>
-            </td>
-            <td class="text-center">
-              <div class="progress-wrapper">
-                <div class="progress">
-                  <div 
-                    class="progress-bar" 
-                    [style.width.%]="item.percentage || 0"
-                    [ngClass]="getPercentageClass(item.percentage)">
-                  </div>
-                </div>
-                <span class="progress-label">{{ item.percentage || 0 }}%</span>
-              </div>
-            </td>
-            <td class="text-center">
-              <span class="badge" [ngClass]="item.stock_akhir > 0 ? 'bg-success' : 'bg-danger'">
-                {{ item.stock_akhir | number }}
-              </span>
-            </td>
-          </tr>
-
-          <!-- Empty State -->
-          <tr *ngIf="filteredStocks.length === 0 && !isLoading">
-            <td colspan="10" class="text-center py-5 empty-state">
-              <div class="empty-icon">
-                <i class="bi bi-inbox"></i>
-              </div>
-              <h5 class="mt-3">{{ searchTerm ? 'No matching stock found' : 'No stock data available' }}</h5>
-              <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'Start by adding stock items' }}</p>
-            </td>
-          </tr>
-
-          <!-- Loading State -->
-          <tr *ngIf="isLoading">
-            <td colspan="10" class="text-center py-5">
-              <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-              <span class="text-muted">Loading stock data...</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination Footer -->
-    <div class="card-footer" *ngIf="totalPages > 0">
-      <div class="row align-items-center">
-        <div class="col-md-6">
-          <div class="pagination-info">
-            <i class="bi bi-info-circle me-2"></i>
-            Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to 
-            <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of 
-            <strong>{{ totalItems }}</strong> entries
+    <!-- Stock Table Card -->
+    <div class="card table-card">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="card-title mb-0">
+              <i class="bi bi-table me-2"></i> Stock Data
+            </h5><br>
+            <small class="text-muted">Total: {{ totalItems }} items</small>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-success btn-sm" title="Export to Excel">
+              <i class="bi bi-file-earmark-excel"></i> Export
+            </button>
+            <button class="btn btn-primary btn-sm" title="Refresh Data" (click)="loadStock()">
+              <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
           </div>
         </div>
-        <div class="col-md-6">
-          <nav>
-            <ul class="pagination pagination-elegant justify-content-end mb-0">
-              <!-- First Page -->
-              <li class="page-item" [class.disabled]="currentPage === 1">
-                <a class="page-link page-first" (click)="goToPage(1)" title="First Page">
-                  <i class="bi bi-chevron-double-left"></i>
-                </a>
-              </li>
-
-              <!-- Previous Page -->
-              <li class="page-item" [class.disabled]="currentPage === 1">
-                <a class="page-link" (click)="goToPage(currentPage - 1)" title="Previous">
-                  <i class="bi bi-chevron-left"></i>
-                  <span class="d-none d-sm-inline ms-1">Prev</span>
-                </a>
-              </li>
-
-              <!-- Page Numbers -->
-              <li 
-                class="page-item" 
-                *ngFor="let page of pageNumbers" 
-                [class.active]="page === currentPage">
-                <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
-              </li>
-
-              <!-- Next Page -->
-              <li class="page-item" [class.disabled]="currentPage === totalPages">
-                <a class="page-link" (click)="goToPage(currentPage + 1)" title="Next">
-                  <span class="d-none d-sm-inline me-1">Next</span>
-                  <i class="bi bi-chevron-right"></i>
-                </a>
-              </li>
-
-              <!-- Last Page -->
-              <li class="page-item" [class.disabled]="currentPage === totalPages">
-                <a class="page-link page-last" (click)="goToPage(totalPages)" title="Last Page">
-                  <i class="bi bi-chevron-double-right"></i>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
       </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover table-striped mb-0 elegant-table">
+          <thead>
+            <tr>
+              <th width="60" class="text-center">#</th>
+              <th>MODEL</th>
+              <th width="100">COLOR</th>
+              <th width="80" class="text-center">SIZE</th>
+              <th width="100">BRAND</th>
+              <th width="100">ITEM</th>
+              <th width="120">PRODUCTION</th>
+              <th width="140" class="text-center">STATUS</th>
+              <th width="100" class="text-center">PERCENT</th>
+              <th width="120" class="text-center">STOCK</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of filteredStocks; track item; let i = $index) {
+              <tr class="table-row">
+                <td class="text-center fw-semibold text-muted">
+                  {{ ((currentPage - 1) * itemsPerPage) + i + 1 }}
+                </td>
+                <td class="fw-semibold text-primary">{{ item.model || '-' }}</td>
+                <td>
+                  <span class="color-badge">{{ item.color || '-' }}</span>
+                </td>
+                <td class="text-center">
+                  <span class="size-badge">{{ item.size || '-' }}</span>
+                </td>
+                <td>{{ item.brand || '-' }}</td>
+                <td>
+                  <span class="item-badge">{{ item.item || '-' }}</span>
+                </td>
+                <td><small class="text-muted">{{ item.production || '-' }}</small></td>
+                <td class="text-center">
+                  <span
+                    class="status-badge"
+                    [ngClass]="getProductionStatusBadgeClass(item.status_production)">
+                    <i class="bi" [ngClass]="item.status_production === 'RUN' ? 'bi-play-fill' : 'bi-pause-fill'"></i>
+                    {{ item.status_production || 'N/A' }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="progress-wrapper">
+                    <div class="progress">
+                      <div
+                        class="progress-bar"
+                        [style.width.%]="item.percentage || 0"
+                        [ngClass]="getPercentageClass(item.percentage)">
+                      </div>
+                    </div>
+                    <span class="progress-label">{{ item.percentage || 0 }}%</span>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="badge" [ngClass]="item.stock_akhir > 0 ? 'bg-success' : 'bg-danger'">
+                    {{ item.stock_akhir | number }}
+                  </span>
+                </td>
+              </tr>
+            }
+
+            <!-- Empty State -->
+            @if (filteredStocks.length === 0 && !isLoading) {
+              <tr>
+                <td colspan="10" class="text-center py-5 empty-state">
+                  <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                  </div>
+                  <h5 class="mt-3">{{ searchTerm ? 'No matching stock found' : 'No stock data available' }}</h5>
+                  <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'Start by adding stock items' }}</p>
+                </td>
+              </tr>
+            }
+
+            <!-- Loading State -->
+            @if (isLoading) {
+              <tr>
+                <td colspan="10" class="text-center py-5">
+                  <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                  <span class="text-muted">Loading stock data...</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      @if (totalPages > 0) {
+        <div class="card-footer">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="pagination-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Showing <strong>{{ ((currentPage - 1) * itemsPerPage) + 1 }}</strong> to
+                <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
+                <strong>{{ totalItems }}</strong> entries
+              </div>
+            </div>
+            <div class="col-md-6">
+              <nav>
+                <ul class="pagination pagination-elegant justify-content-end mb-0">
+                  <!-- First Page -->
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link page-first" (click)="goToPage(1)" title="First Page">
+                      <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                  </li>
+                  <!-- Previous Page -->
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="goToPage(currentPage - 1)" title="Previous">
+                      <i class="bi bi-chevron-left"></i>
+                      <span class="d-none d-sm-inline ms-1">Prev</span>
+                    </a>
+                  </li>
+                  <!-- Page Numbers -->
+                  @for (page of pageNumbers; track page) {
+                    <li
+                      class="page-item"
+                      [class.active]="page === currentPage">
+                      <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+                    </li>
+                  }
+                  <!-- Next Page -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="goToPage(currentPage + 1)" title="Next">
+                      <span class="d-none d-sm-inline me-1">Next</span>
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                  </li>
+                  <!-- Last Page -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link page-last" (click)="goToPage(totalPages)" title="Last Page">
+                      <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   </div>
-</div>

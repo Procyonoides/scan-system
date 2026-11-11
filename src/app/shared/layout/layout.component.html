@@ -2,25 +2,28 @@
   <app-navbar></app-navbar>
 
   <div class="layout-body">
-    <div class="sidebar-overlay-backdrop"
-         *ngIf="isMobile() && !sidebarState.collapsed()"
-         (click)="sidebarState.toggle()"></div>
+    @if (isMobile() && !sidebarState.collapsed()) {
+      <div class="sidebar-overlay-backdrop"
+      (click)="sidebarState.toggle()"></div>
+    }
 
     <aside class="app-sidenav"
-           [class.mobile-open]="isMobile() && !sidebarState.collapsed()"
-           [class.sidebar-collapsed]="!isMobile() && sidebarState.collapsed()">
+      [class.mobile-open]="isMobile() && !sidebarState.collapsed()"
+      [class.sidebar-collapsed]="!isMobile() && sidebarState.collapsed()">
       <app-sidebar></app-sidebar>
     </aside>
 
     <div class="layout-content">
-      <div *ngIf="authService.isActingAs()" class="act-as-banner">
-        <i class="fas fa-user-secret me-2"></i>
-        Kamu sedang bertindak sebagai <strong class="m-1">{{ authService.currentUser()?.username }}</strong>
-        ({{ authService.currentUser()?.realUsername }} - IT)
-        <button class="btn btn-sm btn-dark ms-3" (click)="onExitActAs()">
-          <i class="fas fa-sign-out-alt me-1"></i> Keluar mode Act-as
-        </button>
-      </div>
+      @if (authService.isActingAs()) {
+        <div class="act-as-banner">
+          <i class="fas fa-user-secret me-2"></i>
+          Kamu sedang bertindak sebagai <strong class="m-1">{{ authService.currentUser()?.username }}</strong>
+          ({{ authService.currentUser()?.realUsername }} - IT)
+          <button class="btn btn-sm btn-dark ms-3" (click)="onExitActAs()">
+            <i class="fas fa-sign-out-alt me-1"></i> Keluar mode Act-as
+          </button>
+        </div>
+      }
       <div class="content-area">
         <router-outlet></router-outlet>
       </div>

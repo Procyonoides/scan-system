@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -16,7 +16,7 @@ interface MenuItem {
 
 @Component({
     selector: 'app-sidebar',
-    imports: [CommonModule, RouterModule, MatIconModule],
+    imports: [RouterModule, MatIconModule],
     templateUrl: './sidebar.component.html',
     styleUrl: './sidebar.component.scss'
 })

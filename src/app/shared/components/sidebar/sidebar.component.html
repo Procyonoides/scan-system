@@ -1,60 +1,78 @@
 <aside class="sidebar-shell" [class.collapsed]="isCollapsed()">
   <div class="sidebar-user">
     <div class="user-avatar"><mat-icon>person</mat-icon></div>
-    <div class="user-info" *ngIf="!isCollapsed()">
-      <strong>{{ authService.currentUser()?.username }}</strong>
-      <span><i class="status-dot"></i> Online</span>
-    </div>
+    @if (!isCollapsed()) {
+      <div class="user-info">
+        <strong>{{ authService.currentUser()?.username }}</strong>
+        <span><i class="status-dot"></i> Online</span>
+      </div>
+    }
   </div>
 
-  <div class="sidebar-section" *ngIf="!isCollapsed()">Menu</div>
+  @if (!isCollapsed()) {
+    <div class="sidebar-section">Menu</div>
+  }
 
   <nav class="sidebar-nav">
-    <ng-container *ngFor="let item of menuItems">
-      <a *ngIf="!item.children && hasPermission(item.roles)"
-         [routerLink]="item.route"
-         routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact: true }"
-         class="nav-item"
-         [title]="isCollapsed() ? item.label : ''">
-        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-        <span class="nav-label" *ngIf="!isCollapsed()">{{ item.label }}</span>
-      </a>
-
-      <div *ngIf="item.children && hasPermission(item.roles)"
-           class="submenu-wrapper"
-           (mouseenter)="onMenuEnter(item, $event)"
-           (mouseleave)="onMenuLeave(item)">
-        <button type="button"
-                class="nav-item submenu-trigger"
-                [class.expanded]="isMenuExpanded(item.label)"
-                [class.active]="isParentActive(item)"
-                (click)="toggleMenu(item.label, $event)"
-                [title]="isCollapsed() ? item.label : ''">
+    @for (item of menuItems; track item) {
+      @if (!item.children && hasPermission(item.roles)) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-item"
+          [title]="isCollapsed() ? item.label : ''">
           <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-          <span class="nav-label" *ngIf="!isCollapsed()">{{ item.label }}</span>
-          <mat-icon class="submenu-chevron" *ngIf="!isCollapsed()">chevron_right</mat-icon>
-        </button>
-
-        <div *ngIf="isMenuExpanded(item.label)"
-             class="submenu-list"
-             [style.top.px]="isCollapsed() ? flyoutPosition.top : null"
-             [style.left.px]="isCollapsed() ? flyoutPosition.left : null">
-          <a *ngFor="let child of item.children"
-             [routerLink]="child.route"
-             routerLinkActive="active"
-             [routerLinkActiveOptions]="{ exact: true }"
-             class="nav-item">
-            <mat-icon class="nav-icon">{{ child.icon }}</mat-icon>
-            <span class="nav-label">{{ child.label }}</span>
-          </a>
+          @if (!isCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+      @if (item.children && hasPermission(item.roles)) {
+        <div
+          class="submenu-wrapper"
+          (mouseenter)="onMenuEnter(item, $event)"
+          (mouseleave)="onMenuLeave(item)">
+          <button type="button"
+            class="nav-item submenu-trigger"
+            [class.expanded]="isMenuExpanded(item.label)"
+            [class.active]="isParentActive(item)"
+            (click)="toggleMenu(item.label, $event)"
+            [title]="isCollapsed() ? item.label : ''">
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            @if (!isCollapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
+            @if (!isCollapsed()) {
+              <mat-icon class="submenu-chevron">chevron_right</mat-icon>
+            }
+          </button>
+          @if (isMenuExpanded(item.label)) {
+            <div
+              class="submenu-list"
+              [style.top.px]="isCollapsed() ? flyoutPosition.top : null"
+              [style.left.px]="isCollapsed() ? flyoutPosition.left : null">
+              @for (child of item.children; track child) {
+                <a
+                  [routerLink]="child.route"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: true }"
+                  class="nav-item">
+                  <mat-icon class="nav-icon">{{ child.icon }}</mat-icon>
+                  <span class="nav-label">{{ child.label }}</span>
+                </a>
+              }
+            </div>
+          }
         </div>
-      </div>
-    </ng-container>
+      }
+    }
   </nav>
 
   <div class="sidebar-help">
     <mat-icon>help_outline</mat-icon>
-    <span class="sidebar-label" *ngIf="!isCollapsed()">Need Help?</span>
+    @if (!isCollapsed()) {
+      <span class="sidebar-label">Need Help?</span>
+    }
   </div>
 </aside>

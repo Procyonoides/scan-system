@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -12,7 +12,7 @@ import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterang
 
 @Component({
     selector: 'app-record',
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, NgxDaterangepickerMd],
+    imports: [ReactiveFormsModule, FormsModule, RouterModule, NgxDaterangepickerMd],
     providers: [
         { provide: LOCALE_CONFIG, useValue: {} },
         { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }

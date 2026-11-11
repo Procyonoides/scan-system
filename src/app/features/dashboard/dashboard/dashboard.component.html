@@ -1,10 +1,12 @@
 <div class="dashboard-container">
   <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Manual Refresh Button (Optional) -->
   <div class="row mb-3">
@@ -96,17 +98,21 @@
         </div>
         <div class="card-body">
           <div style="position: relative; height: 400px;">
-            <canvas *ngIf="chartData.labels && chartData.labels.length > 0" 
-                    baseChart 
-                    [data]="chartData"
-                    [options]="chartOptions"
-                    [type]="chartType">
-            </canvas>
-            <div *ngIf="!chartData.labels || chartData.labels.length === 0" 
-                 class="text-center text-muted py-5">
-              <i class="fas fa-chart-line fs-1 d-block mb-3"></i>
-              <p>No chart data available</p>
-            </div>
+            @if (chartData.labels && chartData.labels.length > 0) {
+              <canvas
+                baseChart
+                [data]="chartData"
+                [options]="chartOptions"
+                [type]="chartType">
+              </canvas>
+            }
+            @if (!chartData.labels || chartData.labels.length === 0) {
+              <div
+                class="text-center text-muted py-5">
+                <i class="fas fa-chart-line fs-1 d-block mb-3"></i>
+                <p>No chart data available</p>
+              </div>
+            }
           </div>
         </div>
       </div>
@@ -137,31 +143,35 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let data of shiftScanData; let i = index">
-                  <td>{{ i + 1 }}</td>
-                  <td><strong>{{ data.username }}</strong></td>
-                  <td>
-                    <div class="progress progress-sm">
-                      <div class="progress-bar" 
-                           [ngClass]="getProgressColor(data.status)"
-                           [style.width.%]="data.status"
-                           [attr.aria-valuenow]="data.status">
+                @for (data of shiftScanData; track data; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td><strong>{{ data.username }}</strong></td>
+                    <td>
+                      <div class="progress progress-sm">
+                        <div class="progress-bar"
+                          [ngClass]="getProgressColor(data.status)"
+                          [style.width.%]="data.status"
+                          [attr.aria-valuenow]="data.status">
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td align="center">
-                    <span class="badge bg-primary">{{ data.percent }}%</span>
-                  </td>
-                  <td align="center">
-                    <span class="badge bg-teal">{{ formatNumber(data.total) }}</span>
-                  </td>
-                </tr>
-                <tr *ngIf="shiftScanData.length === 0">
-                  <td colspan="5" class="text-center text-muted py-3">
-                    <i class="fas fa-inbox fs-4 d-block mb-2"></i>
-                    No data available
-                  </td>
-                </tr>
+                    </td>
+                    <td align="center">
+                      <span class="badge bg-primary">{{ data.percent }}%</span>
+                    </td>
+                    <td align="center">
+                      <span class="badge bg-teal">{{ formatNumber(data.total) }}</span>
+                    </td>
+                  </tr>
+                }
+                @if (shiftScanData.length === 0) {
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                      <i class="fas fa-inbox fs-4 d-block mb-2"></i>
+                      No data available
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -185,29 +195,33 @@
         </div>
         <div class="card-body">
           <div class="row">
-            <div *ngFor="let item of warehouseItems" class="col-xl-3 col-lg-4 col-md-6 mb-3">
-              <div class="info-box" [ngClass]="'bg-' + getItemColor(item.item)">
-                <span class="info-box-icon"><i class="fas fa-box"></i></span>
-                <div class="info-box-content">
-                  <span class="info-box-text" style="font-size: 14px; font-weight: 600;">
-                    {{ item.item }}
-                  </span>
-                  <span class="info-box-number" style="font-size: 18px;">
-                    {{ formatNumber(item.total) }}
-                  </span>
-                  <div class="progress">
-                    <div class="progress-bar" [style.width.%]="parseFloatValue(item.status)"></div>
+            @for (item of warehouseItems; track item) {
+              <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                <div class="info-box" [ngClass]="'bg-' + getItemColor(item.item)">
+                  <span class="info-box-icon"><i class="fas fa-box"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text" style="font-size: 14px; font-weight: 600;">
+                      {{ item.item }}
+                    </span>
+                    <span class="info-box-number" style="font-size: 18px;">
+                      {{ formatNumber(item.total) }}
+                    </span>
+                    <div class="progress">
+                      <div class="progress-bar" [style.width.%]="parseFloatValue(item.status)"></div>
+                    </div>
+                    <span class="progress-description" style="font-size: 12px;">
+                      {{ parseFloatValue(item.status).toFixed(2) }}% of Stock in Warehouse
+                    </span>
                   </div>
-                  <span class="progress-description" style="font-size: 12px;">
-                    {{ parseFloatValue(item.status).toFixed(2) }}% of Stock in Warehouse
-                  </span>
                 </div>
               </div>
-            </div>
-            <div *ngIf="warehouseItems.length === 0" class="col-12 text-center text-muted py-3">
-              <i class="fas fa-inbox fs-4 d-block mb-2"></i>
-              No warehouse items
-            </div>
+            }
+            @if (warehouseItems.length === 0) {
+              <div class="col-12 text-center text-muted py-3">
+                <i class="fas fa-inbox fs-4 d-block mb-2"></i>
+                No warehouse items
+              </div>
+            }
           </div>
         </div>
       </div>
@@ -244,22 +258,26 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of receivingList">
-                  <td class="text-center">{{ row.date_time }}</td>
-                  <td class="text-center">{{ row.original_barcode }}</td>
-                  <td class="text-center">{{ row.model }}</td>
-                  <td class="text-center">{{ row.color }}</td>
-                  <td class="text-center">{{ row.size }}</td>
-                  <td class="text-center">{{ row.quantity }}</td>
-                  <td class="text-center">{{ row.username }}</td>
-                  <td class="text-center">{{ row.scan_no }}</td>
-                </tr>
-                <tr *ngIf="receivingList.length === 0">
-                  <td colspan="8" class="text-center text-muted py-3">
-                    <i class="fas fa-inbox fs-4 d-block mb-2"></i>
-                    No data available
-                  </td>
-                </tr>
+                @for (row of receivingList; track row) {
+                  <tr>
+                    <td class="text-center">{{ row.date_time }}</td>
+                    <td class="text-center">{{ row.original_barcode }}</td>
+                    <td class="text-center">{{ row.model }}</td>
+                    <td class="text-center">{{ row.color }}</td>
+                    <td class="text-center">{{ row.size }}</td>
+                    <td class="text-center">{{ row.quantity }}</td>
+                    <td class="text-center">{{ row.username }}</td>
+                    <td class="text-center">{{ row.scan_no }}</td>
+                  </tr>
+                }
+                @if (receivingList.length === 0) {
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-3">
+                      <i class="fas fa-inbox fs-4 d-block mb-2"></i>
+                      No data available
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -295,22 +313,26 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of shippingList">
-                  <td class="text-center">{{ row.date_time }}</td>
-                  <td class="text-center">{{ row.original_barcode }}</td>
-                  <td class="text-center">{{ row.model }}</td>
-                  <td class="text-center">{{ row.color }}</td>
-                  <td class="text-center">{{ row.size }}</td>
-                  <td class="text-center">{{ row.quantity }}</td>
-                  <td class="text-center">{{ row.username }}</td>
-                  <td class="text-center">{{ row.scan_no }}</td>
-                </tr>
-                <tr *ngIf="shippingList.length === 0">
-                  <td colspan="8" class="text-center text-muted py-3">
-                    <i class="fas fa-inbox fs-4 d-block mb-2"></i>
-                    No data available
-                  </td>
-                </tr>
+                @for (row of shippingList; track row) {
+                  <tr>
+                    <td class="text-center">{{ row.date_time }}</td>
+                    <td class="text-center">{{ row.original_barcode }}</td>
+                    <td class="text-center">{{ row.model }}</td>
+                    <td class="text-center">{{ row.color }}</td>
+                    <td class="text-center">{{ row.size }}</td>
+                    <td class="text-center">{{ row.quantity }}</td>
+                    <td class="text-center">{{ row.username }}</td>
+                    <td class="text-center">{{ row.scan_no }}</td>
+                  </tr>
+                }
+                @if (shippingList.length === 0) {
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-3">
+                      <i class="fas fa-inbox fs-4 d-block mb-2"></i>
+                      No data available
+                    </td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>

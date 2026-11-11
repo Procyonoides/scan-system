@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -36,7 +36,7 @@ interface FilterOptions {
 
 @Component({
     selector: 'app-master-data',
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
+    imports: [ReactiveFormsModule, FormsModule, RouterModule],
     templateUrl: './master-data.component.html',
     styleUrl: './master-data.component.scss'
 })

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-backup',
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+    imports: [FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './backup.component.html',
     styleUrl: './backup.component.scss'
 })

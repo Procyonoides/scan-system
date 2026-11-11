@@ -8,42 +8,48 @@
     <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
       <div class="mb-3">
         <label class="form-label">Username</label>
-        <input 
-          type="text" 
-          class="form-control" 
+        <input
+          type="text"
+          class="form-control"
           formControlName="username"
           placeholder="Enter username">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="password"
+            placeholder="Enter password">
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary w-100 mb-3"
+            [disabled]="loginForm.invalid || isLoading">
+            @if (!isLoading) {
+              <span>Login</span>
+            }
+            @if (isLoading) {
+              <span>
+                <span class="spinner-border spinner-border-sm me-2"></span>Loading...
+              </span>
+            }
+          </button>
+
+          @if (errorMessage) {
+            <div class="alert alert-danger">
+              {{ errorMessage }}
+            </div>
+          }
+        </form>
+
+        <div class="demo-credentials">
+          <p class="text-muted mb-2"><small>Hello, how are you today?</small></p>
+          <small>
+            Enter your credentials to access the system.<br>
+          </small>
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input 
-          type="password" 
-          class="form-control" 
-          formControlName="password"
-          placeholder="Enter password">
-      </div>
-
-      <button 
-        type="submit" 
-        class="btn btn-primary w-100 mb-3"
-        [disabled]="loginForm.invalid || isLoading">
-        <span *ngIf="!isLoading">Login</span>
-        <span *ngIf="isLoading">
-          <span class="spinner-border spinner-border-sm me-2"></span>Loading...
-        </span>
-      </button>
-
-      <div *ngIf="errorMessage" class="alert alert-danger">
-        {{ errorMessage }}
-      </div>
-    </form>
-
-    <div class="demo-credentials">
-      <p class="text-muted mb-2"><small>Hello, how are you today?</small></p>
-      <small>
-        Enter your credentials to access the system.<br>
-      </small>
     </div>
-  </div>
-</div>

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
@@ -11,7 +11,7 @@ import { SidebarStateService } from '../services/sidebar-state.service';
 
 @Component({
     selector: 'app-layout',
-    imports: [CommonModule, RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
+    imports: [RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
     templateUrl: './layout.component.html',
     styleUrl: './layout.component.scss'
 })

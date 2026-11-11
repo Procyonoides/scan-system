@@ -1,314 +1,346 @@
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3><i class="bi bi-clock-history"></i> Operation Record</h3>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a routerLink="/master-data">Master Data</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Record</li>
-            </ol>
-        </nav>
-    </div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-clock-history"></i> Operation Record</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a routerLink="/master-data">Master Data</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Record</li>
+      </ol>
+    </nav>
+  </div>
 
-    <!-- Loading Overlay -->
-    <div *ngIf="isLoading" class="loading-overlay">
-        <div class="spinner-border text-primary"></div>
+  <!-- Loading Overlay -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner-border text-primary"></div>
     </div>
+  }
 
-    <!-- Success/Error Messages -->
-    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show d-flex align-items-center shadow-sm">
-        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
-        <div class="fw-medium">{{ successMessage }}</div>
-        <button type="button" class="btn-close ms-auto" (click)="successMessage = ''"></button>
+  <!-- Success/Error Messages -->
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center shadow-sm">
+      <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+      <div class="fw-medium">{{ successMessage }}</div>
+      <button type="button" class="btn-close ms-auto" (click)="successMessage = ''"></button>
     </div>
+  }
 
-    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show d-flex align-items-center shadow-sm">
-        <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
-        <div class="fw-medium">{{ errorMessage }}</div>
-        <button type="button" class="btn-close ms-auto" (click)="errorMessage = ''"></button>
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center shadow-sm">
+      <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+      <div class="fw-medium">{{ errorMessage }}</div>
+      <button type="button" class="btn-close ms-auto" (click)="errorMessage = ''"></button>
     </div>
+  }
 
-    <!-- Filter Card -->
-    <div class="card shadow-sm mb-3 filter-card">
-        <div class="card-header filter-card-header py-1 d-flex justify-content-between align-items-center">
-            <span class="fw-bold"><i class="bi bi-funnel"></i> Filter Records</span>
-            <button class="btn btn-sm reset-btn" (click)="clearFilters()">
-                <i class="bi bi-arrow-counterclockwise"></i> Reset
-            </button>
+  <!-- Filter Card -->
+  <div class="card shadow-sm mb-3 filter-card">
+    <div class="card-header filter-card-header py-1 d-flex justify-content-between align-items-center">
+      <span class="fw-bold"><i class="bi bi-funnel"></i> Filter Records</span>
+      <button class="btn btn-sm reset-btn" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset
+      </button>
+    </div>
+    <div class="card-body py-2">
+      <div class="row gx-3 gy-2 align-items-end">
+        <div class="col-6 col-md-2">
+          <label class="form-label small mb-0 fw-semibold">Transaction Type</label>
+          <select class="form-select form-select-sm" [(ngModel)]="recordFilter.type">
+            <option value="receiving">Receiving</option>
+            <option value="shipping">Shipping</option>
+          </select>
         </div>
-        <div class="card-body py-2">
-            <div class="row gx-3 gy-2 align-items-end">
-                <div class="col-6 col-md-2">
-                    <label class="form-label small mb-0 fw-semibold">Transaction Type</label>
-                    <select class="form-select form-select-sm" [(ngModel)]="recordFilter.type">
-                        <option value="receiving">Receiving</option>
-                        <option value="shipping">Shipping</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-4">
-                    <label class="form-label small mb-0 fw-semibold">Date Range</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-                        <input type="text" class="form-control form-control-sm" name="daterange"
-                            ngxDaterangepickerMd
-                            [(ngModel)]="selectedDateRange"
-                            (datesUpdated)="onDateRangeSelected($event)"
-                            [locale]="{ format: 'DD MMMM YYYY', separator: ' - ' }"
-                            [autoApply]="true"
-                            [linkedCalendars]="true"
-                            [showCancel]="true"
-                            readonly>
-                    </div>
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label small mb-0 fw-semibold">Username</label>
-                    <input type="text" class="form-control form-control-sm" [(ngModel)]="recordFilter.username"
-                        placeholder="Search user...">
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label small mb-0 fw-semibold">Scan No</label>
-                    <input type="text" class="form-control form-control-sm" [(ngModel)]="recordFilter.scanNo" placeholder="Scan no...">
-                </div>
-                <div class="col-6 col-md-2">
-                    <button class="btn btn-primary btn-sm w-100 filter-btn" (click)="loadRecords()">
-                        <i class="bi bi-search me-1"></i> Apply Filter
-                    </button>
-                </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label small mb-0 fw-semibold">Date Range</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+            <input type="text" class="form-control form-control-sm" name="daterange"
+              ngxDaterangepickerMd
+              [(ngModel)]="selectedDateRange"
+              (datesUpdated)="onDateRangeSelected($event)"
+              [locale]="{ format: 'DD MMMM YYYY', separator: ' - ' }"
+              [autoApply]="true"
+              [linkedCalendars]="true"
+              [showCancel]="true"
+              readonly>
             </div>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small mb-0 fw-semibold">Username</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="recordFilter.username"
+              placeholder="Search user...">
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label small mb-0 fw-semibold">Scan No</label>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="recordFilter.scanNo" placeholder="Scan no...">
+            </div>
+            <div class="col-6 col-md-2">
+              <button class="btn btn-primary btn-sm w-100 filter-btn" (click)="loadRecords()">
+                <i class="bi bi-search me-1"></i> Apply Filter
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Data Card -->
-    <div class="card shadow-sm records-card">
+      <!-- Data Card -->
+      <div class="card shadow-sm records-card">
         <div class="card-header bg-white py-1 d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div class="d-flex align-items-center">
-                <label class="me-2 small fw-bold mb-0">Show</label>
-                <select class="form-select form-select-sm" style="width: 80px;" [(ngModel)]="itemsPerPage"
-                    (change)="onItemsPerPageChange()">
-                    <option [value]="10">10</option>
-                    <option [value]="25">25</option>
-                    <option [value]="50">50</option>
-                    <option [value]="100">100</option>
-                </select>
-                <label class="ms-2 small fw-bold mb-0">entries</label>
-            </div>
-            <button *ngIf="hasSelectedRecords" class="btn btn-danger btn-sm" (click)="openBatchDeleteModal()"
-                title="Delete Selected Items">
-                <i class="bi bi-trash"></i> Delete Selected ({{ selectedRecords.size }})
+          <div class="d-flex align-items-center">
+            <label class="me-2 small fw-bold mb-0">Show</label>
+            <select class="form-select form-select-sm" style="width: 80px;" [(ngModel)]="itemsPerPage"
+              (change)="onItemsPerPageChange()">
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+            <label class="ms-2 small fw-bold mb-0">entries</label>
+          </div>
+          @if (hasSelectedRecords) {
+            <button class="btn btn-danger btn-sm" (click)="openBatchDeleteModal()"
+              title="Delete Selected Items">
+              <i class="bi bi-trash"></i> Delete Selected ({{ selectedRecords.size }})
             </button>
-            <div class="input-group input-group-sm ms-auto" style="max-width: 340px;">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control"
-                    placeholder="Search barcode, model, color, size, user, scan no..."
-                    [(ngModel)]="recordFilter.search"
-                    (input)="onSearchInput()"
-                    (keyup.enter)="loadRecords(1)">
-                <button *ngIf="recordFilter.search" class="btn btn-outline-secondary" type="button"
-                    (click)="clearSearch()" title="Clear search">
-                    <i class="bi bi-x-lg"></i>
+          }
+          <div class="input-group input-group-sm ms-auto" style="max-width: 340px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control"
+              placeholder="Search barcode, model, color, size, user, scan no..."
+              [(ngModel)]="recordFilter.search"
+              (input)="onSearchInput()"
+              (keyup.enter)="loadRecords(1)">
+              @if (recordFilter.search) {
+                <button class="btn btn-outline-secondary" type="button"
+                  (click)="clearSearch()" title="Clear search">
+                  <i class="bi bi-x-lg"></i>
                 </button>
+              }
             </div>
-        </div>
-        <div class="card-body p-0">
+          </div>
+          <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 68vh;">
-                <table class="table table-hover table-striped align-middle mb-0">
-                    <thead class="table-dark sticky-top">
-                        <tr>
-                            <th class="ps-3">
-                                <input class="form-check-input" type="checkbox" [checked]="allRecordsSelected"
-                                    (change)="allRecordsSelected ? deselectAllRecords() : selectAllRecords()"
-                                    title="Select/Deselect All">
-                            </th>
-                            <th class="text-white">DATE/TIME</th>
-                            <th class="text-white">BARCODE</th>
-                            <th class="text-white">MODEL</th>
-                            <th class="text-white">COLOR</th>
-                            <th class="text-white">SIZE</th>
-                            <th class="text-white">QTY</th>
-                            <th class="text-white">USER</th>
-                            <th class="text-white">SCAN</th>
-                            <th class="text-white">DESCRIPTION</th>
-                            <th class="text-center pe-3 text-white">ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let r of records">
-                            <td class="ps-3">
-                                <input class="form-check-input" type="checkbox"
-                                    [checked]="isRecordSelected(getRecordId(r))"
-                                    (change)="toggleRecordSelection(getRecordId(r))">
-                            </td>
-                            <td class="small text-nowrap">{{ r.date_time }}</td>
-                            <td class="small font-monospace">{{ r.original_barcode }}</td>
-                            <td class="small">{{ r.model }}</td>
-                            <td class="small">{{ r.color }}</td>
-                            <td class="small">{{ r.size }}</td>
-                            <td><span class="badge bg-light text-dark border fw-bold">{{ r.quantity }}</span></td>
-                            <td class="small text-primary text-nowrap"><i class="bi bi-person-fill"></i> {{ r.username
-                                }}</td>
-                            <td><span class="badge bg-secondary">#{{ r.scan_no }}</span></td>
-                            <td class="small text-muted">{{ r.description || '-' }}</td>
-                            <td class="text-center pe-3">
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" (click)="openRecordEditModal(r)"
-                                        title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger" (click)="onDeleteRecord(r)" title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr *ngIf="records.length === 0 && !isLoading">
-                            <td colspan="11" class="text-center py-5 text-muted">
-                                <i class="bi bi-search-heart d-block fs-1 mb-2"></i>
-                                No records found for the selected criteria.
-                            </td>
-                        </tr>
-                    </tbody>
+              <table class="table table-hover table-striped align-middle mb-0">
+                <thead class="table-dark sticky-top">
+                  <tr>
+                    <th class="ps-3">
+                      <input class="form-check-input" type="checkbox" [checked]="allRecordsSelected"
+                        (change)="allRecordsSelected ? deselectAllRecords() : selectAllRecords()"
+                        title="Select/Deselect All">
+                      </th>
+                      <th class="text-white">DATE/TIME</th>
+                      <th class="text-white">BARCODE</th>
+                      <th class="text-white">MODEL</th>
+                      <th class="text-white">COLOR</th>
+                      <th class="text-white">SIZE</th>
+                      <th class="text-white">QTY</th>
+                      <th class="text-white">USER</th>
+                      <th class="text-white">SCAN</th>
+                      <th class="text-white">DESCRIPTION</th>
+                      <th class="text-center pe-3 text-white">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of records; track r) {
+                      <tr>
+                        <td class="ps-3">
+                          <input class="form-check-input" type="checkbox"
+                            [checked]="isRecordSelected(getRecordId(r))"
+                            (change)="toggleRecordSelection(getRecordId(r))">
+                          </td>
+                          <td class="small text-nowrap">{{ r.date_time }}</td>
+                          <td class="small font-monospace">{{ r.original_barcode }}</td>
+                          <td class="small">{{ r.model }}</td>
+                          <td class="small">{{ r.color }}</td>
+                          <td class="small">{{ r.size }}</td>
+                          <td><span class="badge bg-light text-dark border fw-bold">{{ r.quantity }}</span></td>
+                          <td class="small text-primary text-nowrap"><i class="bi bi-person-fill"></i> {{ r.username
+                        }}</td>
+                        <td><span class="badge bg-secondary">#{{ r.scan_no }}</span></td>
+                        <td class="small text-muted">{{ r.description || '-' }}</td>
+                        <td class="text-center pe-3">
+                          <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" (click)="openRecordEditModal(r)"
+                              title="Edit">
+                              <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" (click)="onDeleteRecord(r)" title="Delete">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                    @if (records.length === 0 && !isLoading) {
+                      <tr>
+                        <td colspan="11" class="text-center py-5 text-muted">
+                          <i class="bi bi-search-heart d-block fs-1 mb-2"></i>
+                          No records found for the selected criteria.
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
                 </table>
+              </div>
             </div>
-        </div>
-        <!-- Pagination Footer -->
-        <div class="card-footer records-footer py-3 d-flex flex-wrap justify-content-between align-items-center gap-2" *ngIf="totalPages > 0">
-            <div class="small fw-bold records-info">
-                Showing <strong>{{ (currentPage - 1) * itemsPerPage + 1 }}</strong> to
-                <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
-                <strong>{{ totalItems.toLocaleString() }}</strong> entries
-            </div>
-
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0 flex-wrap">
-                    <li class="page-item" [class.disabled]="currentPage === 1">
-                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(1)" title="First page">
-                            <i class="bi bi-chevron-double-left"></i>
-                        </a>
-                    </li>
-                    <li class="page-item" [class.disabled]="currentPage === 1">
-                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                    </li>
-                    <ng-container *ngFor="let p of pageNumbers">
-                        <li class="page-item" *ngIf="p === '...'; else pageNum">
-                            <span class="page-link border-0">…</span>
-                        </li>
-                        <ng-template #pageNum>
-                            <li class="page-item" [class.active]="p === currentPage">
-                                <a class="page-link" href="javascript:void(0)" (click)="onPageChange($any(p))">{{ p }}</a>
-                            </li>
-                        </ng-template>
-                    </ng-container>
-                    <li class="page-item" [class.disabled]="currentPage === totalPages">
-                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
-                    <li class="page-item" [class.disabled]="currentPage === totalPages">
-                        <a class="page-link" href="javascript:void(0)" (click)="onPageChange(totalPages)" title="Last page">
-                            <i class="bi bi-chevron-double-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="small fw-bold records-page-count">Page {{ currentPage }} of {{ totalPages.toLocaleString() }}</div>
-
-            <div class="d-flex align-items-center gap-2 goto-controls" *ngIf="totalPages > 10">
-                <span class="small goto-label">Go to</span>
-                <input type="number" class="form-control form-control-sm goto-input"
-                    [(ngModel)]="goToPageInput" [min]="1" [max]="totalPages"
-                    (keyup.enter)="goToPage()" placeholder="Page #">
-                <button class="btn btn-sm goto-btn" (click)="goToPage()">Go</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ==================== RECORD EDIT MODAL ==================== -->
-<div class="modal fade" [class.show]="showRecordEditModal" [style.display]="showRecordEditModal ? 'block' : 'none'"
-    tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Record Details</h5>
-                <button type="button" class="btn-close btn-close-white" (click)="showRecordEditModal = false"></button>
-            </div>
-            <div class="modal-body">
-                <div *ngIf="selectedRecord" class="alert alert-info border-0 py-2 small mb-3">
-                    <strong>Target:</strong> {{ selectedRecord.original_barcode }} | Scan #{{ selectedRecord.scan_no }} | {{ selectedRecord.date_time }}
+            <!-- Pagination Footer -->
+            @if (totalPages > 0) {
+              <div class="card-footer records-footer py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="small fw-bold records-info">
+                  Showing <strong>{{ (currentPage - 1) * itemsPerPage + 1 }}</strong> to
+                  <strong>{{ Math.min(currentPage * itemsPerPage, totalItems) }}</strong> of
+                  <strong>{{ totalItems.toLocaleString() }}</strong> entries
                 </div>
-
-                <form [formGroup]="recordForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Quantity</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-hash"></i></span>
-                            <input type="number" class="form-control"
-                                [class.is-invalid]="recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched"
-                                formControlName="quantity">
-                        </div>
-                        <div class="invalid-feedback d-block"
-                            *ngIf="recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched">
-                            Quantity is required and must be at least 1.
-                        </div>
+                <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm mb-0 flex-wrap">
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                      <a class="page-link" href="javascript:void(0)" (click)="onPageChange(1)" title="First page">
+                        <i class="bi bi-chevron-double-left"></i>
+                      </a>
+                    </li>
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                      <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                      </a>
+                    </li>
+                    @for (p of pageNumbers; track p) {
+                      @if (p === '...') {
+                        <li class="page-item">
+                          <span class="page-link border-0">…</span>
+                        </li>
+                      } @else {
+                        <li class="page-item" [class.active]="p === currentPage">
+                          <a class="page-link" href="javascript:void(0)" (click)="onPageChange($any(p))">{{ p }}</a>
+                        </li>
+                      }
+                    }
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                      <a class="page-link" href="javascript:void(0)" (click)="onPageChange(currentPage + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                      </a>
+                    </li>
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                      <a class="page-link" href="javascript:void(0)" (click)="onPageChange(totalPages)" title="Last page">
+                        <i class="bi bi-chevron-double-right"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+                <div class="small fw-bold records-page-count">Page {{ currentPage }} of {{ totalPages.toLocaleString() }}</div>
+                @if (totalPages > 10) {
+                  <div class="d-flex align-items-center gap-2 goto-controls">
+                    <span class="small goto-label">Go to</span>
+                    <input type="number" class="form-control form-control-sm goto-input"
+                      [(ngModel)]="goToPageInput" [min]="1" [max]="totalPages"
+                      (keyup.enter)="goToPage()" placeholder="Page #">
+                      <button class="btn btn-sm goto-btn" (click)="goToPage()">Go</button>
                     </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- ==================== RECORD EDIT MODAL ==================== -->
+          <div class="modal fade" [class.show]="showRecordEditModal" [style.display]="showRecordEditModal ? 'block' : 'none'"
+            tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content shadow">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit Record Details</h5>
+                  <button type="button" class="btn-close btn-close-white" (click)="showRecordEditModal = false"></button>
+                </div>
+                <div class="modal-body">
+                  @if (selectedRecord) {
+                    <div class="alert alert-info border-0 py-2 small mb-3">
+                      <strong>Target:</strong> {{ selectedRecord.original_barcode }} | Scan #{{ selectedRecord.scan_no }} | {{ selectedRecord.date_time }}
+                    </div>
+                  }
+
+                  <form [formGroup]="recordForm">
                     <div class="mb-3">
+                      <label class="form-label fw-bold">Quantity</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                        <input type="number" class="form-control"
+                          [class.is-invalid]="recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched"
+                          formControlName="quantity">
+                        </div>
+                        @if (recordForm.get('quantity')?.invalid && recordForm.get('quantity')?.touched) {
+                          <div class="invalid-feedback d-block"
+                            >
+                            Quantity is required and must be at least 1.
+                          </div>
+                        }
+                      </div>
+                      <div class="mb-3">
                         <label class="form-label fw-bold">Username</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control"
-                                [class.is-invalid]="recordForm.get('username')?.invalid && recordForm.get('username')?.touched"
-                                formControlName="username">
+                          <span class="input-group-text"><i class="bi bi-person"></i></span>
+                          <input type="text" class="form-control"
+                            [class.is-invalid]="recordForm.get('username')?.invalid && recordForm.get('username')?.touched"
+                            formControlName="username">
+                          </div>
+                          @if (recordForm.get('username')?.invalid && recordForm.get('username')?.touched) {
+                            <div class="invalid-feedback d-block"
+                              >
+                              Username is required.
+                            </div>
+                          }
                         </div>
-                        <div class="invalid-feedback d-block"
-                            *ngIf="recordForm.get('username')?.invalid && recordForm.get('username')?.touched">
-                            Username is required.
+                        <div class="mb-2">
+                          <label class="form-label fw-bold">Description</label>
+                          <textarea class="form-control" formControlName="description" rows="3"></textarea>
                         </div>
+                      </form>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label fw-bold">Description</label>
-                        <textarea class="form-control" formControlName="description" rows="3"></textarea>
+                    <div class="modal-footer bg-light">
+                      <button type="button" class="btn btn-secondary" (click)="showRecordEditModal = false">Cancel</button>
+                      <button type="button" class="btn btn-primary" (click)="onUpdateRecord()"
+                        [disabled]="isLoading || recordForm.invalid">
+                        @if (!isLoading) {
+                          <span><i class="bi bi-save me-1"></i> Save Changes</span>
+                        }
+                        @if (isLoading) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        }
+                      </button>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" (click)="showRecordEditModal = false">Cancel</button>
-                <button type="button" class="btn btn-primary" (click)="onUpdateRecord()"
-                    [disabled]="isLoading || recordForm.invalid">
-                    <span *ngIf="!isLoading"><i class="bi bi-save me-1"></i> Save Changes</span>
-                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Backdrop -->
-<div class="modal-backdrop fade show" *ngIf="showRecordEditModal || showBatchDeleteModal"></div>
-
-<!-- ==================== BATCH DELETE MODAL ==================== -->
-<div class="modal fade" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'"
-    tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Batch Delete Records</h5>
-                <button type="button" class="btn-close btn-close-white" (click)="showBatchDeleteModal = false"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete <strong>{{ selectedRecords.size }}</strong> record(s)?</p>
-                <div class="alert alert-warning small mb-0">
-                    Stock will be adjusted accordingly for each deleted record. This action cannot be undone.
+                  </div>
                 </div>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" (click)="showBatchDeleteModal = false">Cancel</button>
-                <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
-                    <span *ngIf="!isLoading"><i class="bi bi-trash me-1"></i> Delete Selected</span>
-                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+              </div>
+
+              <!-- Modal Backdrop -->
+              @if (showRecordEditModal || showBatchDeleteModal) {
+                <div class="modal-backdrop fade show"></div>
+              }
+
+              <!-- ==================== BATCH DELETE MODAL ==================== -->
+              <div class="modal fade" [class.show]="showBatchDeleteModal" [style.display]="showBatchDeleteModal ? 'block' : 'none'"
+                tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content shadow">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Batch Delete Records</h5>
+                      <button type="button" class="btn-close btn-close-white" (click)="showBatchDeleteModal = false"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Are you sure you want to delete <strong>{{ selectedRecords.size }}</strong> record(s)?</p>
+                      <div class="alert alert-warning small mb-0">
+                        Stock will be adjusted accordingly for each deleted record. This action cannot be undone.
+                      </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                      <button type="button" class="btn btn-secondary" (click)="showBatchDeleteModal = false">Cancel</button>
+                      <button type="button" class="btn btn-danger" (click)="onBatchDelete()" [disabled]="isLoading">
+                        @if (!isLoading) {
+                          <span><i class="bi bi-trash me-1"></i> Delete Selected</span>
+                        }
+                        @if (isLoading) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>

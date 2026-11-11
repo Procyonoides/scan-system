@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { Subscription, interval } from 'rxjs';
@@ -7,7 +7,7 @@ import { SidebarStateService } from '../../services/sidebar-state.service';
 
 @Component({
     selector: 'app-navbar',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './navbar.component.html',
     styleUrl: './navbar.component.scss'
 })

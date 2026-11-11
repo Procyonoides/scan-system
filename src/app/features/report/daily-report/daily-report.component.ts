@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -30,7 +30,7 @@ interface FilterOptions {
 
 @Component({
     selector: 'app-daily-report',
-    imports: [CommonModule, FormsModule, NgxDaterangepickerMd],
+    imports: [FormsModule, NgxDaterangepickerMd],
     providers: [
         { provide: LOCALE_CONFIG, useValue: {} },
         { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
