@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
     selector: 'app-option',
     imports: [CommonModule, FormsModule, RouterModule],
     templateUrl: './option.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './option.component.scss'
 })
 export class OptionComponent implements OnInit, OnDestroy {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
@@ -17,6 +17,7 @@ interface User {
     selector: 'app-user',
     imports: [CommonModule, FormsModule],
     templateUrl: './user.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user.component.scss'
 })
 export class UserComponent implements OnInit {

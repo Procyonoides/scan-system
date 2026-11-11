@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -19,6 +19,7 @@ interface ActAsLogEntry {
     selector: 'app-act-as-log',
     imports: [CommonModule, FormsModule],
     templateUrl: './act-as-log.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './act-as-log.component.scss'
 })
 export class ActAsLogComponent implements OnInit {

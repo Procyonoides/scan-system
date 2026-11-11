@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StockService } from '../../../core/services/stock.service';
@@ -35,6 +35,7 @@ interface WarehouseUpdate {
     selector: 'app-stock',
     imports: [CommonModule, FormsModule],
     templateUrl: './stock.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './stock.component.scss'
 })
 export class StockComponent implements OnInit, OnDestroy {

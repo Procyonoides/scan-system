@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +18,7 @@ interface MenuItem {
     selector: 'app-sidebar',
     imports: [RouterModule, MatIconModule],
     templateUrl: './sidebar.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent implements OnInit {

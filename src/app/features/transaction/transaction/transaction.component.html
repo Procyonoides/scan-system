@@ -364,10 +364,10 @@
                       <div class="card bg-light">
                         <div class="card-body">
                           <p class="mb-1"><strong>Date:</strong> {{ selectedTransaction?.date }}</p>
-                          <p class="mb-1"><strong>First Stock:</strong> {{ selectedTransaction?.stock_awal | number }}</p>
-                          <p class="mb-1"><strong>Receiving:</strong> {{ selectedTransaction?.receiving | number }}</p>
-                          <p class="mb-1"><strong>Shipping:</strong> {{ selectedTransaction?.shipping | number }}</p>
-                          <p class="mb-0"><strong>Warehouse Stock:</strong> {{ selectedTransaction?.stock_akhir | number }}</p>
+                          <p class="mb-1"><strong>First Stock:</strong> {{ $safeNavigationMigration(selectedTransaction?.stock_awal) | number }}</p>
+                          <p class="mb-1"><strong>Receiving:</strong> {{ $safeNavigationMigration(selectedTransaction?.receiving) | number }}</p>
+                          <p class="mb-1"><strong>Shipping:</strong> {{ $safeNavigationMigration(selectedTransaction?.shipping) | number }}</p>
+                          <p class="mb-0"><strong>Warehouse Stock:</strong> {{ $safeNavigationMigration(selectedTransaction?.stock_akhir) | number }}</p>
                         </div>
                       </div>
                       @if (errorMessage) {

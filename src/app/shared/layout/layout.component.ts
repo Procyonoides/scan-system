@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -13,6 +13,7 @@ import { SidebarStateService } from '../services/sidebar-state.service';
     selector: 'app-layout',
     imports: [RouterModule, NavbarComponent, SidebarComponent, FooterComponent],
     templateUrl: './layout.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './layout.component.scss'
 })
 export class LayoutComponent implements OnInit, OnDestroy {

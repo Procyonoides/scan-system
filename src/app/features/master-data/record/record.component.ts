@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 import { HttpClient } from '@angular/common/http';
@@ -18,6 +18,7 @@ import { NgxDaterangepickerMd, LOCALE_CONFIG, LocaleService } from 'ngx-daterang
         { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
     ],
     templateUrl: './record.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './record.component.scss'
 })
 export class RecordComponent implements OnInit, OnDestroy {

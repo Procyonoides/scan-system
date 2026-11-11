@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -47,6 +47,7 @@ interface ScanResponse {
     selector: 'app-scan-shipping',
     imports: [ReactiveFormsModule, FormsModule],
     templateUrl: './scan-shipping.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './scan-shipping.component.scss'
 })
 export class ScanShippingComponent implements OnInit, OnDestroy, AfterViewInit {

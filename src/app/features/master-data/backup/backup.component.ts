@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
     selector: 'app-backup',
     imports: [FormsModule, ReactiveFormsModule, RouterModule],
     templateUrl: './backup.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './backup.component.scss'
 })
 export class BackupComponent implements OnInit {

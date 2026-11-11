@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -38,6 +38,7 @@ interface FilterOptions {
     selector: 'app-master-data',
     imports: [ReactiveFormsModule, FormsModule, RouterModule],
     templateUrl: './master-data.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './master-data.component.scss'
 })
 export class MasterDataComponent implements OnInit, OnDestroy {

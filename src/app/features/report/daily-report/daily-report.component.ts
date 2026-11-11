@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -36,6 +36,7 @@ interface FilterOptions {
         { provide: LocaleService, useClass: LocaleService, deps: [LOCALE_CONFIG] }
     ],
     templateUrl: './daily-report.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './daily-report.component.scss'
 })
 export class DailyReportComponent implements OnInit {

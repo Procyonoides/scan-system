@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService, Transaction } from '../../../core/services/transaction.service';
@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/auth/auth.service';
     selector: 'app-transaction',
     imports: [CommonModule, FormsModule],
     templateUrl: './transaction.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './transaction.component.scss'
 })
 export class TransactionComponent implements OnInit {
